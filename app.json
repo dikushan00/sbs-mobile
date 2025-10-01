@@ -2,7 +2,7 @@
   "expo": {
     "name": "Smart Build System",
     "slug": "smart-build-system",
-    "version": "1.0.14",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sbs",
@@ -43,7 +43,7 @@
       "config": {
         "usesNonExemptEncryption": false
       },
-      "buildNumber": "22"
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -51,7 +51,6 @@
         "backgroundColor": "#ffffff"
       },
       "package": "kz.smartremont.sbs",
-      "versionCode": 16,
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.USE_BIOMETRIC",
