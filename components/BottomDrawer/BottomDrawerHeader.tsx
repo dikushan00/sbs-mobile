@@ -1,0 +1,54 @@
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Icon } from "../Icon";
+import { FONT } from "@/constants";
+import { useSelector } from "react-redux";
+import { appState } from "@/services/redux/reducers/app";
+
+export const BottomDrawerHeader = ({
+  handleClose,
+  title,
+}: {
+  handleClose: () => void;
+  title: string;
+}) => {
+  const {
+    bottomDrawerData: { loading },
+  } = useSelector(appState);
+
+  const onClose = () => {
+    if(loading) return
+    handleClose && handleClose()
+  }
+  return (
+    <View style={styles.header}>
+      <Text style={styles.title}>{title || ""}</Text>
+      <Pressable onPress={onClose}>
+        <View style={styles.close}>
+          <Icon name="close" />
+        </View>
+      </Pressable>
+    </View>
+  );
+};
+const styles = StyleSheet.create({
+  title: {
+    fontSize: 18,
+    fontFamily: FONT.bold,
+    width: "83%",
+  },
+  header: {
+    marginTop: -10,
+    marginBottom: 5,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  close: {
+    backgroundColor: "#f6f6f6",
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "50%",
+  },
+});

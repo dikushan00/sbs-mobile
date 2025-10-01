@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "693387586247",
+    "project_id": "smart-build-system-57f29",
+    "storage_bucket": "smart-build-system-57f29.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:693387586247:android:3beb8ba5b9eee28491ece2",
+        "android_client_info": {
+          "package_name": "kz.smartremont.sbs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBC5Ow_LvPNK6acTzjcG4yIWWqSxGP1p7Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
