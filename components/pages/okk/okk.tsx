@@ -5,7 +5,7 @@ import { NotFound } from "@/components/common/NotFound";
 import { COLORS, STORAGE_KEYS } from "@/constants";
 import { setPageSettings } from "@/services/redux/reducers/app";
 import {
-  getProjectOkkData,
+  getOkkData,
   setPageHeaderData,
   userAppState,
 } from "@/services/redux/reducers/userApp";
@@ -22,7 +22,6 @@ import {
   View,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { ProjectOkkDetail } from "./ProjectOkkDetail";
 import {
   CheckListPointsType,
   Entrance,
@@ -30,34 +29,32 @@ import {
   okkStatusesData,
   OkkStatusKeyType,
   PointType,
-  ProjectOkkTaskType,
+  OkkTaskType,
 } from "./services";
+import { OkkDetail } from "./OkkDetail";
 
-export const ProjectOkk = () => {
+export const Okk = () => {
   const dispatch = useDispatch();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeCallId, setActiveCallId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<OkkStatusKeyType>(
     okkStatuses.PROCESSING as "PROCESSING"
   );
-  const [selectedData, setSelectedData] = useState<ProjectOkkTaskType | null>(
-    null
-  );
+  const [selectedData, setSelectedData] = useState<OkkTaskType | null>(null);
   const [params, setParams] = useState({
     resident_id: null,
     entrance: null,
     project_id: null,
   });
   const [localPoints, setLocalPoints] = useState<CheckListPointsType[]>([]);
-  const { projectOkkData, isRemontsFetching: isFetching } =
-    useSelector(userAppState);
+  const { okkData, isFetching } = useSelector(userAppState);
 
   const getData = async (
     isRefreshing = false,
     controller?: AbortController
   ) => {
     dispatch(
-      getProjectOkkData(
+      getOkkData(
         setIsRefreshing,
         { signal: controller?.signal, params: { okk_status_code: activeTab } },
         isRefreshing
@@ -134,11 +131,11 @@ export const ProjectOkk = () => {
       };
     });
     return tabs;
-  }, [projectOkkData]);
+  }, [okkData]);
 
   const entrances = useMemo(() => {
-    if (!projectOkkData?.length || !params.resident_id) return [];
-    const residents = projectOkkData?.filter(
+    if (!okkData?.length || !params.resident_id) return [];
+    const residents = okkData?.filter(
       (item) => item.resident_id === params.resident_id
     );
     let filteredEntrances: Entrance[] = [];
@@ -161,21 +158,21 @@ export const ProjectOkk = () => {
     });
 
     return filteredEntrances;
-  }, [projectOkkData, params.resident_id]);
+  }, [okkData, params.resident_id]);
 
   const calls = useMemo(() => {
-    if (!projectOkkData?.length) return [];
+    if (!okkData?.length) return [];
     if (params.entrance) {
       const entrance = entrances?.find(
         (item) => item.entrance === params.entrance
       );
       return entrance?.calls || [];
     }
-    if (!projectOkkData?.length) return [];
+    if (!okkData?.length) return [];
 
     if (params.resident_id) {
-      let calls: ProjectOkkTaskType[] = [];
-      const residents = projectOkkData.filter(
+      let calls: OkkTaskType[] = [];
+      const residents = okkData.filter(
         (item) => item.resident_id === params.resident_id
       );
       residents.forEach((resident) => {
@@ -186,14 +183,14 @@ export const ProjectOkk = () => {
       return calls || [];
     }
 
-    let calls: ProjectOkkTaskType[] = [];
-    projectOkkData.forEach((item) => {
+    let calls: OkkTaskType[] = [];
+    okkData.forEach((item) => {
       item.entrances?.forEach((ent) => {
         if (ent.calls) calls = [...calls, ...ent.calls];
       });
     });
     return calls || [];
-  }, [projectOkkData, params.entrance, params.resident_id, entrances]);
+  }, [okkData, params.entrance, params.resident_id, entrances]);
 
   useEffect(() => {
     if (calls && selectedData?.help_call_id) {
@@ -204,7 +201,7 @@ export const ProjectOkk = () => {
     }
   }, [calls, selectedData]);
 
-  const getPointsData = (call: ProjectOkkTaskType) => {
+  const getPointsData = (call: OkkTaskType) => {
     const callCheckLists = localPoints?.filter(
       (item) => item.help_call_id === call.help_call_id
     );
@@ -254,8 +251,8 @@ export const ProjectOkk = () => {
 
   const residentOptions = useMemo(() => {
     const options: { resident_id: number; resident_name: string }[] = [];
-    if (projectOkkData?.length) {
-      projectOkkData.forEach((item) => {
+    if (okkData?.length) {
+      okkData.forEach((item) => {
         const isExist = options.find(
           (opt) => opt.resident_id === item.resident_id
         );
@@ -267,11 +264,11 @@ export const ProjectOkk = () => {
       });
     }
     return options;
-  }, [projectOkkData]);
+  }, [okkData]);
 
   if (selectedData?.help_call_id)
     return (
-      <ProjectOkkDetail
+      <OkkDetail
         data={selectedData}
         onBack={onBack}
         isEditable={activeTab === "PROCESSING"}
@@ -298,7 +295,7 @@ export const ProjectOkk = () => {
           onChange={onTabChange}
         />
       </View>
-      {projectOkkData?.length ? (
+      {okkData?.length ? (
         <View style={{ gap: 10, marginTop: 5 }}>
           <CustomSelect
             list={residentOptions}

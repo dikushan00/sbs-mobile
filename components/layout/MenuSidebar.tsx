@@ -1,6 +1,7 @@
-import { COLORS, FONT, PAGE_NAMES } from "@/constants";
+import { COLORS, FONT } from "@/constants";
 import { getPrimaryColor } from "@/services";
-import { appState, showWebViewMode } from "@/services/redux/reducers/app";
+import { AppDispatch } from "@/services/redux";
+import { appState } from "@/services/redux/reducers/app";
 import { logout, userAppState } from "@/services/redux/reducers/userApp";
 import { MenuItem } from "@/services/redux/types";
 import { AntDesign, SimpleLineIcons } from "@expo/vector-icons";
@@ -11,27 +12,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Badge } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
-import { useSnackbar } from "../snackbar/SnackbarContext";
-import { Badge } from "react-native-paper";
-import { AppDispatch } from "@/services/redux";
 
 export const MenuSidebar = ({ navigation }: { navigation: any }) => {
   const dispatch = useDispatch<AppDispatch>();
   const insets = useSafeAreaInsets();
-  const { showErrorSnackbar } = useSnackbar();
-  const { menu, loginData, userData, logoutLoading } =
-    useSelector(userAppState);
+  const { menu, userData, logoutLoading } = useSelector(userAppState);
   const { newVersionBannerShowed } = useSelector(appState);
 
   const handleMenuClick = (menuItem: MenuItem) => {
     if (!menuItem?.menu_action || menuItem?.sub_menus?.length) return;
-    if (menuItem.menu_action === "remontsPage") {
-      if (!loginData?.token?.access)
-        return showErrorSnackbar("Отсутствует подключение к интернету!");
-      return dispatch(showWebViewMode());
-    }
     if (menuItem.what)
       return navigation.navigate(menuItem.menu_action, {
         status: menuItem.what,
@@ -131,7 +123,7 @@ const MenuItemBlock = ({
             {data.count}
           </Badge>
         )}
-        {data.menu_action === "remontsPage" && (
+        {data.menu_action === "web" && (
           <Text style={styles.drawerItemTextWeb}>WEB</Text>
         )}
       </TouchableOpacity>

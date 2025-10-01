@@ -1,27 +1,20 @@
 import { NotificationsResponse } from "@/components/pages/notifications/services";
-import { RemontType, WorkType } from "@/components/pages/remonts/types";
 import { STORAGE_KEYS } from "@/constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MenuItem, OfflineActionType, UserDataType } from "./redux/types";
-import { WorkStatusesKeyType } from "@/components/pages/remonts/services";
 import {
   CheckListPointsType,
   OkkStatusKeyType,
-  ProjectOkkDataType,
-} from "@/components/pages/projectOkk/services";
+  OkkDataType,
+} from "@/components/pages/okk/services";
 
 type StorageKeyType = keyof typeof STORAGE_KEYS;
 type StorageDataMap = {
-  [STORAGE_KEYS.remonts]: RemontType[] | null;
-  [STORAGE_KEYS.projectOkkData]: Record<
-    OkkStatusKeyType,
-    ProjectOkkDataType[]
-  > | null;
+  [STORAGE_KEYS.okkData]: Record<OkkStatusKeyType, OkkDataType[]> | null;
   [STORAGE_KEYS.checkListPoints]: CheckListPointsType[] | null;
   [STORAGE_KEYS.menu]: MenuItem[] | null;
   [STORAGE_KEYS.userData]: UserDataType | null;
   [STORAGE_KEYS.offlineActions]: OfflineActionType[] | null;
-  [STORAGE_KEYS.tasks]: Record<WorkStatusesKeyType, WorkType[]> | null;
   [STORAGE_KEYS.notifications]: NotificationsResponse[] | null;
 };
 
@@ -88,12 +81,10 @@ export const storageService = (function () {
 
   async function _getAllData(): Promise<StorageDataMap> {
     const data: StorageDataMap = {
-      remonts: null,
-      projectOkkData: null,
+      okkData: null,
       userData: null,
       menu: null,
       offlineActions: null,
-      tasks: null,
       notifications: null,
       checkListPoints: null,
     };

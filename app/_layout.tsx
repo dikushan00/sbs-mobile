@@ -6,7 +6,8 @@ import { NavigationBlock } from "@/components/layout/NavigationBlock";
 import { NewVersionBanner } from "@/components/layout/NewVersionBanner";
 import { SnackbarProvider } from "@/components/snackbar/SnackbarContext";
 import { WebViewBlock } from "@/components/webView";
-import { COLORS, STORE_KEYS } from "@/constants";
+import { COLORS } from "@/constants";
+import { doOfflineActions } from "@/services";
 import {
   appState,
   closeBottomDrawer,
@@ -14,6 +15,7 @@ import {
   initialize,
   setNetworkStatus,
 } from "@/services/redux/reducers/app";
+import { getMenuData, userAppState } from "@/services/redux/reducers/userApp";
 import { Roboto_500Medium } from "@expo-google-fonts/dev";
 import {
   Roboto_900Black as RobotoBlack,
@@ -30,7 +32,6 @@ import {
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, BackHandler, Platform, StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -42,12 +43,6 @@ import {
 } from "react-native-safe-area-context";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { AppDispatch, store } from "../services/redux";
-import { doOfflineActions } from "@/services";
-import {
-  getMenuData,
-  setIsProjectOkk,
-  userAppState,
-} from "@/services/redux/reducers/userApp";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -61,7 +56,9 @@ export default function RootLayout() {
             backgroundColor={COLORS.background}
             barStyle={"dark-content"}
           />
-          <SafeAreaProvider style={{ paddingTop: Platform.OS === "ios" ? 0 :insets.top }}>
+          <SafeAreaProvider
+            style={{ paddingTop: Platform.OS === "ios" ? 0 : insets.top }}
+          >
             <SnackbarProvider>
               <NewVersionBanner />
               <NavigationIndependentTree>
@@ -109,17 +106,6 @@ export const Content = () => {
 
   useEffect(() => {
     dispatch(initialize());
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const isProjectOkk = await SecureStore.getItemAsync(
-          STORE_KEYS.isProjectOkk
-        );
-        dispatch(setIsProjectOkk(isProjectOkk === "true"));
-      } catch (e) {}
-    })();
   }, []);
 
   useEffect(() => {

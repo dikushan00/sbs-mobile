@@ -1,19 +1,19 @@
 import { instance } from "@/services/api";
+import { ReqResponse } from "@/services/types";
+import { OkkDataType } from ".";
 
 export const okkAPI = {
-  async getOkkRemonts(signal?: AbortSignal) {
+  async getOkkData(
+    params = {},
+    signal?: AbortSignal
+  ): Promise<ReqResponse<OkkDataType[]>> {
     return instance()
-      .get(`mobile/okk/remonts/`, { signal })
+      .get(`mobile/read/`, { params, signal })
       .then((res) => res?.data);
   },
-  async getOkkRemont(remontId: number, signal?: AbortSignal) {
+  async sendCheck(body: any) {
     return instance()
-      .get(`mobile/okk/remonts/${remontId}/`, { signal })
-      .then((res) => res?.data);
-  },
-  async okkCheck(remontId: number, body: FormData) {
-    return instance()
-      .post(`mobile/okk/remonts/${remontId}/okk_check/`, body, {
+      .post(`mobile/okk_check/`, body, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

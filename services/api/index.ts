@@ -1,5 +1,5 @@
 import { doLogin } from "@/components/login/services";
-import { apiUrl, MASTER_API, STORE_KEYS } from "@/constants";
+import { apiUrl, STORE_KEYS } from "@/constants";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import * as Updates from "expo-updates";
@@ -33,10 +33,6 @@ export const instance = (
   if (authorization) {
     axiosInstance.interceptors.request.use(
       async (config) => {
-        const isProjectOkk = await SecureStore.getItemAsync(
-          STORE_KEYS.isProjectOkk
-        );
-        if (isProjectOkk === "true") config.baseURL = url || MASTER_API;
         const token = await SecureStore.getItemAsync(STORE_KEYS.accessToken);
         config.headers.Authorization = `Bearer ${token}`;
         return config;
@@ -90,10 +86,7 @@ export const instance = (
           let newAccessToken: string | undefined = "";
           const data = await getUserCredentials();
           if (!data) return { data: { status: false, errorCode: 401 } };
-          const isProjectOkk = await SecureStore.getItemAsync(
-            STORE_KEYS.isProjectOkk
-          );
-          const res = await doLogin(data, undefined, isProjectOkk === "true");
+          const res = await doLogin(data, undefined);
           if (res?.status) {
             //@ts-ignore
             newAccessToken = res?.token?.access;

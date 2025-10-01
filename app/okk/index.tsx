@@ -1,17 +1,17 @@
 import { okkStatuses } from "@/components/pages/okk/services";
-import { ProjectOkk } from "@/components/pages/projectOkk/ProjectOkk";
+import { Okk } from "@/components/pages/okk/okk";
 import { PageWrapper } from "@/components/PageWrapper";
-import { getProjectOkkData } from "@/services/redux/reducers/userApp";
+import { getOkkData } from "@/services/redux/reducers/userApp";
 import React, { useCallback } from "react";
 import { useDispatch } from "react-redux";
 
-const ProjectOkkPage = () => {
+const OkkPage = () => {
   const dispatch = useDispatch();
 
   const getData = useCallback(
     async (controller?: AbortController) => {
       dispatch(
-        getProjectOkkData(
+        getOkkData(
           () => {},
           {
             signal: controller?.signal,
@@ -26,8 +26,8 @@ const ProjectOkkPage = () => {
 
   return (
     <PageWrapper getData={getData}>
-      <ProjectOkk />
+      <Okk />
     </PageWrapper>
   );
 };
-export default ProjectOkkPage;
+export default OkkPage;

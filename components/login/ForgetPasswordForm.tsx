@@ -11,7 +11,7 @@ import { showBottomDrawer } from "@/services/redux/reducers/app";
 import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/services";
 
 export const ForgetPasswordForm = () => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const { showErrorSnackbar, showSuccessSnackbar } = useSnackbar();
   const [formData, setFormData] = useState({ email: "" });
@@ -32,21 +32,24 @@ export const ForgetPasswordForm = () => {
       showBottomDrawer({
         type: BOTTOM_DRAWER_KEYS.selectModule,
         data: {
-          btnLabel: 'Сбросить пароль',
-          modules: [{type: 'master', res: null}, {type: 'okk', res: null}], 
-          onSubmit: async (_: any, type: string) => {
-            const isProjectOkk = type === 'okk'
-
+          btnLabel: "Сбросить пароль",
+          modules: [
+            { type: "master", res: null },
+            { type: "okk", res: null },
+          ],
+          onSubmit: async () => {
             setLoading(true);
-            const res = await requestNewPassword(formData, isProjectOkk);
+            const res = await requestNewPassword(formData);
             setLoading(false);
             if (!res) return;
-            showSuccessSnackbar("Новый пароль был отправлен на указанную почту");
+            showSuccessSnackbar(
+              "Новый пароль был отправлен на указанную почту"
+            );
             navigation.navigate(PAGE_NAMES.login as never);
-          }
+          },
         },
       })
-    )
+    );
   };
 
   return (

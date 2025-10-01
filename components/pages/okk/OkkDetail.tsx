@@ -16,14 +16,14 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import uuid from "react-native-uuid";
 import { useDispatch } from "react-redux";
-import { FileType } from "../remonts/types";
 import { CheckList } from "./CheckList";
 import { Schema, schemaHeight } from "./Schema";
 import { CheckListSubmitBtns } from "./checkListSubmitBtns";
-import { PointType, ProjectOkkTaskType } from "./services";
+import { PointType, OkkTaskType } from "./services";
+import { FileType } from "@/services/types";
 
 type PropsType = {
-  data: ProjectOkkTaskType | null;
+  data: OkkTaskType | null;
   isFetching?: boolean;
   isEditable?: boolean;
   onBack: (n?: boolean) => void;
@@ -31,7 +31,7 @@ type PropsType = {
 
 const { width, height: windowHeight } = Dimensions.get("window");
 
-export const ProjectOkkDetail = ({
+export const OkkDetail = ({
   data: dataProps,
   isFetching,
   isEditable,
@@ -41,7 +41,7 @@ export const ProjectOkkDetail = ({
   const [activeCheckListId, setActiveCheckListId] = useState<number | null>(
     null
   );
-  const [data, setData] = useState<ProjectOkkTaskType | null>(null);
+  const [data, setData] = useState<OkkTaskType | null>(null);
   const [activePoint, setActivePoint] = useState<{
     x: number;
     y: number;

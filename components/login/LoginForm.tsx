@@ -3,7 +3,6 @@ import { getUserCredentials } from "@/services";
 import {
   resetAuthData,
   setAuth,
-  setIsProjectOkk,
   setLoginData,
 } from "@/services/redux/reducers/userApp";
 import { AuthLoginData } from "@/services/types";
@@ -17,9 +16,8 @@ import { useDispatch } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
 import { useSnackbar } from "../snackbar/SnackbarContext";
 import styles from "./login.style";
-import { handleLoginResData, loginFormReq } from "./services";
-import { showBottomDrawer } from "@/services/redux/reducers/app";
-import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/services";
+import { handleLoginResData } from "./services";
+import { loginAPI } from "./services/api";
 
 export const LoginForm = ({ disabled = false }) => {
   const dispatch = useDispatch();
@@ -44,7 +42,7 @@ export const LoginForm = ({ disabled = false }) => {
         isAllowedBiometry = await SecureStore.getItemAsync(
           STORE_KEYS.allowBiometry
         );
-      } catch (e) { }
+      } catch (e) {}
       const isBiometryEnabled = compatible && isAllowedBiometry === "true";
 
       const biometryData = await getUsernameAndPassword();
@@ -71,7 +69,7 @@ export const LoginForm = ({ disabled = false }) => {
       compatible =
         (await LocalAuthentication.hasHardwareAsync()) &&
         (await LocalAuthentication.isEnrolledAsync());
-    } catch (e) { }
+    } catch (e) {}
     if (!compatible) return saveAuthData(data);
     await Alert.alert(
       "Авторизация",
@@ -105,7 +103,7 @@ export const LoginForm = ({ disabled = false }) => {
       if (success) {
         onSubmit(true, data);
       }
-    } catch (error) { }
+    } catch (error) {}
   };
 
   const saveAuthData = async (data: AuthLoginData) => {
@@ -113,7 +111,7 @@ export const LoginForm = ({ disabled = false }) => {
       await SecureStore.setItemAsync(STORE_KEYS.allowBiometry, "true");
       await SecureStore.setItemAsync(STORE_KEYS.login, data.login);
       await SecureStore.setItemAsync(STORE_KEYS.password, data.password);
-    } catch (e) { }
+    } catch (e) {}
   };
 
   type BodyType = AuthLoginData & {
@@ -121,8 +119,11 @@ export const LoginForm = ({ disabled = false }) => {
     is_mobile?: boolean;
   };
 
-  const handleLoginRes = async (res: { token: { access: string; refresh: string } }, isBiometric: boolean | undefined, body: BodyType) => {
-
+  const handleLoginRes = async (
+    res: { token: { access: string; refresh: string } },
+    isBiometric: boolean | undefined,
+    body: BodyType
+  ) => {
     let newBiometricUser = false;
     if (!isBiometric) {
       const authData = await getUsernameAndPassword();
@@ -151,7 +152,7 @@ export const LoginForm = ({ disabled = false }) => {
     }
     dispatch(setAuth(true));
     dispatch(setLoginData(res));
-  }
+  };
 
   const onSubmit = async (
     isBiometric?: boolean,
@@ -170,34 +171,31 @@ export const LoginForm = ({ disabled = false }) => {
         return showErrorSnackbar("Заполните обязательные поля!");
     }
     setLoading(true);
-    const res = await loginFormReq(body);
+    const res = await loginAPI.login(body, {
+      showSnackbar: false,
+      throwError: false,
+    });
     setLoading(false);
     if (!res) return isBiometric && (await resetAuthData());
-    if (res?.length === 1) {
-      const loginRes = res[0].res
-      if (loginRes) {
-        dispatch(setIsProjectOkk(res[0].type === 'okk'))
-        handleLoginRes(loginRes, isBiometric, body)
-        await handleLoginResData(loginRes, res[0].type === 'okk', dispatch)
-      }
-      return
-    }
 
-    dispatch(
-      showBottomDrawer({
-        type: BOTTOM_DRAWER_KEYS.selectModule,
-        data: {
-          modules: res, onSubmit: async (res: any, type: string) => {
-            if (res) {
-              dispatch(setIsProjectOkk(type === 'okk'))
-              //@ts-ignore
-              handleLoginRes(res, isBiometric, body)
-              await handleLoginResData(res, type === 'okk', dispatch)
-            }
-          }
-        },
-      })
-    )
+    handleLoginRes(res, isBiometric, body);
+    await handleLoginResData(res, dispatch);
+
+    // dispatch(
+    //   showBottomDrawer({
+    //     type: BOTTOM_DRAWER_KEYS.selectModule,
+    //     data: {
+    //       modules: res,
+    //       onSubmit: async (res: any, type: string) => {
+    //         if (res) {
+    //           //@ts-ignore
+    //           handleLoginRes(res, isBiometric, body);
+    //           await handleLoginResData(res, type === "okk", dispatch);
+    //         }
+    //       },
+    //     },
+    //   })
+    // );
   };
 
   return (

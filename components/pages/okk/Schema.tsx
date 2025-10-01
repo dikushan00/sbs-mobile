@@ -1,4 +1,4 @@
-import { COLORS, MASTER_API } from "@/constants";
+import { apiUrl, COLORS } from "@/constants";
 import { getFileInfo } from "@/utils";
 import * as FileSystem from "expo-file-system";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -25,20 +25,20 @@ import Animated, {
 import Svg, { Circle } from "react-native-svg";
 import { SchemaZoomControl } from "./SchemaZoomControl";
 import {
-  PointType,
-  ProjectOkkTaskType,
   downloadSchemaImage,
   getCircleRadius,
   getCircleStrokeColor,
   getCircleStrokeWidth,
   getImageSize,
+  PointType,
+  OkkTaskType,
 } from "./services";
 
 const { width } = Dimensions.get("window");
 export const schemaHeight = 400;
 
 type PropsType = {
-  data: ProjectOkkTaskType | null;
+  data: OkkTaskType | null;
   activePointId: string | number | null;
   isEditable?: boolean;
   showAllPoints?: boolean;
@@ -92,7 +92,7 @@ export const Schema = ({
     if (!data?.file_url) return;
     const uri = downloaded
       ? `${FileSystem.documentDirectory}${schemaFileName}`
-      : `${MASTER_API}${data?.file_url}`;
+      : `${apiUrl}${data?.file_url}`;
 
     const getSize = async () => {
       if (downloaded && Platform.OS === "android") {
@@ -288,7 +288,7 @@ export const Schema = ({
                     source={{
                       uri: downloaded
                         ? `${FileSystem.documentDirectory}${schemaFileName}`
-                        : `${MASTER_API}${data?.file_url}`,
+                        : `${apiUrl}${data?.file_url}`,
                     }}
                     style={styles.image}
                     resizeMode="contain"
@@ -320,7 +320,7 @@ export const Schema = ({
                           pointerEvents="auto"
                         />
                       ))}
-                  
+
                     {/* {displayedSize &&
                       data?.points?.map((pt: PointCoordType) => (
                         pt.coord_type === 'LINESTRING' && <Line

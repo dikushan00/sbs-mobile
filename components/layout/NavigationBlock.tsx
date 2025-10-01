@@ -12,11 +12,11 @@ import { useSelector } from "react-redux";
 
 const Drawer = createDrawerNavigator();
 export const NavigationBlock = () => {
-  const { auth, isOkk, isProjectOkk } = useSelector(userAppState);
+  const { auth, isOkk } = useSelector(userAppState);
 
   const routes = useMemo(
-    () => (auth ? getAuthRoutes(isOkk, isProjectOkk) : unAuthenticatedRoutes),
-    [auth, isOkk, isProjectOkk]
+    () => (auth ? getAuthRoutes(isOkk) : unAuthenticatedRoutes),
+    [auth, isOkk]
   );
 
   return (
@@ -32,13 +32,7 @@ export const NavigationBlock = () => {
           <PageHeader navigation={navigation} params={props.route.params} />
         ),
       })}
-      initialRouteName={
-        auth
-          ? isProjectOkk
-            ? PAGE_NAMES.main
-            : PAGE_NAMES.remontList
-          : PAGE_NAMES.login
-      }
+      initialRouteName={auth ? PAGE_NAMES.main : PAGE_NAMES.login}
     >
       {routes.map((item) => {
         const Component = item.component;

@@ -4,15 +4,13 @@ import {
   LoginResponseType,
 } from "@/services/types";
 import { instance } from "../../../services/api";
-import { MASTER_API } from "@/constants";
 
 export const loginAPI = {
   async login(
     body: AuthLoginData,
-    isProjectOkk: boolean,
     options: { showSnackbar?: boolean; throwError?: boolean } = {}
   ): Promise<LoginResponseType> {
-    return await instance(false, options, isProjectOkk ? MASTER_API : null)
+    return await instance(false, options)
       .post("auth/login/", body)
       .then((res) => res?.data);
   },
@@ -21,9 +19,9 @@ export const loginAPI = {
       .post("auth/signup/", body)
       .then((res) => res?.data);
   },
-  async requestNewPassword(body: { email: string }, isProjectOkk: boolean) {
-    return await instance(false, {}, isProjectOkk ? MASTER_API : null)
-      .post(`auth/${isProjectOkk ? 'reset_password' : 'password_reset'}/`, body)
+  async requestNewPassword(body: { email: string }) {
+    return await instance(false)
+      .post(`auth/reset_password/`, body)
       .then((res) => res?.data);
   },
   async checkAuth(body: { token: string }) {

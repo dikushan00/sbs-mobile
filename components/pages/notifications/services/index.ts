@@ -1,9 +1,8 @@
-import { STORAGE_KEYS, STORE_KEYS } from "@/constants";
+import { STORAGE_KEYS } from "@/constants";
 import { storageService } from "@/services/storage";
 import { NotificationType } from "@/services/types";
-import { notificationsAPI } from "./api";
 import { format } from "date-fns";
-import * as SecureStore from "expo-secure-store";
+import { notificationsAPI } from "./api";
 
 export type NotificationsResponse = {
   day_date: string;
@@ -14,10 +13,7 @@ export const getNotifications = async (
   signal?: AbortSignal
 ): Promise<NotificationsResponse[] | undefined> => {
   try {
-    const isProjectOkk = await SecureStore.getItemAsync(
-      STORE_KEYS.isProjectOkk 
-    );
-    if(isProjectOkk === 'true') return
+    return;
     const res = await notificationsAPI.getList(signal);
     if (res?.data) {
       await storageService.setData(STORAGE_KEYS.notifications, res?.data);

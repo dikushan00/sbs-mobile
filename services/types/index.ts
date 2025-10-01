@@ -13,8 +13,8 @@ export interface LoginResponseType {
 export type AuthLoginData = {
   login: string;
   password: string;
-  is_mobile?: boolean
-  mobile_token?: string
+  is_mobile?: boolean;
+  mobile_token?: string;
 };
 
 export type AuthRegisterData = {
@@ -32,3 +32,14 @@ export interface NotificationType {
   remont_id?: number | null;
   date_create: string;
 }
+
+export type FileType = {
+  uri: string;
+  name: string;
+  type: string;
+  desc?: string;
+  room_id?: number;
+  checked?: boolean;
+  deletable?: boolean;
+  file?: Blob | undefined | null;
+};

@@ -1,13 +1,8 @@
 import { MODAL_NAMES } from "@/components/Modal/services";
-import { okkCheck } from "@/components/pages/okk/services";
-import { sendProjectOkkCheck } from "@/components/pages/projectOkk/services";
-import {
-  beforeWorkCheck,
-  passKeys,
-  receiveKeys,
-  submitWork,
-} from "@/components/pages/remonts/services";
-import { COLORS, STORE_KEYS, webUrl } from "@/constants";
+import { sendOkkCheck } from "@/components/pages/okk/services";
+import { COLORS, STORAGE_KEYS, STORE_KEYS, webUrl } from "@/constants";
+import { generateRandomString } from "@/utils";
+import { format } from "date-fns";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
@@ -20,7 +15,7 @@ import {
   setShouldPageDataReload,
   showModal,
 } from "./redux/reducers/app";
-import { MenuItem, UserDataType } from "./redux/types";
+import { MenuItem, OfflineActionType, UserDataType } from "./redux/types";
 import { storageService } from "./storage";
 import { AuthLoginData, LoginResponseType } from "./types";
 
@@ -39,11 +34,9 @@ export const getUserCredentials = async (): Promise<
   } catch (error) {}
 };
 
-export const getUserData = async (
-  isProjectOkk: boolean
-): Promise<UserDataType | undefined> => {
+export const getUserData = async (): Promise<UserDataType | undefined> => {
   try {
-    return await appAPI.getUserData(!!isProjectOkk);
+    return await appAPI.getUserData();
   } catch (e) {}
 };
 
@@ -119,30 +112,72 @@ export const getPrimaryColor = (disabled: boolean = false): string =>
   disabled ? COLORS.primaryDisabled : COLORS.primary;
 
 export const offlineActionsKeys = {
-  beforeWorkCheck: "beforeWorkCheck",
   submitWork: "submitWork",
-  receiveKeys: "receiveKeys",
-  passKeys: "passKeys",
-  okkCheck: "okkCheck",
-  sendProjectOkkCheck: "sendProjectOkkCheck",
+  sendOkkCheck: "sendOkkCheck",
 };
 
 export type OfflineActionKeyType = keyof typeof offlineActionsKeys;
 
+type FileBodyType = {
+  work_set_id: number | undefined;
+  file?: { uri: string; type: string; room_id?: number };
+};
+
+const fillFormData = (data: FileBodyType): FormData => {
+  const formData = new FormData();
+  formData.append("work_set_id", String(data.work_set_id));
+  formData.append("date_submitted", format(new Date(), "dd.MM.yyyy HH:mm:ss"));
+  data.file &&
+    formData.append("media", {
+      uri: data?.file.uri,
+      name: data?.file.uri.split("/").pop(),
+      type: data?.file.type,
+    } as any);
+  if (data?.file?.room_id)
+    formData.append("room_id", String(data?.file.room_id));
+  return formData;
+};
+export const workStatuses = {
+  ALL: "ALL",
+  NOT_STARTED: "NOT_STARTED",
+  STARTED: "STARTED",
+  SENT_VERIFICATION: "SENT_VERIFICATION",
+  ON_CORRECTION: "ON_CORRECTION",
+  DONE: "DONE",
+};
+
+export type WorkStatusesKeyType = keyof typeof workStatuses;
+
+export const generateNewOfflineAction = async (
+  args: any[],
+  code: OfflineActionKeyType
+) => {
+  const newOfflineAction: OfflineActionType = {
+    id: generateRandomString(),
+    args,
+    code,
+  };
+  await storageService.addNewItem(
+    STORAGE_KEYS.offlineActions,
+    newOfflineAction
+  );
+  return true;
+};
+
+export const handleReqError = (
+  e: any,
+  args: any[],
+  code: OfflineActionKeyType
+) => {
+  if (e?.code === "ERR_NETWORK") {
+    return generateNewOfflineAction(args, code);
+  }
+};
+
 const getOfflineFunction = (code: OfflineActionKeyType) => {
   switch (code) {
-    case offlineActionsKeys.beforeWorkCheck:
-      return beforeWorkCheck;
-    case offlineActionsKeys.submitWork:
-      return submitWork;
-    case offlineActionsKeys.receiveKeys:
-      return receiveKeys;
-    case offlineActionsKeys.passKeys:
-      return passKeys;
-    case offlineActionsKeys.okkCheck:
-      return okkCheck;
-    case offlineActionsKeys.sendProjectOkkCheck:
-      return sendProjectOkkCheck;
+    case offlineActionsKeys.sendOkkCheck:
+      return sendOkkCheck;
   }
 };
 

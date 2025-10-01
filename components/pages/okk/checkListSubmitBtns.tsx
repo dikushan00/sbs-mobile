@@ -7,7 +7,7 @@ import {
   closeBottomDrawer,
   showBottomDrawer,
 } from "@/services/redux/reducers/app";
-import { onSuccessProjectOkkCheck } from "@/services/redux/reducers/userApp";
+import { onSuccessOkkCheck } from "@/services/redux/reducers/userApp";
 import FontAwesome5 from "@expo/vector-icons/build/FontAwesome5";
 import { View } from "react-native";
 import { useDispatch } from "react-redux";
@@ -52,11 +52,7 @@ export const CheckListSubmitBtns = ({
 
     if (isNetworkError) {
       dispatch(
-        onSuccessProjectOkkCheck(
-          params.resident_id,
-          params.entrance,
-          help_call_id
-        )
+        onSuccessOkkCheck(params.resident_id, params.entrance, help_call_id)
       );
       onSuccess && onSuccess();
       showSuccessSnackbar("Успешно");
@@ -66,11 +62,7 @@ export const CheckListSubmitBtns = ({
     const isFilesHasError = res?.some((item) => !item);
     if (isFilesHasError) return;
     dispatch(
-      onSuccessProjectOkkCheck(
-        params.resident_id,
-        params.entrance,
-        help_call_id
-      )
+      onSuccessOkkCheck(params.resident_id, params.entrance, help_call_id)
     );
     onSuccess && onSuccess();
     showSuccessSnackbar("Успешно");
