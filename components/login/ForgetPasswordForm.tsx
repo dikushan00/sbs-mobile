@@ -9,6 +9,7 @@ import { requestNewPassword } from "./services";
 import { useDispatch } from "react-redux";
 import { showBottomDrawer } from "@/services/redux/reducers/app";
 import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/services";
+import LogoBlue from "@/assets/images/logo_blue.svg";
 
 export const ForgetPasswordForm = () => {
   const dispatch = useDispatch();
@@ -59,28 +60,37 @@ export const ForgetPasswordForm = () => {
           <CustomLoader />
         </View>
       )}
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          placeholderTextColor="#BABABA"
-          value={formData.email}
-          onChangeText={(text) => onChange("email", text)}
-          placeholder={"Email"}
-        />
+      <View style={styles.contentContainer}>
+        <View style={styles.formContainer}>
+          <View style={styles.logoContainer}>
+            <LogoBlue width={200} height={40} />
+          </View>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholderTextColor="#BABABA"
+              value={formData.email}
+              onChangeText={(text) => onChange("email", text)}
+              placeholder={"Электронная почта"}
+            />
+          </View>
+        </View>
+        <View style={styles.bottomButtonsContainer}>
+          <TouchableOpacity
+            disabled={loading}
+            style={styles.button}
+            onPress={() => onSubmit()}
+          >
+            <Text style={styles.buttonText}>Сбросить пароль</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.textButton}
+            onPress={() => navigation.navigate(PAGE_NAMES.login as never)}
+          >
+            <Text style={styles.buttonTextPrimary}>Войти</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <TouchableOpacity
-        disabled={loading}
-        style={styles.button}
-        onPress={() => onSubmit()}
-      >
-        <Text style={styles.buttonText}>Отправить</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.textButton}
-        onPress={() => navigation.navigate(PAGE_NAMES.login as never)}
-      >
-        <Text style={styles.buttonTextPrimary}>Войти</Text>
-      </TouchableOpacity>
     </View>
   );
 };

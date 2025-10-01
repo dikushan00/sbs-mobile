@@ -1,8 +1,4 @@
-import {
-  AuthLoginData,
-  AuthRegisterData,
-  LoginResponseType,
-} from "@/services/types";
+import { AuthLoginData, LoginResponseType } from "@/services/types";
 import { instance } from "../../../services/api";
 
 export const loginAPI = {
@@ -12,11 +8,6 @@ export const loginAPI = {
   ): Promise<LoginResponseType> {
     return await instance(false, options)
       .post("auth/login/", body)
-      .then((res) => res?.data);
-  },
-  async register(body: AuthRegisterData) {
-    return await instance(false)
-      .post("auth/signup/", body)
       .then((res) => res?.data);
   },
   async requestNewPassword(body: { email: string }) {

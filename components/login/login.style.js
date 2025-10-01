@@ -7,6 +7,17 @@ const styles = StyleSheet.create({
     height: "100%",
     paddingHorizontal: SIZES.medium,
   },
+  contentContainer: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  formContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  bottomButtonsContainer: {
+    paddingBottom: 20,
+  },
   inputWrapper: {
     backgroundColor: COLORS.white,
     marginRight: SIZES.small,
@@ -22,40 +33,54 @@ const styles = StyleSheet.create({
     height: "100%",
     padding: SIZES.medium,
     backgroundColor: "#efefef",
-    borderRadius: 5,
+    borderRadius: 12,
   },
   button: {
-    marginTop: 15,
     justifyContent: "center",
-    backgroundColor: "#fa4747",
+    backgroundColor: COLORS.primary,
     height: 55,
     paddingVertical: SIZES.xxSmall,
-    borderRadius: 5,
+    borderRadius: 12,
   },
   buttonText: {
     fontSize: SIZES.medium,
     color: COLORS.white,
     textAlign: "center",
+    fontWeight: "600",
   },
   buttonTextPrimary: {
     fontSize: SIZES.medium,
     color: COLORS.primary,
     textAlign: "center",
+    fontWeight: "600",
+    marginTop: 10,
+  },
+  buttonTextPrimaryLight: {
+    fontSize: SIZES.medium,
+    color: COLORS.primaryLight,
+    textAlign: "left",
   },
   textButton: {
-    marginTop: 15,
     paddingVertical: SIZES.xSmall,
-    textAlign: "center",
+    textAlign: "left",
+    color: COLORS.primaryLight,
   },
   buttonMargin: {
     marginTop: 15,
     backgroundColor: "#3563e3",
     paddingVertical: SIZES.xSmall,
-    borderRadius: 5,
+    borderRadius: 12,
+    height: 55,
+    justifyContent: "center",
   },
   logoImage: {
     width: 40,
     height: 40,
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 50,
+    marginTop: 20,
   },
 });
 

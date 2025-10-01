@@ -1,12 +1,8 @@
 import { STORAGE_KEYS, STORE_KEYS } from "@/constants";
 import { AppDispatch } from "@/services/redux";
-import { getMenuData, setUserData } from "@/services/redux/reducers/userApp";
+import { getMenuData, getUserInfo } from "@/services/redux/reducers/userApp";
 import { storageService } from "@/services/storage";
-import {
-  AuthLoginData,
-  AuthRegisterData,
-  LoginResponseType,
-} from "@/services/types";
+import { AuthLoginData, LoginResponseType } from "@/services/types";
 import * as SecureStore from "expo-secure-store";
 import { loginAPI } from "./api";
 
@@ -21,7 +17,7 @@ export const handleLoginResData = async (
 
   if (dispatch) {
     await storageService.setData(STORAGE_KEYS.userData, user);
-    dispatch(setUserData(user));
+    dispatch(getUserInfo());
     dispatch(getMenuData());
   }
   return { token, user, status: true };
@@ -50,12 +46,6 @@ export const checkAuth = async (): Promise<boolean> => {
   } catch (e) {
     return false;
   }
-};
-export const registerNewContractor = async (body: AuthRegisterData) => {
-  try {
-    await loginAPI.register(body);
-    return true;
-  } catch (e: any) {}
 };
 export const requestNewPassword = async (body: { email: string }) => {
   try {

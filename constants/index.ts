@@ -39,7 +39,6 @@ export const STORAGE_KEYS = {
 export const PAGE_NAMES = {
   main: "main",
   login: "login",
-  register: "register",
   forgetPassword: "forgetPassword",
   okkTasks: "okkTasks",
   notifications: "notifications",

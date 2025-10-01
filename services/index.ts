@@ -36,7 +36,8 @@ export const getUserCredentials = async (): Promise<
 
 export const getUserData = async (): Promise<UserDataType | undefined> => {
   try {
-    return await appAPI.getUserData();
+    const res = await appAPI.getUserData();
+    return res?.user_info;
   } catch (e) {}
 };
 

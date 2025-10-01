@@ -125,8 +125,7 @@ const login = (): AppThunk => async (dispatch) => {
     return resetAuthData();
   }
   dispatch(setAuth(true));
-  //@ts-ignore
-  dispatch(setUserData(res.user));
+  dispatch(getUserInfo());
   dispatch(setLoginData(res));
   dispatch(getMenuData());
 };

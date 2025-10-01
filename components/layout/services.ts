@@ -2,9 +2,9 @@ import ForgetPasswordPage from "@/app/forget-password";
 import LoginPage from "@/app/login";
 import NotificationsPage from "@/app/notifications";
 import OkkPage from "@/app/okk";
-import RegisterPage from "@/app/register";
 import { PAGE_NAMES } from "@/constants";
 import { sortArrayToFirstPlace } from "@/services";
+import { MainPage } from "../main";
 
 export const authRoutes = [
   {
@@ -29,9 +29,9 @@ const okkAuthRoutes = [
 
 const mastersAuthRoutes = [
   {
-    name: "",
-    component: null,
-    options: {},
+    name: PAGE_NAMES.main,
+    component: MainPage,
+    options: { title: "Контроллер", withDesc: true, dynamicTitle: true },
   },
 ];
 
@@ -63,19 +63,14 @@ export const getAuthRoutes = (isOkk: boolean) => {
 
 export const unAuthRoutes = [
   {
-    name: PAGE_NAMES.register,
-    component: RegisterPage,
-    options: { title: "Регистрация", withoutLayout: true },
-  },
-  {
     name: PAGE_NAMES.login,
     component: LoginPage,
-    options: { title: "Авторизация", withoutLayout: true },
+    options: { title: "", withoutLayout: true },
   },
   {
     name: PAGE_NAMES.forgetPassword,
     component: ForgetPasswordPage,
-    options: { title: "Восставление пароля", withoutLayout: true },
+    options: { title: "", withoutLayout: true },
   },
 ];
 
