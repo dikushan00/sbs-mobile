@@ -1,7 +1,6 @@
 import * as FileSystem from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
 import * as Sharing from "expo-sharing";
-import * as MediaLibrary from "expo-media-library";
 import { Alert, Linking, Platform } from "react-native";
 import { apiUrl, FILE_URL_MAIN } from "../constants";
 
@@ -34,13 +33,6 @@ const saveOnAndroidDevice = async (
     .catch(() => {});
 };
 
-const saveOnIosDevice = async (uri: string) => {
-  try {
-    const asset = await MediaLibrary.createAssetAsync(uri);
-    await MediaLibrary.createAlbumAsync("Smart Build System", asset, false);
-    return true;
-  } catch (e) {}
-};
 export const saveFile = async (
   uri: string,
   fileName: string,
@@ -76,20 +68,7 @@ export const saveFile = async (
       await Sharing.shareAsync(uri);
     }
   } else if (Platform.OS === "ios") {
-    const { status } = await MediaLibrary.requestPermissionsAsync();
-    const hasPermission = status === "granted";
-    if (!hasPermission) {
-      Alert.alert("Ошибка", "Нет разрешения на доступ к галерее");
-      return;
-    }
-    if (files?.length) {
-      const res = await Promise.all(
-        files.map(async (item) => await saveOnIosDevice(item.uri))
-      );
-      return res?.every((item) => !!item);
-    } else {
-      return await saveOnIosDevice(uri);
-    }
+    await Sharing.shareAsync(uri);
   } else {
     await Sharing.shareAsync(uri);
   }

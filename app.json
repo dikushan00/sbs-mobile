@@ -54,9 +54,7 @@
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.USE_FINGERPRINT"
       ]
     },
     "web": {
@@ -75,7 +73,6 @@
       ],
       "expo-font",
       "expo-asset",
-      "expo-media-library",
       "expo-video",
       "expo-notifications",
       "expo-web-browser",
