@@ -60,8 +60,8 @@ export default function RootLayout() {
             style={{ paddingTop: Platform.OS === "ios" ? 0 : insets.top }}
           >
             <SnackbarProvider>
-              <NewVersionBanner />
               <NavigationIndependentTree>
+                <NewVersionBanner />
                 <NavigationContainer>
                   <Content />
                   <NotificationsProvider />

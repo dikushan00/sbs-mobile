@@ -5,7 +5,7 @@ import ProfilePage from "@/app/profile";
 import OkkPage from "@/app/okk";
 import { PAGE_NAMES } from "@/constants";
 import { sortArrayToFirstPlace } from "@/services";
-import { MainPage } from "../main";
+import MainPage from "@/app/index";
 
 export const authRoutes = [
   {

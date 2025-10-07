@@ -1,5 +1,5 @@
 import { setPageHeaderData } from "@/services/redux/reducers/userApp";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet } from "react-native";
 import { useDispatch } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
@@ -27,12 +27,14 @@ export const MainPage = () => {
     project_entrance_id: null,
   });
 
-  dispatch(
-    setPageHeaderData({
-      title: "Проекты",
-      desc: "",
-    })
-  );
+  useEffect(() => {
+    dispatch(
+      setPageHeaderData({
+        title: "Проекты",
+        desc: "",
+      })
+    );
+  }, [])
   const getData = async (
     isRefreshing = false,
     controller?: AbortController

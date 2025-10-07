@@ -7,8 +7,9 @@ import {
 import { COLORS, PAGE_NAMES } from "@/constants";
 import { userAppState } from "@/services/redux/reducers/userApp";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { useSelector } from "react-redux";
+import { FooterNav } from "./FooterNav";
 
 const Drawer = createDrawerNavigator();
 export const NavigationBlock = () => {
