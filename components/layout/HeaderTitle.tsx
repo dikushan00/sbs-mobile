@@ -20,6 +20,7 @@ export const HeaderTitle = ({ title }: PropsType) => {
     }
     return !!title;
   }, [route.params?.dynamicTitle, pageHeaderData, title]);
+
   return (
     <View style={styles.headerContainer}>
       {showTitle && (

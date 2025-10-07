@@ -8,6 +8,11 @@ export type ReqResponse<T> = {
 export interface LoginResponseType {
   token: { access: string; refresh: string };
   user: UserDataType;
+  status: boolean;
+}
+export interface NetworkErrorType {
+  status: boolean;
+  errNetwork: boolean;
 }
 
 export type AuthLoginData = {

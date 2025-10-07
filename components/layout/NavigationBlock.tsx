@@ -12,7 +12,7 @@ import { useSelector } from "react-redux";
 
 const Drawer = createDrawerNavigator();
 export const NavigationBlock = () => {
-  const { auth, isOkk, userData } = useSelector(userAppState);
+  const { auth, isOkk } = useSelector(userAppState);
 
   const routes = useMemo(
     () => (auth ? getAuthRoutes(isOkk) : unAuthenticatedRoutes),

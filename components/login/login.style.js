@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
     padding: SIZES.medium,
     backgroundColor: "#efefef",
     borderRadius: 12,
+    color: "#404040",
   },
   button: {
     justifyContent: "center",

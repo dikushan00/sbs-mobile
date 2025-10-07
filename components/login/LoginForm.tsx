@@ -18,7 +18,7 @@ import { useDispatch } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
 import { useSnackbar } from "../snackbar/SnackbarContext";
 import styles from "./login.style";
-import { handleLoginResData } from "./services";
+import { doLogin, handleLoginResData } from "./services";
 import { loginAPI } from "./services/api";
 
 export const LoginForm = ({ disabled = false }) => {
@@ -173,15 +173,13 @@ export const LoginForm = ({ disabled = false }) => {
         return showErrorSnackbar("Заполните обязательные поля!");
     }
     setLoading(true);
-    const res = await loginAPI.login(body, {
-      showSnackbar: false,
-      throwError: false,
-    });
+    const res = await doLogin(body, dispatch);
     setLoading(false);
     if (!res) return isBiometric && (await resetAuthData());
 
-    handleLoginRes(res, isBiometric, body);
-    await handleLoginResData(res, dispatch);
+    if ("token" in res) {
+      handleLoginRes(res, isBiometric, body);
+    }
   };
 
   return (

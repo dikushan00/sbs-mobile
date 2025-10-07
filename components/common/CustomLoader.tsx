@@ -6,7 +6,7 @@ export const CustomLoader = ({ style }: { style?: ViewStyle }) => {
   return (
     <ProgressBar
       progress={1}
-      style={style ? { ...style } : {}}
+      style={style ? { ...style } : { backgroundColor: COLORS.background }}
       indeterminate
       color={COLORS.primary}
     />

@@ -1,6 +1,7 @@
 import ForgetPasswordPage from "@/app/forget-password";
 import LoginPage from "@/app/login";
 import NotificationsPage from "@/app/notifications";
+import ProfilePage from "@/app/profile";
 import OkkPage from "@/app/okk";
 import { PAGE_NAMES } from "@/constants";
 import { sortArrayToFirstPlace } from "@/services";
@@ -11,6 +12,11 @@ export const authRoutes = [
     name: PAGE_NAMES.notifications,
     component: NotificationsPage,
     options: { title: "Уведомления" },
+  },
+  {
+    name: PAGE_NAMES.profile,
+    component: ProfilePage,
+    options: { title: "Профиль" },
   },
 ];
 
@@ -31,7 +37,7 @@ const mastersAuthRoutes = [
   {
     name: PAGE_NAMES.main,
     component: MainPage,
-    options: { title: "Контроллер", withDesc: true, dynamicTitle: true },
+    options: { title: "Проекты", withDesc: true, dynamicTitle: true },
   },
 ];
 

@@ -2,7 +2,11 @@ import { STORAGE_KEYS, STORE_KEYS } from "@/constants";
 import { AppDispatch } from "@/services/redux";
 import { getMenuData, getUserInfo } from "@/services/redux/reducers/userApp";
 import { storageService } from "@/services/storage";
-import { AuthLoginData, LoginResponseType } from "@/services/types";
+import {
+  AuthLoginData,
+  LoginResponseType,
+  NetworkErrorType,
+} from "@/services/types";
 import * as SecureStore from "expo-secure-store";
 import { loginAPI } from "./api";
 
@@ -25,13 +29,14 @@ export const handleLoginResData = async (
 
 export const doLogin = async (
   body: AuthLoginData,
-  dispatch: AppDispatch | null = null
-) => {
+  dispatch: AppDispatch | null = null,
+  returnRes: boolean = false
+): Promise<LoginResponseType | NetworkErrorType | undefined> => {
   body.is_mobile = true;
   try {
     const res = await loginAPI.login(body);
-
     if (!res) return;
+    if (returnRes) return res;
     return await handleLoginResData(res, dispatch);
   } catch (e: any) {
     if (e?.code === "ERR_NETWORK") return { status: false, errNetwork: true };

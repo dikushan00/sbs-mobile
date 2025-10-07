@@ -36,7 +36,8 @@ export const PageHeader = ({
       style={{
         ...styles.header,
         justifyContent: "space-between",
-        paddingTop: Platform.OS === "ios" ? newVersionBannerShowed ? 0 : insets.top : 0,
+        paddingTop:
+          Platform.OS === "ios" ? (newVersionBannerShowed ? 0 : insets.top) : 0,
       }}
     >
       {route?.params?.withoutLayout ? (
@@ -49,7 +50,8 @@ export const PageHeader = ({
               <Icon name="back" />
             </TouchableOpacity>
           ) : (
-            <Text style={styles.headerText}>☰</Text>
+            <View style={{ width: 30 }}></View>
+            // <Text style={styles.headerText}>☰</Text>
           )}
         </TouchableOpacity>
       )}
