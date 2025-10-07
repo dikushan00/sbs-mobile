@@ -1,17 +1,16 @@
-import { StyleSheet, Text, View } from "react-native";
-import { FileType } from "./pages/remonts/types";
-import { TouchableOpacity } from "react-native";
-import { Icon } from "./Icon";
-import { COLORS, FONT, MASTER_API, SHADOWS } from "@/constants";
-import { CustomImage } from "./common/CustomImage";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { useDispatch } from "react-redux";
+import { apiUrl, COLORS, FONT, SHADOWS } from "@/constants";
 import { AppDispatch } from "@/services/redux";
 import { showModal } from "@/services/redux/reducers/app";
-import { MODAL_NAMES } from "./Modal/services";
 import { getMediaTypeByExtension } from "@/utils";
-import { VideoComponent } from "./slider";
+import { FontAwesome5 } from "@expo/vector-icons";
 import { useMemo } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useDispatch } from "react-redux";
+import { CustomImage } from "./common/CustomImage";
+import { Icon } from "./Icon";
+import { MODAL_NAMES } from "./Modal/services";
+import { VideoComponent } from "./slider";
+import { FileType } from "@/services/types";
 
 type FileListProps = {
   title?: string;
@@ -23,7 +22,7 @@ type FileListProps = {
   checkboxMode?: boolean;
   addBackground?: boolean;
   galleryMode?: boolean;
-  addMode?: boolean
+  addMode?: boolean;
 };
 
 export const FileList = ({
@@ -54,8 +53,19 @@ export const FileList = ({
   };
 
   const computedFiles = useMemo(() => {
-    return files?.map(item => typeof item === 'string' ? {uri: `${MASTER_API}/${item}`, deletable: false, checked: false, desc: '', name: '', type: ''} : item)
-  }, [files])
+    return files?.map((item) =>
+      typeof item === "string"
+        ? {
+            uri: `${apiUrl}/${item}`,
+            deletable: false,
+            checked: false,
+            desc: "",
+            name: "",
+            type: "",
+          }
+        : item
+    );
+  }, [files]);
 
   return (
     <View
@@ -103,20 +113,28 @@ export const FileList = ({
                     src={item.uri || ""}
                     style={styles.video}
                     canPlay={false}
-                    onClick={galleryMode ? () => imageClick(i, computedFiles) : undefined}
+                    onClick={
+                      galleryMode
+                        ? () => imageClick(i, computedFiles)
+                        : undefined
+                    }
                   />
                 ) : (
                   <CustomImage
                     src={item.uri}
                     style={styles.image}
-                    onClick={galleryMode ? () => imageClick(i, computedFiles) : undefined}
+                    onClick={
+                      galleryMode
+                        ? () => imageClick(i, computedFiles)
+                        : undefined
+                    }
                   />
                 )}
 
                 {!!item.desc && (
                   <Text style={styles.roomDesc}>{item.desc}</Text>
                 )}
-                {handleRemoveFile && addMode && item.deletable !== false &&  (
+                {handleRemoveFile && addMode && item.deletable !== false && (
                   <TouchableOpacity
                     style={styles.removeWrapper}
                     onPress={() => handleRemoveFile(item, id || null)}

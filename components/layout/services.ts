@@ -1,88 +1,48 @@
 import ForgetPasswordPage from "@/app/forget-password";
 import LoginPage from "@/app/login";
 import NotificationsPage from "@/app/notifications";
-import ProjectOkkPage from "@/app/okk";
-import RegisterPage from "@/app/register";
-import RemontsPage from "@/app/remonts/index";
-import RemontsDetailPage from "@/app/remonts/remontDetail";
-import TasksPage from "@/app/tasks";
+import ProfilePage from "@/app/profile";
+import OkkPage from "@/app/okk";
 import { PAGE_NAMES } from "@/constants";
 import { sortArrayToFirstPlace } from "@/services";
+import { MainPage } from "../main";
 
 export const authRoutes = [
-  {
-    name: PAGE_NAMES.main,
-    component: RemontsPage,
-    options: { title: "Ремонты" },
-  },
   {
     name: PAGE_NAMES.notifications,
     component: NotificationsPage,
     options: { title: "Уведомления" },
+  },
+  {
+    name: PAGE_NAMES.profile,
+    component: ProfilePage,
+    options: { title: "Профиль" },
   },
 ];
 
 const okkAuthRoutes = [
   {
     name: PAGE_NAMES.main,
-    component: OkkRemontsPage,
-    options: { title: "Контроллер" },
-  },
-  {
-    name: PAGE_NAMES.remontList,
-    component: OkkRemontsPage,
-    options: { title: "Контроллер" },
-  },
-  {
-    name: PAGE_NAMES.remontDetail,
-    component: OkkRemontsDetailPage,
-    options: { title: "", dynamicTitle: true },
-  },
-];
-
-const okkProjectAuthRoutes = [
-  {
-    name: PAGE_NAMES.main,
-    component: ProjectOkkPage,
+    component: OkkPage,
     options: { title: "Контроллер", withDesc: true, dynamicTitle: true },
   },
   {
     name: PAGE_NAMES.okkTasks,
-    component: ProjectOkkPage,
+    component: OkkPage,
     options: { title: "Контроллер", dynamicTitle: true, withDesc: true },
   },
 ];
 
 const mastersAuthRoutes = [
   {
-    name: PAGE_NAMES.remontList,
-    component: RemontsPage,
-    options: { title: "Ремонты" },
-  },
-  {
-    name: PAGE_NAMES.remontDetail,
-    component: RemontsDetailPage,
-    options: { title: "", dynamicTitle: true },
-  },
-  {
-    name: PAGE_NAMES.tasks,
-    component: TasksPage,
-    options: { title: "Задачи", withDesc: true, backBtn: false },
+    name: PAGE_NAMES.main,
+    component: MainPage,
+    options: { title: "Проекты", withDesc: true, dynamicTitle: true },
   },
 ];
 
-export const getAuthRoutes = (isOkk: boolean, isProjectOkk: boolean) => {
+export const getAuthRoutes = (isOkk: boolean) => {
   try {
-    if (isProjectOkk) {
-      const routes = authRoutes.filter(
-        (route) => route.name !== PAGE_NAMES.main
-      );
-      return sortArrayToFirstPlace(
-        [...routes, ...okkProjectAuthRoutes],
-        "name",
-        PAGE_NAMES.main
-      );
-    }
     if (isOkk) {
       const routes = authRoutes.filter(
         (route) => route.name !== PAGE_NAMES.main
@@ -109,19 +69,14 @@ export const getAuthRoutes = (isOkk: boolean, isProjectOkk: boolean) => {
 
 export const unAuthRoutes = [
   {
-    name: PAGE_NAMES.register,
-    component: RegisterPage,
-    options: { title: "Регистрация", withoutLayout: true },
-  },
-  {
     name: PAGE_NAMES.login,
     component: LoginPage,
-    options: { title: "Авторизация", withoutLayout: true },
+    options: { title: "", withoutLayout: true },
   },
   {
     name: PAGE_NAMES.forgetPassword,
     component: ForgetPasswordPage,
-    options: { title: "Восставление пароля", withoutLayout: true },
+    options: { title: "", withoutLayout: true },
   },
 ];
 

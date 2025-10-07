@@ -24,7 +24,6 @@ export const CustomChip = ({
         ...style,
       }}
     >
-      {/* @ts-ignore */}
       {!!icon && <Icon name={icon} size={16} color={textColor} />}
       <Text style={{ ...styles.text, color: textColor || "#404040" }}>
         {title || ""}

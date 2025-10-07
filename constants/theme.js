@@ -1,5 +1,6 @@
 const COLORS = {
-  primary: "#1374CF",
+  primary: "#134686",
+  primaryLight: "#0060FE",
   primaryDisabled: "rgba(19, 116, 207, 0.25)",
   disabled: "#dedede",
   primaryBorder: "rgba(19, 116, 207, 0.5)",
@@ -9,8 +10,8 @@ const COLORS = {
   secondary: "#444262",
   tertiary: "#FF7754",
   error: "#FB4F57",
-  errorBackground: '#ffa2a6',
-  errorBackgroundLight: '#ffc6c8',
+  errorBackground: "#ffa2a6",
+  errorBackgroundLight: "#ffc6c8",
   warning: "#ff9800",
   yellow: "rgb(231, 184, 64)",
   edit: "#d9993e",

@@ -1,8 +1,7 @@
 import { BottomDrawerDataType } from "@/components/BottomDrawer/types";
 import { ModalDataType } from "@/components/Modal/types";
 import { OfflineActionKeyType } from "..";
-import { RemontType } from "@/components/pages/remonts/types";
-import { ProjectOkkDataType } from "@/components/pages/projectOkk/services";
+import { OkkDataType } from "@/components/pages/okk/services";
 
 export interface AppStateType {
   init: boolean;
@@ -57,13 +56,10 @@ export interface UserAppStateType {
   pageHeaderData: PageHeaderDataType;
   menu: MenuItem[];
   userData: UserDataType | null;
-  remonts: RemontType[];
-  projectOkkData: ProjectOkkDataType[];
-  remontInfo: RemontType | null;
-  isRemontsFetching: boolean;
+  okkData: OkkDataType[];
+  isFetching: boolean;
   logoutLoading: boolean;
   isOkk: boolean;
-  isProjectOkk: boolean;
 }
 
 export interface OfflineActionType {

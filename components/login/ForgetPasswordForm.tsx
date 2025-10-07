@@ -9,9 +9,10 @@ import { requestNewPassword } from "./services";
 import { useDispatch } from "react-redux";
 import { showBottomDrawer } from "@/services/redux/reducers/app";
 import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/services";
+import LogoBlue from "@/assets/images/logo_blue.svg";
 
 export const ForgetPasswordForm = () => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const { showErrorSnackbar, showSuccessSnackbar } = useSnackbar();
   const [formData, setFormData] = useState({ email: "" });
@@ -32,21 +33,24 @@ export const ForgetPasswordForm = () => {
       showBottomDrawer({
         type: BOTTOM_DRAWER_KEYS.selectModule,
         data: {
-          btnLabel: 'Сбросить пароль',
-          modules: [{type: 'master', res: null}, {type: 'okk', res: null}], 
-          onSubmit: async (_: any, type: string) => {
-            const isProjectOkk = type === 'okk'
-
+          btnLabel: "Сбросить пароль",
+          modules: [
+            { type: "master", res: null },
+            { type: "okk", res: null },
+          ],
+          onSubmit: async () => {
             setLoading(true);
-            const res = await requestNewPassword(formData, isProjectOkk);
+            const res = await requestNewPassword(formData);
             setLoading(false);
             if (!res) return;
-            showSuccessSnackbar("Новый пароль был отправлен на указанную почту");
+            showSuccessSnackbar(
+              "Новый пароль был отправлен на указанную почту"
+            );
             navigation.navigate(PAGE_NAMES.login as never);
-          }
+          },
         },
       })
-    )
+    );
   };
 
   return (
@@ -56,28 +60,37 @@ export const ForgetPasswordForm = () => {
           <CustomLoader />
         </View>
       )}
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          placeholderTextColor="#BABABA"
-          value={formData.email}
-          onChangeText={(text) => onChange("email", text)}
-          placeholder={"Email"}
-        />
+      <View style={styles.contentContainer}>
+        <View style={styles.formContainer}>
+          <View style={styles.logoContainer}>
+            <LogoBlue width={200} height={40} />
+          </View>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholderTextColor="#BABABA"
+              value={formData.email}
+              onChangeText={(text) => onChange("email", text)}
+              placeholder={"Электронная почта"}
+            />
+          </View>
+        </View>
+        <View style={styles.bottomButtonsContainer}>
+          <TouchableOpacity
+            disabled={loading}
+            style={styles.button}
+            onPress={() => onSubmit()}
+          >
+            <Text style={styles.buttonText}>Сбросить пароль</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.textButton}
+            onPress={() => navigation.navigate(PAGE_NAMES.login as never)}
+          >
+            <Text style={styles.buttonTextPrimary}>Войти</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <TouchableOpacity
-        disabled={loading}
-        style={styles.button}
-        onPress={() => onSubmit()}
-      >
-        <Text style={styles.buttonText}>Отправить</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.textButton}
-        onPress={() => navigation.navigate(PAGE_NAMES.login as never)}
-      >
-        <Text style={styles.buttonTextPrimary}>Войти</Text>
-      </TouchableOpacity>
     </View>
   );
 };

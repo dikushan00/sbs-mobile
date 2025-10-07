@@ -1,6 +1,5 @@
 import { CustomButton } from "@/components/common/CustomButton";
 import { FileList } from "@/components/FileList";
-import { FileType } from "@/components/pages/remonts/types";
 import { COLORS, FONT } from "@/constants";
 import { AppDispatch } from "@/services/redux";
 import {
@@ -22,9 +21,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { BottomDrawerHeader } from "../BottomDrawerHeader";
 import { UploadMediaDrawerType } from "../types";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { PointType } from "@/components/pages/projectOkk/services";
+import { PointType } from "@/components/pages/okk/services";
 import { Modal, Portal } from "react-native-paper";
 import uuid from "react-native-uuid";
+import { FileType } from "@/services/types";
 
 type PropsType = { data: UploadMediaDrawerType; handleClose: () => void };
 
@@ -95,7 +95,6 @@ export const UploadMedia = ({ data, handleClose }: PropsType) => {
         newFiles = newFiles?.filter(
           (item) => !!item && !files.find((file) => item?.name === file.name)
         );
-        //@ts-ignore
         newFiles && setFiles((prev) => [...prev, ...newFiles]);
       }
     } catch (error) {}

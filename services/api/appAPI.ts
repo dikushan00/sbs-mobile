@@ -3,9 +3,9 @@ import { instance } from ".";
 import { MenuItem, UserDataType } from "../redux/types";
 
 export const appAPI = {
-  async getUserData(isProjectOkk: boolean): Promise<UserDataType> {
+  async getUserData(): Promise<{ user_info: UserDataType }> {
     return await instance()
-      .get(isProjectOkk ? "/common/user_info/read/" : "user-info/")
+      .get("/common/user_info/")
       .then((res) => res?.data);
   },
   async getMenu(): Promise<{ data: MenuItem[] }> {

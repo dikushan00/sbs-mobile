@@ -1,9 +1,10 @@
+import LogoBlue from "@/assets/images/logo_blue.svg";
 import { PAGE_NAMES, STORE_KEYS } from "@/constants";
 import { getUserCredentials } from "@/services";
+import { AppDispatch } from "@/services/redux";
 import {
   resetAuthData,
   setAuth,
-  setIsProjectOkk,
   setLoginData,
 } from "@/services/redux/reducers/userApp";
 import { AuthLoginData } from "@/services/types";
@@ -17,12 +18,11 @@ import { useDispatch } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
 import { useSnackbar } from "../snackbar/SnackbarContext";
 import styles from "./login.style";
-import { handleLoginResData, loginFormReq } from "./services";
-import { showBottomDrawer } from "@/services/redux/reducers/app";
-import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/services";
+import { doLogin, handleLoginResData } from "./services";
+import { loginAPI } from "./services/api";
 
 export const LoginForm = ({ disabled = false }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation();
   const [formData, setFormData] = useState({ login: "", password: "" });
   const [biometricData, setBiometricData] = useState<AuthLoginData | null>(
@@ -44,7 +44,7 @@ export const LoginForm = ({ disabled = false }) => {
         isAllowedBiometry = await SecureStore.getItemAsync(
           STORE_KEYS.allowBiometry
         );
-      } catch (e) { }
+      } catch (e) {}
       const isBiometryEnabled = compatible && isAllowedBiometry === "true";
 
       const biometryData = await getUsernameAndPassword();
@@ -71,7 +71,7 @@ export const LoginForm = ({ disabled = false }) => {
       compatible =
         (await LocalAuthentication.hasHardwareAsync()) &&
         (await LocalAuthentication.isEnrolledAsync());
-    } catch (e) { }
+    } catch (e) {}
     if (!compatible) return saveAuthData(data);
     await Alert.alert(
       "Авторизация",
@@ -105,7 +105,7 @@ export const LoginForm = ({ disabled = false }) => {
       if (success) {
         onSubmit(true, data);
       }
-    } catch (error) { }
+    } catch (error) {}
   };
 
   const saveAuthData = async (data: AuthLoginData) => {
@@ -113,7 +113,7 @@ export const LoginForm = ({ disabled = false }) => {
       await SecureStore.setItemAsync(STORE_KEYS.allowBiometry, "true");
       await SecureStore.setItemAsync(STORE_KEYS.login, data.login);
       await SecureStore.setItemAsync(STORE_KEYS.password, data.password);
-    } catch (e) { }
+    } catch (e) {}
   };
 
   type BodyType = AuthLoginData & {
@@ -121,8 +121,11 @@ export const LoginForm = ({ disabled = false }) => {
     is_mobile?: boolean;
   };
 
-  const handleLoginRes = async (res: { token: { access: string; refresh: string } }, isBiometric: boolean | undefined, body: BodyType) => {
-
+  const handleLoginRes = async (
+    res: { token: { access: string; refresh: string } },
+    isBiometric: boolean | undefined,
+    body: BodyType
+  ) => {
     let newBiometricUser = false;
     if (!isBiometric) {
       const authData = await getUsernameAndPassword();
@@ -151,7 +154,7 @@ export const LoginForm = ({ disabled = false }) => {
     }
     dispatch(setAuth(true));
     dispatch(setLoginData(res));
-  }
+  };
 
   const onSubmit = async (
     isBiometric?: boolean,
@@ -170,34 +173,13 @@ export const LoginForm = ({ disabled = false }) => {
         return showErrorSnackbar("Заполните обязательные поля!");
     }
     setLoading(true);
-    const res = await loginFormReq(body);
+    const res = await doLogin(body, dispatch);
     setLoading(false);
     if (!res) return isBiometric && (await resetAuthData());
-    if (res?.length === 1) {
-      const loginRes = res[0].res
-      if (loginRes) {
-        dispatch(setIsProjectOkk(res[0].type === 'okk'))
-        handleLoginRes(loginRes, isBiometric, body)
-        await handleLoginResData(loginRes, res[0].type === 'okk', dispatch)
-      }
-      return
-    }
 
-    dispatch(
-      showBottomDrawer({
-        type: BOTTOM_DRAWER_KEYS.selectModule,
-        data: {
-          modules: res, onSubmit: async (res: any, type: string) => {
-            if (res) {
-              dispatch(setIsProjectOkk(type === 'okk'))
-              //@ts-ignore
-              handleLoginRes(res, isBiometric, body)
-              await handleLoginResData(res, type === 'okk', dispatch)
-            }
-          }
-        },
-      })
-    )
+    if ("token" in res) {
+      handleLoginRes(res, isBiometric, body);
+    }
   };
 
   return (
@@ -207,59 +189,63 @@ export const LoginForm = ({ disabled = false }) => {
           <CustomLoader />
         </View>
       )}
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          placeholderTextColor="#BABABA"
-          value={formData.login}
-          autoCapitalize="none"
-          onChangeText={(text) => onChange("login", text)}
-          placeholder={"Email"}
-        />
+      <View style={styles.contentContainer}>
+        <View style={styles.formContainer}>
+          <View style={styles.logoContainer}>
+            <LogoBlue width={200} height={40} />
+          </View>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholderTextColor="#BABABA"
+              value={formData.login}
+              autoCapitalize="none"
+              onChangeText={(text) => onChange("login", text)}
+              placeholder={"Электронная почта"}
+            />
+          </View>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              secureTextEntry
+              placeholderTextColor="#BABABA"
+              style={styles.input}
+              autoCapitalize="none"
+              value={formData.password}
+              onChangeText={(text) => onChange("password", text)}
+              placeholder={"Пароль"}
+            />
+          </View>
+          <TouchableOpacity
+            style={styles.textButton}
+            disabled={disabled}
+            onPress={() =>
+              navigation.navigate(PAGE_NAMES.forgetPassword as never)
+            }
+          >
+            <Text style={styles.buttonTextPrimaryLight}>Забыли пароль?</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.bottomButtonsContainer}>
+          <TouchableOpacity
+            disabled={loading}
+            style={styles.button}
+            onPress={() => onSubmit()}
+          >
+            <Text style={styles.buttonText}>Войти</Text>
+          </TouchableOpacity>
+          {biometricData && isBiometricSupportedAndAllowed && (
+            <TouchableOpacity
+              style={styles.textButton}
+              disabled={!biometricData}
+              onPress={() => authenticateWithBiometrics()}
+            >
+              <Text style={styles.buttonTextPrimary}>
+                {loading ? "Загрузка" : "Войти через отпечаток"}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          secureTextEntry
-          placeholderTextColor="#BABABA"
-          style={styles.input}
-          autoCapitalize="none"
-          value={formData.password}
-          onChangeText={(text) => onChange("password", text)}
-          placeholder={"Пароль"}
-        />
-      </View>
-      <TouchableOpacity
-        disabled={loading}
-        style={styles.button}
-        onPress={() => onSubmit()}
-      >
-        <Text style={styles.buttonText}>Войти</Text>
-      </TouchableOpacity>
-      {biometricData && isBiometricSupportedAndAllowed && (
-        <TouchableOpacity
-          style={styles.buttonMargin}
-          disabled={!biometricData}
-          onPress={() => authenticateWithBiometrics()}
-        >
-          <Text style={styles.buttonText}>
-            {loading ? "Загрузка" : "Войти через отпечаток"}
-          </Text>
-        </TouchableOpacity>
-      )}
-      <TouchableOpacity
-        style={styles.textButton}
-        disabled={disabled}
-        onPress={() => navigation.navigate(PAGE_NAMES.register as never)}
-      >
-        <Text style={styles.buttonTextPrimary}>Регистрация</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.textButton}
-        disabled={disabled}
-        onPress={() => navigation.navigate(PAGE_NAMES.forgetPassword as never)}
-      >
-        <Text style={styles.buttonTextPrimary}>Забыли пароль?</Text>
-      </TouchableOpacity>
     </View>
   );
 };

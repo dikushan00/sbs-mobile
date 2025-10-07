@@ -1,10 +1,4 @@
-import { getOkkRemonts } from "@/components/pages/okk/services";
-import {
-  getOkkTasks,
-  updateProjectOkkData,
-} from "@/components/pages/projectOkk/services";
-import { getRemonts } from "@/components/pages/remonts/services";
-import { RemontType } from "@/components/pages/remonts/types";
+import { getOkkTasks, updateOkkData } from "@/components/pages/okk/services";
 import { STORAGE_KEYS, STORE_KEYS } from "@/constants";
 import {
   deletePushToken,
@@ -26,13 +20,10 @@ const initialState: UserAppStateType = {
   pageHeaderData: { title: "", desc: "", descColor: "" },
   menu: [],
   userData: null,
-  remonts: [],
-  projectOkkData: [],
-  remontInfo: null,
-  isRemontsFetching: false,
+  okkData: [],
+  isFetching: false,
   logoutLoading: false,
   isOkk: false,
-  isProjectOkk: false,
 };
 const appSlice = createSlice({
   name: "userApp",
@@ -48,20 +39,11 @@ const appSlice = createSlice({
     setMenu: (state, { payload }) => {
       state.menu = payload;
     },
-    setIsProjectOkk: (state, { payload }) => {
-      state.isProjectOkk = payload;
+    setOkkData: (state, { payload }) => {
+      state.okkData = payload || [];
     },
-    setRemonts: (state, { payload }) => {
-      state.remonts = payload || [];
-    },
-    setProjectOkkData: (state, { payload }) => {
-      state.projectOkkData = payload || [];
-    },
-    setRemontInfo: (state, { payload }) => {
-      state.remontInfo = payload || null;
-    },
-    setIsRemontFetching: (state, { payload }) => {
-      state.isRemontsFetching = !!payload;
+    setIsFetching: (state, { payload }) => {
+      state.isFetching = !!payload;
     },
     setLogoutLoading: (state, { payload }) => {
       state.logoutLoading = !!payload;
@@ -77,8 +59,8 @@ const appSlice = createSlice({
     setLoginData: (state, { payload }) => {
       state.loginData = payload;
     },
-    resetData: (state) => {
-      return {...initialState, isProjectOkk: state.isProjectOkk}
+    resetData: () => {
+      return { ...initialState };
     },
   },
 });
@@ -86,15 +68,12 @@ export const {
   setUserData,
   setAuth,
   setMenu,
-  setRemonts,
-  setRemontInfo,
   setLoginData,
   resetData,
   setPageHeaderData,
-  setIsRemontFetching,
+  setIsFetching,
   setLogoutLoading,
-  setIsProjectOkk,
-  setProjectOkkData,
+  setOkkData,
 } = appSlice.actions;
 
 export type appStateType = ReturnType<typeof appSlice.reducer>;
@@ -102,8 +81,7 @@ export const userAppState = (state: RootState) => state.userApp;
 export default appSlice.reducer;
 
 export const getUserInfo = (): AppThunk => async (dispatch) => {
-  const isProjectOkk = await SecureStore.getItemAsync(STORE_KEYS.isProjectOkk);
-  const res = await getUserData(isProjectOkk === "true");
+  const res = await getUserData();
   if (!res) {
     const localData = await storageService.getData(STORAGE_KEYS.userData);
     if (!localData || !localData) return;
@@ -116,10 +94,7 @@ export const getMenuData =
   (update = false): AppThunk =>
   async (dispatch, getState) => {
     if (getState()?.userApp?.menu?.length && !update) return;
-    const isProjectOkk = await SecureStore.getItemAsync(
-      STORE_KEYS.isProjectOkk
-    );
-    if (isProjectOkk === "true") return;
+    return;
     const res = await getMenu();
     if (!res) {
       const localData = await storageService.getData(STORAGE_KEYS.menu);
@@ -138,12 +113,10 @@ const login = (): AppThunk => async (dispatch) => {
   const data = await getUserCredentials();
   if (!data) return;
 
-  const isProjectOkk = await SecureStore.getItemAsync(STORE_KEYS.isProjectOkk);
-  const res = await doLogin(data, dispatch, isProjectOkk === "true");
+  const res = await doLogin(data, dispatch);
   if (!res?.status) {
     //@ts-ignore
     if (res?.errNetwork) {
-      dispatch(setIsProjectOkk(isProjectOkk === "true"));
       dispatch(setAuth(true));
       dispatch(getUserInfo());
       dispatch(getMenuData());
@@ -151,10 +124,8 @@ const login = (): AppThunk => async (dispatch) => {
     }
     return resetAuthData();
   }
-  dispatch(setIsProjectOkk(isProjectOkk === "true"));
   dispatch(setAuth(true));
-  //@ts-ignore
-  dispatch(setUserData(res.user));
+  dispatch(getUserInfo());
   dispatch(setLoginData(res));
   dispatch(getMenuData());
 };
@@ -194,72 +165,25 @@ export const logout = (): AppThunk => async (dispatch) => {
   dispatch(setLogoutLoading(false));
 };
 
-export const changeRemontsData =
-  (remont: RemontType): AppThunk =>
-  async (dispatch, getState) => {
-    const remonts = getState()?.userApp?.remonts;
-    if (remonts?.length) {
-      const updatedRemonts = remonts?.map((item: RemontType) => {
-        if (item.remont_id === remont?.remont_id)
-          return { ...item, info: { ...remont, remont_info: remont } };
-        return item;
-      });
-      dispatch(setRemonts(updatedRemonts));
-      dispatch(setRemontInfo(remont));
-    }
-    const remontsData = await storageService.getData(STORAGE_KEYS.remonts);
-    if (remontsData?.length) {
-      const updatedRemonts = remontsData?.map((item) => {
-        if (item.remont_id === remont?.remont_id)
-          return { ...item, info: { ...remont, remont_info: remont } };
-        return item;
-      });
-      if (updatedRemonts) {
-        //@ts-ignore
-        await storageService.setData("remonts", updatedRemonts);
-      }
-    }
-  };
-
-export const getRemontsData =
-  (
-    setIsRefreshing: (s: boolean) => void,
-    options: { signal?: AbortSignal },
-    isRefreshing = false,
-    isOkk = false
-  ): AppThunk =>
-  async (dispatch) => {
-    isRefreshing ? setIsRefreshing(true) : dispatch(setIsRemontFetching(true));
-    const res = isOkk
-      ? await getOkkRemonts(options.signal)
-      : await getRemonts(options);
-    isRefreshing
-      ? setIsRefreshing(false)
-      : dispatch(setIsRemontFetching(false));
-    dispatch(setRemonts(res || []));
-  };
-
-export const getProjectOkkData =
+export const getOkkData =
   (
     setIsRefreshing: (s: boolean) => void,
     options: { signal?: AbortSignal; params?: any } = {},
     isRefreshing = false
   ): AppThunk =>
   async (dispatch) => {
-    if (!isRefreshing) dispatch(setProjectOkkData([]));
-    isRefreshing ? setIsRefreshing(true) : dispatch(setIsRemontFetching(true));
+    if (!isRefreshing) dispatch(setOkkData([]));
+    isRefreshing ? setIsRefreshing(true) : dispatch(setIsFetching(true));
     const res = await getOkkTasks(options.params, options.signal, dispatch);
-    isRefreshing
-      ? setIsRefreshing(false)
-      : dispatch(setIsRemontFetching(false));
-    dispatch(setProjectOkkData(res || []));
+    isRefreshing ? setIsRefreshing(false) : dispatch(setIsFetching(false));
+    dispatch(setOkkData(res || []));
   };
 
-export const onSuccessProjectOkkCheck =
+export const onSuccessOkkCheck =
   (residentId: number, entrance: number, helpCallId: number): AppThunk =>
   async (dispatch, getState) => {
-    const projectOkkData = getState()?.userApp?.projectOkkData;
-    const editedProjectOkkData = projectOkkData?.map((item) => {
+    const okkData = getState()?.userApp?.okkData;
+    const editedOkkData = okkData?.map((item) => {
       if (item.resident_id === residentId)
         return {
           ...item,
@@ -276,6 +200,6 @@ export const onSuccessProjectOkkCheck =
         };
       return item;
     });
-    await updateProjectOkkData("PROCESSING", editedProjectOkkData);
-    dispatch(setProjectOkkData(editedProjectOkkData || []));
+    await updateOkkData("PROCESSING", editedOkkData);
+    dispatch(setOkkData(editedOkkData || []));
   };
