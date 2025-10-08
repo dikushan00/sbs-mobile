@@ -18,8 +18,7 @@ import { useDispatch } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
 import { useSnackbar } from "../snackbar/SnackbarContext";
 import styles from "./login.style";
-import { doLogin, handleLoginResData } from "./services";
-import { loginAPI } from "./services/api";
+import { doLogin } from "./services";
 
 export const LoginForm = ({ disabled = false }) => {
   const dispatch = useDispatch<AppDispatch>();

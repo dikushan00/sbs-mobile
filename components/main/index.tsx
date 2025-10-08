@@ -1,4 +1,5 @@
 import { setPageHeaderData } from "@/services/redux/reducers/userApp";
+import { setHideFooterNav } from "@/services/redux/reducers/app";
 import React, { useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useDispatch } from "react-redux";
@@ -18,14 +19,11 @@ import { setPageSettings } from "@/services/redux/reducers/app";
 export const MainPage = () => {
   const dispatch = useDispatch();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isFetching, setIsFetching] = useState(false);
   const [isSbs, setIsSbs] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null);
   const [selectedData, setSelectedData] = useState<any>(null);
   const [tabs, setTabs] = useState<Tabulation[] | null>(null);
   const [tab, setTab] = useState<string>("");
-  const [floorsPlan, setFloorsPlan] = useState<ProjectFloorType[] | null>(null);
-  const [floorParamData, setFloorParamData] = useState<any>(null);
   const [filters, setFilters] = useState({
     resident_id: null,
     project_type_id: null,
@@ -63,18 +61,6 @@ export const MainPage = () => {
     setIsSbs(!!res?.is_sbs);
   };
 
-  const getFloorsPlan = async () => {
-    if (!filters?.project_entrance_id) {
-      setFloorParamData(null);
-      setFloorsPlan(null);
-      return;
-    }
-    setIsFetching(true);
-    const res = await getEntranceApartments(filters);
-    setIsFetching(false);
-    setFloorsPlan(res || []);
-  };
-
   const onFiltersChange = (key: string, value: any, row: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     console.log(key, value, row);
@@ -88,8 +74,6 @@ export const MainPage = () => {
         project_entrance_id: null,
       });
       setProjectId(null);
-      setFloorsPlan(null);
-      setFloorParamData(null);
       if (selectedData)
         setSelectedData((prev: any) => ({ ...prev, entrance_full_name: null }));
       if (!value) setSelectedData(null);
@@ -97,16 +81,12 @@ export const MainPage = () => {
     if (key === "project_type_id") {
       setFilters((prev) => ({ ...prev, project_entrance_id: null }));
       setProjectId(null);
-      setFloorsPlan(null);
-      setFloorParamData(null);
       if (selectedData)
         setSelectedData((prev: any) => ({ ...prev, entrance_full_name: null }));
     }
     if (key === "project_entrance_id") {
-      setFloorParamData(null);
       setProjectId(row?.project_id);
       getIsSBS(row?.project_id);
-      getFloorsPlan();
       getTabs();
     }
   };
@@ -119,6 +99,7 @@ export const MainPage = () => {
     if (!isAllFiltersFilled()) return;
     console.log("Продолжить с данными:", { filters, selectedData });
     setShowProjectPage(true);
+    dispatch(setHideFooterNav(true));
     dispatch(
       setPageHeaderData({
         title: "Ведение проекта",
@@ -134,6 +115,7 @@ export const MainPage = () => {
 
   const handleBackToFilters = () => {
     setShowProjectPage(false);
+    dispatch(setHideFooterNav(false));
     dispatch(
       setPageHeaderData({
         title: "Проекты",
@@ -156,9 +138,11 @@ export const MainPage = () => {
     return (
       <ProjectPage
         tabulations={tabs}
-        projectInfo={projectInfo}
+        selectedData={selectedData}
+        projectId={projectId}
         onTabPress={handleTabPress}
         onBack={handleBackToFilters}
+        filters={filters}
       />
     );
   }
@@ -175,7 +159,6 @@ export const MainPage = () => {
         contentContainerStyle={{ paddingBottom: 100 }}
         style={styles.container}
       >
-        {isFetching && <CustomLoader />}
         <MainPageFilters filters={filters} onChange={onFiltersChange} />
       </ScrollView>
       

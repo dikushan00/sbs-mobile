@@ -56,7 +56,7 @@ export const residentialSettingsAPI = {
       )
       .then((res) => res?.data);
   },
-  async getFloorProjectInfo(project_id: number, params = {}): Promise<ProjectInfoResponseType | undefined> {
+  async getProjectInfo(project_id: number, params = {}): Promise<ProjectInfoResponseType | undefined> {
     return await instance()
       .get(`/project/${project_id}/info/`, { params })
       .then((res) => res?.data);

@@ -17,6 +17,7 @@ const initialState: AppStateType = {
   modal: { show: false, data: null, type: null },
   shouldPageDataReload: false,
   pageSettings: { backBtn: false, goBack: null },
+  hideFooterNav: false,
 };
 const appSlice = createSlice({
   name: "app",
@@ -78,6 +79,9 @@ const appSlice = createSlice({
     closeModal: (state) => {
       state.modal = { show: false, type: null, data: null };
     },
+    setHideFooterNav: (state, { payload }) => {
+      state.hideFooterNav = !!payload;
+    },
   },
 });
 export const {
@@ -94,6 +98,7 @@ export const {
   showModal,
   closeModal,
   setPageSettings,
+  setHideFooterNav,
 } = appSlice.actions;
 
 export type appStateType = ReturnType<typeof appSlice.reducer>;

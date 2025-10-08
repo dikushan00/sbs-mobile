@@ -1,32 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { Tabulation } from '@/components/main/types';
+import { ProjectFiltersType, ProjectInfoResponseType, Tabulation } from '@/components/main/types';
 import { Icon } from '@/components/Icon';
 import { Grid } from '@/components/common/Grid';
 import { useDispatch } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
+import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/reducers/userApp';
+import { 
+  GeneralTab, 
+  WorkTab, 
+  MaterialsTab, 
+  PaymentsTab, 
+  DocumentsTab, 
+  StagesTab 
+} from './tabs';
+import { FloorSchemaTab } from './tabs/FloorSchemaTab';
+import { getProjectInfo } from '@/components/main/services';
+import { CustomLoader } from '@/components/common/CustomLoader';
 
 interface ProjectPageProps {
   tabulations: Tabulation[];
-  projectInfo: {
-    project_name: string;
-    project_type_name: string;
-    start_date: string;
-    finish_date: string;
-    entrance: number;
-    block_name: string;
-  };
+  projectId: number | null,
+  selectedData?: any;
   onTabPress: (tab: Tabulation) => void;
   onBack?: () => void;
+  filters: ProjectFiltersType
 }
 
-// Icon mapping for different grant codes
 const getIconForGrantCode = (grantCode: string) => {
   const iconMap: { [key: string]: string } = {
     'M__ProjectFormInfoTab': 'info',
     'EntranceSchema': 'map',
-    'M__ProjectFormWorkTab': 'map',
+    'M__ProjectFormWorkTab': 'work',
     'M__ProjectFormMaterialTab': 'materials',
     'M__ProjectFormRemontCostTab': 'payment',
     'M__ProjectFormDocumentTab': 'document',
@@ -37,52 +43,120 @@ const getIconForGrantCode = (grantCode: string) => {
 
 export const ProjectPage: React.FC<ProjectPageProps> = ({
   tabulations,
-  projectInfo,
+  projectId, selectedData,
   onTabPress,
-  onBack,
+  onBack, filters
 }) => {
   const dispatch = useDispatch();
-  const [selectedTab, setSelectedTab] = useState<string>('');
+  const [isFetching, setIsFetching] = useState(false);
+  const [currentTab, setCurrentTab] = useState<Tabulation | null>(null);
+  const [projectInfo, setProjectInfo] = useState<ProjectInfoResponseType | null>(null);
 
   const handleTabPress = (tab: Tabulation) => {
-    setSelectedTab(tab.grant_code);
+    setCurrentTab(tab);
+    dispatch(setUserPageHeaderData({
+      title: tab.grant_name,
+      desc: "",
+    }));
     onTabPress(tab);
   };
 
   useEffect(() => {
-    dispatch(setPageSettings({ backBtn: true, goBack: onBack }));
-  }, [])
+    if(projectId) {
+      setIsFetching(true)
+      getProjectInfo(projectId).then(res => {
+        setIsFetching(false)
+        setProjectInfo(res || null)
+      })
+    }
+  }, [projectId])
+
+  useEffect(() => {
+    if (currentTab) {
+      dispatch(setPageSettings({ 
+        backBtn: true, 
+        goBack: () => {
+          setCurrentTab(null);
+          dispatch(setUserPageHeaderData({
+            title: "Ведение проекта",
+            desc: "",
+          }));
+        }
+      }));
+    } else {
+      dispatch(setPageSettings({ backBtn: true, goBack: onBack }));
+    }
+  }, [currentTab, onBack])
+
+  const renderTabContent = () => {
+    if (!currentTab) return null;
+
+    switch (currentTab.grant_code) {
+      case 'M__ProjectFormInfoTab':
+        return <GeneralTab 
+          projectInfo={projectInfo} 
+          onBackToProject={() => {
+            setCurrentTab(null);
+            dispatch(setUserPageHeaderData({
+              title: "Ведение проекта",
+              desc: "",
+            }));
+          }}
+        />;
+      case 'EntranceSchema':
+        return <FloorSchemaTab filters={filters} />;
+      case 'M__ProjectFormWorkTab':
+        return <WorkTab />;
+      case 'M__ProjectFormMaterialTab':
+        return <MaterialsTab />;
+      case 'M__ProjectFormRemontCostTab':
+        return <PaymentsTab />;
+      case 'M__ProjectFormDocumentTab':
+        return <DocumentsTab />;
+      case 'M__ProjectFormStagesTab':
+        return <StagesTab />;
+      default:
+        return <GeneralTab 
+          projectInfo={projectInfo} 
+          onBackToProject={() => {
+            setCurrentTab(null);
+            dispatch(setUserPageHeaderData({
+              title: "Ведение проекта",
+              desc: "",
+            }));
+          }}
+        />;
+    }
+  };
 
   const renderProjectInfoBlock = () => {
-    const generalTab = tabulations.find(tab => tab.grant_code === 'M__ProjectFormInfoTab');
-    if (!generalTab) return null;
-
+    if(!projectInfo) return
     return (
       <View
         style={styles.projectInfoBlock}
       >
         <View style={styles.projectInfoHeader}>
-          <Text style={styles.projectName}>{projectInfo.project_name}</Text>
+          <Text style={styles.projectName}>{projectInfo.data?.project_name}</Text>
           <Icon name="folder" width={24} height={24} fill={COLORS.primary} />
         </View>
         
         <View style={styles.projectDetails}>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Тип проекта:</Text>
-            <Text style={styles.detailValue}>{projectInfo.project_type_name}</Text>
+            <Text style={styles.detailValue}>{projectInfo.data?.project_type_name}</Text>
           </View>
           
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Период:</Text>
             <Text style={styles.detailValue}>
-              {projectInfo.start_date} - {projectInfo.finish_date}
+              {projectInfo.data?.start_date} - {projectInfo.data?.finish_date}
             </Text>
           </View>
           
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Подъезд:</Text>
             <Text style={styles.detailValue}>
-              Подъезд {projectInfo.entrance}, Блок {projectInfo.block_name}
+              Подъезд {selectedData?.entrance}, Блок {selectedData?.block_name}
             </Text>
           </View>
         </View>
@@ -118,6 +192,12 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     );
   };
 
+  if (currentTab) {
+    return renderTabContent();
+  }
+
+  if(isFetching)
+    return <CustomLoader />
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {renderProjectInfoBlock()}

@@ -46,11 +46,11 @@ export const PageHeader = ({
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           {(navigation.canGoBack() && route?.params?.backBtn !== false) ||
           pageSettings.backBtn ? (
-            <TouchableOpacity onPress={handleBack} style={{ padding: 5 }}>
+            <TouchableOpacity onPress={handleBack} style={{ padding: 10 }}>
               <Icon name="back" />
             </TouchableOpacity>
           ) : (
-            <View style={{ width: 30 }}></View>
+            <View style={{ width: 30, height: 32 }}></View>
             // <Text style={styles.headerText}>☰</Text>
           )}
         </TouchableOpacity>

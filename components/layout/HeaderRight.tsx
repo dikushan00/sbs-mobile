@@ -12,6 +12,7 @@ export const HeaderRight = () => {
   const { logoutLoading } = useSelector(userAppState);
 
   const handleClick = () => {
+    return
     navigation.navigate(PAGE_NAMES.notifications as never);
   };
 
@@ -22,7 +23,7 @@ export const HeaderRight = () => {
       onPress={handleClick}
       disabled={logoutLoading}
     >
-      <FontAwesome5 name="bell" size={22} color={"#404040"} />
+      {/* <FontAwesome5 name="bell" size={22} color={"#404040"} /> */}
     </TouchableOpacity>
   );
 };

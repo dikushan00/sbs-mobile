@@ -107,9 +107,9 @@ export const getFloorTabs = async (): Promise<Tabulation[] | undefined> => {
     return [tabs[0], { grant_id: 0, grant_code: 'EntranceSchema', grant_name: 'Схема этажа', blocks: [] }, ...tabs.slice(1)] || []
   } catch (e) {}
 };
-export const getFloorProjectInfo = async (projectId: number, params = {}): Promise<ProjectInfoResponseType | undefined> => {
+export const getProjectInfo = async (projectId: number, params = {}): Promise<ProjectInfoResponseType | undefined> => {
   try {
-    const res = await residentialSettingsAPI.getFloorProjectInfo(
+    const res = await residentialSettingsAPI.getProjectInfo(
       projectId,
       params
     );

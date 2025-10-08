@@ -10,11 +10,14 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, PAGE_NAMES } from "@/constants";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { useSelector } from "react-redux";
+import { appState } from "@/services/redux/reducers/app";
 
 export const FooterNav = () => {
   const navigation = useNavigation();
   const route: { name?: string } = useRoute();
   const insets = useSafeAreaInsets();
+  const { hideFooterNav } = useSelector(appState);
 
   const goTo = (name: string) => {
     // @ts-ignore
@@ -23,6 +26,7 @@ export const FooterNav = () => {
 
   const isActive = (name: string) => route?.name === name;
 
+  if(hideFooterNav) return null
   return (
     <View
       style={[

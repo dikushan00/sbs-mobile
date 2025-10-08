@@ -1,4 +1,4 @@
-import { FONT } from "@/constants";
+import { COLORS, FONT } from "@/constants";
 import { userAppState } from "@/services/redux/reducers/userApp";
 import { cutString } from "@/utils";
 import { useRoute } from "@react-navigation/native";
@@ -51,14 +51,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerText: {
-    fontFamily: FONT.bold,
-    fontWeight: "bold",
+    fontFamily: FONT.semiBold,
+    fontWeight: 600,
     fontSize: 16,
     textAlign: "center",
-    color: "#404040",
+    color: COLORS.dark,
   },
   headerTextDesc: {
-    fontFamily: FONT.bold,
+    fontFamily: FONT.regular,
+    fontWeight: 400,
     fontSize: 12,
     lineHeight: 15,
   },

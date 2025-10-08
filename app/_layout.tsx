@@ -53,7 +53,7 @@ export default function RootLayout() {
       <Provider store={store}>
         <PaperProvider>
           <StatusBar
-            backgroundColor={COLORS.background}
+            backgroundColor={COLORS.backgroundWhite}
             barStyle={"dark-content"}
           />
           <SafeAreaProvider

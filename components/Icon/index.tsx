@@ -1,7 +1,10 @@
 import CloseCircle from "@/assets/icons/close_circle.svg";
 import CloseCircleRed from "@/assets/icons/close-circle-red.svg";
 import ArrowRight from "@/assets/icons/arrow-right.svg";
+import ArrowRightAlt from "@/assets/icons/arrow_right_alt.svg";
+import ArrowRightAlter from "@/assets/icons/arrow-right-alt.svg";
 import Download from "./iconComponents/download";
+import DownloadAlt from "@/assets/icons/download_alt.svg";
 import Cloud from "./iconComponents/cloud";
 import Close from "@/assets/icons/close.svg";
 import FullScreen from "@/assets/icons/full-screen.svg";
@@ -15,13 +18,21 @@ import Materials from "@/assets/icons/materials.svg";
 import Payment from "@/assets/icons/payment.svg";
 import Document from "@/assets/icons/document.svg";
 import Flag from "@/assets/icons/flag.svg";
+import Work from "@/assets/icons/work.svg";
+import People from "@/assets/icons/people.svg";
+import Money from "@/assets/icons/money.svg";
+import Note from "@/assets/icons/note.svg";
+import docCar from "@/assets/icons/doc_car.svg";
 import { ViewStyle } from "react-native";
 
 const icons = {
   download: Download,
+  downloadAlt: DownloadAlt,
   closeCircle: CloseCircle,
   closeCircleRed: CloseCircleRed,
   arrowRight: ArrowRight,
+  arrowRightAlt: ArrowRightAlt,
+  arrowRightAlter: ArrowRightAlter,
   close: Close,
   addCircle: AddCircle,
   checkCircle: CheckCircle,
@@ -35,6 +46,11 @@ const icons = {
   payment: Payment,
   document: Document,
   flag: Flag,
+  work: Work,
+  people: People,
+  money: Money,
+  note: Note,
+  docCar: docCar,
 };
 
 type IconKeysType = keyof typeof icons;

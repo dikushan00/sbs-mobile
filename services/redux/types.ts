@@ -12,6 +12,7 @@ export interface AppStateType {
   bottomDrawerData: BottomDrawerDataType;
   modal: ModalDataType;
   pageSettings: { backBtn: boolean; goBack: (() => void) | null };
+  hideFooterNav: boolean;
 }
 
 export type MenuItem = {

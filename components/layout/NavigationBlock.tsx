@@ -7,9 +7,8 @@ import {
 import { COLORS, PAGE_NAMES } from "@/constants";
 import { userAppState } from "@/services/redux/reducers/userApp";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { Fragment, useMemo } from "react";
+import { useMemo } from "react";
 import { useSelector } from "react-redux";
-import { FooterNav } from "./FooterNav";
 
 const Drawer = createDrawerNavigator();
 export const NavigationBlock = () => {
@@ -27,7 +26,7 @@ export const NavigationBlock = () => {
       screenOptions={({ navigation }) => ({
         headerShown: true,
         sceneStyle: {
-          backgroundColor: COLORS.background,
+          backgroundColor: COLORS.backgroundWhite,
         },
         header: (props) => (
           <PageHeader navigation={navigation} params={props.route.params} />
