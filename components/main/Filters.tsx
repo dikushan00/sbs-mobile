@@ -6,15 +6,11 @@ import {
   getProjectTypes,
   getResidentialEntrances,
 } from "./services";
+import { ProjectFiltersType } from "./types";
 
-type FiltersType = {
-  resident_id: number | null;
-  project_entrance_id: number | null;
-  project_type_id: number | null;
-};
 type PropsType = {
   onChange: (key: string, value: any, row: any) => void;
-  filters: FiltersType;
+  filters: ProjectFiltersType;
 };
 export const MainPageFilters = ({ onChange, filters }: PropsType) => {
   const [residents, setResidents] = useState([]);
@@ -33,7 +29,7 @@ export const MainPageFilters = ({ onChange, filters }: PropsType) => {
     getProjectTypes(residentId).then((res) => setProjectTypes(res || []));
   };
 
-  const getEntrances = async (filters: FiltersType) => {
+  const getEntrances = async (filters: ProjectFiltersType) => {
     getResidentialEntrances(filters).then((res) => setEntrances(res || []));
   };
 
@@ -62,7 +58,7 @@ export const MainPageFilters = ({ onChange, filters }: PropsType) => {
         list={residents}
         labelKey="resident_name"
         onChange={(id, item) => onFiltersChange("resident_id", id, item)}
-        label="Выберите ЖК"
+        label="Выберите ЖК" required
         value={filters.resident_id}
         valueKey="resident_id"
       />
@@ -70,7 +66,7 @@ export const MainPageFilters = ({ onChange, filters }: PropsType) => {
         list={projectTypes}
         labelKey="project_type_name"
         onChange={(id, item) => onFiltersChange("project_type_id", id, item)}
-        label="Тип проекта"
+        label="Тип проекта" required
         value={filters.project_type_id}
         valueKey="project_type_id"
       />
@@ -79,7 +75,7 @@ export const MainPageFilters = ({ onChange, filters }: PropsType) => {
         onChange={(id, item) =>
           onFiltersChange("project_entrance_id", id, item)
         }
-        label="Подъезд"
+        label="Подъезд" required
         labelKey="entrance_name"
         valueKey="project_entrance_id"
         value={filters.project_entrance_id}

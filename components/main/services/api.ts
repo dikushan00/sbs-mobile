@@ -1,6 +1,8 @@
 import { instance } from "@/services/api";
+import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ResidentType, Tabulation } from "../types";
+import { ReqResponse } from "@/services/types";
 export const residentialSettingsAPI = {
-  async getDocuments(project_id) {
+  async getDocuments(project_id: number): Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
     return await instance()
       .get(`/project/agreement/project_id/${project_id}/`)
       .then((res) => res?.data);
@@ -15,22 +17,22 @@ export const residentialSettingsAPI = {
       .post(`/project/agreement/sign/download/`, body)
       .then((res) => res?.data);
   },
-  async getResidentials() {
+  async getResidentials(): Promise<ReqResponse<ResidentType[]>> {
     return await instance()
       .get("/project/resident/read/")
       .then((res) => res?.data);
   },
-  async getProjectTypes(params) {
+  async getProjectTypes(params: { resident_id: number }): Promise<ReqResponse<ProjectTypeType[]>> {
     return await instance()
       .get("/project/project_types/read/", { params })
       .then((res) => res?.data);
   },
-  async getEntrances(params) {
+  async getEntrances(params: ProjectFiltersType): Promise<ReqResponse<ProjectEntranceType[] | undefined>> {
     return await instance()
       .get(`/project/entrances/read/`, { params })
       .then((res) => res?.data);
   },
-  async getEntranceApartments(params) {
+  async getEntranceApartments(params: ProjectFiltersType): Promise<ReqResponse<ProjectFloorType[] | undefined>> {
     return await instance()
       .get(`/project/flats/read/`, { params })
       .then((res) => res?.data);
@@ -40,12 +42,12 @@ export const residentialSettingsAPI = {
       .get(`/project/work_sets/read/`, { params })
       .then((res) => res?.data);
   },
-  async getFloorTabs(params = {}) {
+  async getFloorTabs(params = {}): Promise<{tabulations: Tabulation[]} | undefined> {
     return await instance()
       .get("/project/common/tabulation/read/", { params })
       .then((res) => res?.data);
   },
-  async sendAvrTo1C(remont_costs_id, params = {}) {
+  async sendAvrTo1C(remont_costs_id: number, params = {}) {
     return await instance()
       .post(
         `/project/remont_costs/${remont_costs_id}/avr/send/`,
@@ -54,27 +56,27 @@ export const residentialSettingsAPI = {
       )
       .then((res) => res?.data);
   },
-  async getFloorProjectInfo(project_id, params = {}) {
+  async getFloorProjectInfo(project_id: number, params = {}): Promise<ProjectInfoResponseType | undefined> {
     return await instance()
       .get(`/project/${project_id}/info/`, { params })
       .then((res) => res?.data);
   },
-  async sendAgreementTo1C(project_id) {
+  async sendAgreementTo1C(project_id: number) {
     return await instance()
       .post(`/project/${project_id}/agreement/send/`)
       .then((res) => res?.data);
   },
-  async getIsProjectSBS(project_id) {
+  async getIsProjectSBS(project_id: number) {
     return await instance()
       .get(`/project/${project_id}/is_sbs/`)
       .then((res) => res?.data);
   },
-  async getFloorSchema(floor_map_id, params = {}) {
+  async getFloorSchema(floor_map_id: number, params = {}) {
     return await instance()
       .get(`/project/floor_map/${floor_map_id}/info/`, { params })
       .then((res) => res?.data);
   },
-  async getFloorMaterials(floor_map_id, params = {}) {
+  async getFloorMaterials(floor_map_id: number, params = {}) {
     return await instance()
       .get(`/project/floor_map/${floor_map_id}/materials/read/`, { params })
       .then((res) => res?.data);
@@ -94,12 +96,12 @@ export const residentialSettingsAPI = {
       .put("/floor_map/floor_params/update/", body, { params })
       .then((res) => res?.data);
   },
-  async getFloorWorkSets(floor_map_id, params = {}) {
+  async getFloorWorkSets(floor_map_id: number, params = {}) {
     return await instance()
       .get(`/project/floor_map/${floor_map_id}/work_set/read/`, { params })
       .then((res) => res?.data);
   },
-  async getFloorWorkSetParams(floor_map_id, work_set_id, params = {}) {
+  async getFloorWorkSetParams(floor_map_id: number, work_set_id: number, params = {}) {
     return await instance()
       .get(
         `/project/floor_map/${floor_map_id}/work_set/${work_set_id}/floor_param/read/`,
@@ -109,12 +111,12 @@ export const residentialSettingsAPI = {
       )
       .then((res) => res?.data);
   },
-  async completeWorkSet(floor_map_id, body = {}) {
+  async completeWorkSet(floor_map_id: number, body = {}) {
     return await instance()
       .post(`/project/floor_map/${floor_map_id}/work_set/complete/`, body)
       .then((res) => res?.data);
   },
-  async callOKK(floor_map_id, body = {}) {
+  async callOKK(floor_map_id: number, body = {}) {
     return await instance()
       .post(`/project/floor_map/${floor_map_id}/work_set/call/`, body)
       .then((res) => res?.data);
@@ -179,24 +181,24 @@ export const residentialSettingsAPI = {
       .post(`/project/documents/sign/`, body, { params })
       .then((res) => res?.data);
   },
-  async getFloorMapPoints(floor_map_id, params = {}) {
+  async getFloorMapPoints(floor_map_id: number, params = {}) {
     return await instance()
       .get(`/project/floor_map/${floor_map_id}/check_points/read/`, { params })
       .then((res) => res?.data);
   },
-  async getFloorMapPointInfo(floor_map_id, call_check_list_point_id) {
+  async getFloorMapPointInfo(floor_map_id: number, call_check_list_point_id: number) {
     return await instance()
       .get(
         `/project/floor_map/${floor_map_id}/check_points/${call_check_list_point_id}/info/`
       )
       .then((res) => res?.data);
   },
-  async getFloorMapChecks(floor_map_id, params = {}) {
+  async getFloorMapChecks(floor_map_id: number, params = {}) {
     return await instance()
       .get(`/project/floor_map/${floor_map_id}/checks/read/`, { params })
       .then((res) => res?.data);
   },
-  async getFloorOpenspace(floor_map_id) {
+  async getFloorOpenspace(floor_map_id: number) {
     return await instance()
       .get(`/project/floor_map/${floor_map_id}/openspace/read/`)
       .then((res) => res?.data);

@@ -1,3 +1,4 @@
+import { ProjectDocumentType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation } from "../types";
 import { residentialSettingsAPI } from "./api";
 
 export const residentSettingsBlockNames = {
@@ -10,7 +11,7 @@ export const residentSettingsBlockNames = {
   M__ProjectFormStagesTab: "Stages",
 };
 
-export const getDocuments = async (project_id) => {
+export const getDocuments = async (project_id: number): Promise<ProjectDocumentType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getDocuments(project_id);
     if (res?.status && res?.data) {
@@ -25,7 +26,7 @@ export const signDocument = async (body) => {
     return res?.data || [];
   } catch (e) {}
 };
-export const downloadDocumentPDF = async (project_agreement_id) => {
+export const downloadDocumentPDF = async (project_agreement_id: number) => {
   const { downloadFile } = await import("@/services");
   const url = `/project/agreement/sign/download/`;
   const fileName = "Документ";
@@ -38,20 +39,20 @@ export const downloadDocumentPDF = async (project_agreement_id) => {
     true
   );
 };
-export const getResidentList = async () => {
+export const getResidentList = async (): Promise<ResidentType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getResidentials();
     return res?.data || [];
   } catch (e) {}
 };
-export const getProjectTypes = async (resident_id) => {
+export const getProjectTypes = async (resident_id: number): Promise<ProjectTypeType[] | undefined> => {
   const params = { resident_id };
   try {
     const res = await residentialSettingsAPI.getProjectTypes(params);
     return res?.data || [];
   } catch (e) {}
 };
-export const getResidentialEntrances = async (params) => {
+export const getResidentialEntrances = async (params: ProjectFiltersType) => {
   try {
     const res = await residentialSettingsAPI.getEntrances(params);
     return (
@@ -69,11 +70,11 @@ export const getResidentialEntrances = async (params) => {
     );
   } catch (e) {}
 };
-export const getEntranceApartments = async (params) => {
+export const getEntranceApartments = async (params: ProjectFiltersType): Promise<ProjectFloorType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getEntranceApartments(params);
     if (!res) return;
-    return { ...res, data: res?.data?.reverse() || [] };
+    return res?.data?.reverse() || []
   } catch (e) {}
 };
 export const getEntranceWorkSets = async (params) => {
@@ -98,13 +99,15 @@ export const getEntranceWorkSets = async (params) => {
     });
   } catch (e) {}
 };
-export const getFloorTabs = async () => {
+export const getFloorTabs = async (): Promise<Tabulation[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getFloorTabs();
-    return res?.tabulations;
+    const tabs =  res?.tabulations;
+    if(!tabs?.length) return []
+    return [tabs[0], { grant_id: 0, grant_code: 'EntranceSchema', grant_name: 'Схема этажа', blocks: [] }, ...tabs.slice(1)] || []
   } catch (e) {}
 };
-export const getFloorProjectInfo = async (projectId, params = {}) => {
+export const getFloorProjectInfo = async (projectId: number, params = {}): Promise<ProjectInfoResponseType | undefined> => {
   try {
     const res = await residentialSettingsAPI.getFloorProjectInfo(
       projectId,
@@ -113,13 +116,13 @@ export const getFloorProjectInfo = async (projectId, params = {}) => {
     return res;
   } catch (e) {}
 };
-export const sendAgreementTo1C = async (projectId) => {
+export const sendAgreementTo1C = async (projectId: number) => {
   try {
     const res = await residentialSettingsAPI.sendAgreementTo1C(projectId);
     return res?.data;
   } catch (e) {}
 };
-export const sendAvrTo1C = async (remont_costs_id, params = {}) => {
+export const sendAvrTo1C = async (remont_costs_id: number, params = {}) => {
   try {
     const res = await residentialSettingsAPI.sendAvrTo1C(
       remont_costs_id,
@@ -128,7 +131,7 @@ export const sendAvrTo1C = async (remont_costs_id, params = {}) => {
     return res?.data;
   } catch (e) {}
 };
-export const getIsProjectSBS = async (projectId) => {
+export const getIsProjectSBS = async (projectId: number): Promise<{is_sbs: boolean} | undefined> => {
   try {
     const res = await residentialSettingsAPI.getIsProjectSBS(projectId);
     return res;
@@ -158,20 +161,20 @@ const floorSchemaDataRefactor = (res) => {
     texts,
   };
 };
-export const getFloorSchema = async (floor_map_id) => {
+export const getFloorSchema = async (floor_map_id: number) => {
   try {
     const res = await residentialSettingsAPI.getFloorSchema(floor_map_id);
     if (!res) return;
     return floorSchemaDataRefactor(res);
   } catch (e) {}
 };
-export const getFloorMaterials = async (floor_map_id) => {
+export const getFloorMaterials = async (floor_map_id: number) => {
   try {
     const res = await residentialSettingsAPI.getFloorMaterials(floor_map_id);
     return res;
   } catch (e) {}
 };
-export const getSchemaObjectInfo = async (floor_param_id, project_type_id) => {
+export const getSchemaObjectInfo = async (floor_param_id: number, project_type_id: number) => {
   if (!floor_param_id) return;
   const params = { floor_param_id, project_type_id };
   try {
@@ -185,13 +188,13 @@ export const getFloorParamTypes = async () => {
     return res?.data;
   } catch (e) {}
 };
-export const getFloorWorkSets = async (floor_map_id) => {
+export const getFloorWorkSets = async (floor_map_id: number) => {
   try {
     const res = await residentialSettingsAPI.getFloorWorkSets(floor_map_id);
     return res;
   } catch (e) {}
 };
-export const getFloorWorkSetParams = async (floor_map_id, work_set_id) => {
+export const getFloorWorkSetParams = async (floor_map_id: number, work_set_id: number) => {
   try {
     const res = await residentialSettingsAPI.getFloorWorkSetParams(
       floor_map_id,
@@ -200,7 +203,7 @@ export const getFloorWorkSetParams = async (floor_map_id, work_set_id) => {
     return res?.data;
   } catch (e) {}
 };
-export const completeWorkSet = async (floor_map_id, body) => {
+export const completeWorkSet = async (floor_map_id: number, body) => {
   try {
     const res = await residentialSettingsAPI.completeWorkSet(
       floor_map_id,
@@ -209,7 +212,7 @@ export const completeWorkSet = async (floor_map_id, body) => {
     return res;
   } catch (e) {}
 };
-export const callOKK = async (floor_map_id, body) => {
+export const callOKK = async (floor_map_id: number, body) => {
   try {
     const res = await residentialSettingsAPI.callOKK(floor_map_id, body);
     return res;

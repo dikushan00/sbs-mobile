@@ -2,8 +2,8 @@ import { CustomSelectProps } from "@/components/common/CustomSelect";
 import { CustomButton } from "@/components/common/CustomButton";
 import { NotFound } from "@/components/common/NotFound";
 import { closeBottomDrawer } from "@/services/redux/reducers/app";
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useState, useMemo } from "react";
+import { Pressable, StyleSheet, Text, View, TextInput } from "react-native";
 import { useDispatch } from "react-redux";
 import { BottomDrawerHeader } from "../BottomDrawerHeader";
 import { COLORS } from "@/constants";
@@ -12,8 +12,19 @@ type PropsType = { data: CustomSelectProps; handleClose: () => void };
 
 export const CustomSelectList = ({ data, handleClose }: PropsType) => {
   const dispatch = useDispatch();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { list, valueKey, onChange, value, labelKey, disabled, label } = data;
+
+  // Фильтруем список по поисковому запросу
+  const filteredList = useMemo(() => {
+    if (!searchQuery.trim()) return list || [];
+    
+    return (list || []).filter((item) => {
+      const itemLabel = item[labelKey || "label"] || "";
+      return itemLabel.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [list, searchQuery, labelKey]);
 
   const handleChange = (selectedId: number | null, item: any) => {
     if (disabled) return;
@@ -27,15 +38,27 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
         handleClose={handleClose}
         title={label || "Выберите.."}
       />
+      
+      {/* Поле поиска */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchIcon}>
+          <Text style={styles.searchIconText}>🔍</Text>
+        </View>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Поиск"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+      
       <View>
-        {list?.length ? (
-          list?.map((item, i) => {
+        {filteredList?.length ? (
+          filteredList?.map((item, i) => {
             return (
               <Pressable
                 style={{
                   ...styles.item,
-                  borderBottomWidth: (list?.length || 0) - 1 === i ? 1 : 0,
-                  borderTopWidth: i === 0 ? 0 : 1,
                   backgroundColor:
                     value === item[valueKey || "id"] ? "#ddd" : "#fff",
                 }}
@@ -44,7 +67,7 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
                   !disabled && handleChange(item[valueKey || "id"], item)
                 }
               >
-                <Text>{item[labelKey || "label"] || ""}</Text>
+                <Text style={{fontSize: 16}}>{item[labelKey || "label"] || ""}</Text>
               </Pressable>
             );
           })
@@ -53,7 +76,7 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
             <NotFound title="Не найдено" />
           </View>
         )}
-        <CustomButton small stylesProps={{marginTop: 15, minHeight: 40}}
+        <CustomButton small stylesProps={{marginTop: 15, minHeight: 50}}
         type="contained" onClick={() => handleChange(null, null)} color={COLORS.error} title='Сбросить'>
 
         </CustomButton>
@@ -63,7 +86,27 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
 };
 
 const styles = StyleSheet.create({
-  container: { gap: 15, width: "100%", padding: 16 },
+  container: { gap: 15, width: "100%", padding: 16, paddingBottom: 50 },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchIconText: {
+    fontSize: 16,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#333",
+  },
   item: {
     paddingVertical: 12,
     paddingHorizontal: 10,

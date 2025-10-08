@@ -16,10 +16,13 @@ export type CustomSelectProps = {
   value?: number | string | null | undefined;
   isLoading?: boolean;
   disabled?: boolean;
+  required?: boolean;
+  placeholder?: string;
 };
 export const CustomSelect = (props: CustomSelectProps) => {
   const dispatch = useDispatch();
 
+  const {label} = props
   const openList = async () => {
     if (props.disabled || !props.list?.length) return;
     dispatch(
@@ -39,25 +42,41 @@ export const CustomSelect = (props: CustomSelectProps) => {
     );
   }, [props.list, props.value, props.valueKey]);
 
+  const displayText = selectedItem
+    ? selectedItem[props.labelKey || "label"]
+    : props.placeholder || "Выберите..";
+
+  const isPlaceholder = !selectedItem;
+
   return (
     <View>
+      {!!label && (
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+          <Text style={{ fontSize: 16, color: "#333" }}>{label}</Text>
+          {props.required && (
+            <Text style={{ color: COLORS.error, marginLeft: 0, fontSize: 16 }}>*</Text>
+          )}
+        </View>
+      )}
       <Pressable
         onPress={openList}
         style={{
           padding: 10,
+          paddingHorizontal: 15,
           backgroundColor: "#f0f0f0",
-          borderRadius: 5,
+          borderRadius: 12,
           width: "100%",
-          height: 40,
+          height: 48,
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
         }}
       >
-        <Text>
-          {selectedItem
-            ? selectedItem[props.labelKey || "label"]
-            : props?.label || "Выберите.."}
+        <Text style={{ 
+          color: isPlaceholder ? "#757575" : "#333",
+          fontSize: 16 
+        }}>
+          {displayText}
         </Text>
         <FontAwesome5 name="chevron-down" size={14} color={COLORS.black} />
       </Pressable>

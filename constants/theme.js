@@ -4,7 +4,8 @@ const COLORS = {
   primaryDisabled: "rgba(19, 116, 207, 0.25)",
   disabled: "#dedede",
   primaryBorder: "rgba(19, 116, 207, 0.5)",
-  background: "#f6f6f6",
+  backgroundWhite: "#fff",
+  background: "#F2F5F8",
   primaryBackground: "#EAF5FF",
   primaryBackgroundHard: "#a1c0dd",
   secondary: "#444262",
@@ -23,8 +24,10 @@ const COLORS = {
   successGradient: "linear-gradient(91.72deg, #37B908 9.72%, #11AC59 90.28%)",
 
   gray: "#83829A",
+  darkGray: "#757575",
   gray2: "#C1C0C8",
   black: "#404040",
+  dark: "#000",
 
   white: "#FFF",
   lightWhite: "#FAFAFC",

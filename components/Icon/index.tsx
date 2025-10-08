@@ -8,6 +8,13 @@ import FullScreen from "@/assets/icons/full-screen.svg";
 import AddCircle from "@/assets/icons/add-cirlce.svg";
 import Back from "@/assets/icons/back.svg";
 import CheckCircle from "@/assets/icons/check-circle.svg";
+import Info from "@/assets/icons/info.svg";
+import Folder from "@/assets/icons/folder.svg";
+import Map from "@/assets/icons/map.svg";
+import Materials from "@/assets/icons/materials.svg";
+import Payment from "@/assets/icons/payment.svg";
+import Document from "@/assets/icons/document.svg";
+import Flag from "@/assets/icons/flag.svg";
 import { ViewStyle } from "react-native";
 
 const icons = {
@@ -21,6 +28,13 @@ const icons = {
   fullScreen: FullScreen,
   back: Back,
   cloud: Cloud,
+  info: Info,
+  folder: Folder,
+  map: Map,
+  materials: Materials,
+  payment: Payment,
+  document: Document,
+  flag: Flag,
 };
 
 type IconKeysType = keyof typeof icons;
