@@ -158,3 +158,18 @@ export interface Tabulation {
 	grant_name: string;
 	blocks: TabulationBlock[];
 }
+
+export interface SelectedDataType {
+	block_name: string;
+	contractor_name: string;
+	entrance: number;
+	entrance_full_name: string;
+	entrance_name: string;
+	entrance_percent: number;
+	project_entrance_id: number;
+	project_id: number;
+	project_type_id: number;
+	project_type_name: string;
+	resident_id: number;
+	resident_name: string;
+}

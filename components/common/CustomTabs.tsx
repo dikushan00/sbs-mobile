@@ -6,8 +6,9 @@ type PropsType = {
   data: { label: string; value: string }[];
   defaultActive: string;
   onChange: (tab: string) => void;
+  alt?: boolean;
 };
-export const CustomTabs = ({ data, defaultActive, onChange }: PropsType) => {
+export const CustomTabs = ({ data, defaultActive, onChange, alt = false }: PropsType) => {
   const [activeTab, setActiveTab] = useState(defaultActive || null);
   const handleChange = (newActiveTab: string) => {
     setActiveTab(newActiveTab);
@@ -16,25 +17,29 @@ export const CustomTabs = ({ data, defaultActive, onChange }: PropsType) => {
   return (
     <ScrollView
       horizontal
-      style={{ flex: 1 }}
+      style={[styles.container, alt && styles.containerAlt]}
       contentContainerStyle={{ flexGrow: 1 }}
     >
       {data?.map((item, index) => {
+        const isActive = activeTab === item.value;
+        const isFirst = index === 0;
+        const isLast = index === data.length - 1;
+        
         return (
           <TouchableOpacity
             key={item.value.toString()}
             style={[
-              styles.tab,
-              activeTab === item.value ? styles.tabActive : {},
-              index === 0 && { marginLeft: 0 },
-              index === data.length - 1 && { marginRight: 0 },
+              alt ? styles.tabAlt : styles.tab,
+              isActive && (alt ? styles.tabActiveAlt : styles.tabActive),
+              !alt && isFirst && { marginLeft: 0 },
+              !alt && isLast && { marginRight: 0 },
             ]}
             onPress={() => handleChange(item.value)}
           >
             <Text
               style={[
-                styles.tabText,
-                activeTab === item.value ? styles.tabTextActive : {},
+                alt ? styles.tabTextAlt : styles.tabText,
+                isActive && (alt ? styles.tabTextActiveAlt : styles.tabTextActive),
               ]}
             >
               {item.label}
@@ -47,6 +52,15 @@ export const CustomTabs = ({ data, defaultActive, onChange }: PropsType) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  containerAlt: {
+    backgroundColor: "#EAEDF0",
+    borderRadius: 8,
+    padding: 3,
+    maxHeight: 50
+  },
   tab: {
     height: 48,
     padding: 10,
@@ -66,5 +80,27 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: "#fff",
+  },
+  // Alt styles for segmented control look
+  tabAlt: {
+    flex: 1,
+    height: 44,
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#EAEDF0",
+  },
+  tabActiveAlt: {
+    backgroundColor: "#fff",
+    zIndex: 1,
+  },
+  tabTextAlt: {
+    fontSize: 16,
+    color: "#000",
+    fontFamily: FONT.regular,
+  },
+  tabTextActiveAlt: {
+    color: "#000",
   },
 });

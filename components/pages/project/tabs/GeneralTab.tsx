@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { Icon } from '@/components/Icon';
 import { ProjectInfoResponseType } from '@/components/main/types';
 import { useDispatch } from 'react-redux';
 import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/reducers/userApp';
@@ -12,13 +11,15 @@ import {
   FinancialInfo, 
   OrderedMaterials 
 } from '../blocks';
+import { BlockItem } from '@/components/common/BlockItem';
 
 interface GeneralTabProps {
+  projectId: number | null;
   projectInfo: ProjectInfoResponseType | null;
   onBackToProject?: () => void;
 }
 
-export const GeneralTab = ({projectInfo, onBackToProject}: GeneralTabProps) => {
+export const GeneralTab = ({projectInfo, onBackToProject, projectId}: GeneralTabProps) => {
   const dispatch = useDispatch();
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
 
@@ -31,15 +32,16 @@ export const GeneralTab = ({projectInfo, onBackToProject}: GeneralTabProps) => {
   };
 
   const renderBlockContent = () => {
-    switch (selectedBlock) {
-      case '1':
-        return <AssignedPersons />;
+    switch (String(selectedBlock)) {
+      case '1':{
+        return <AssignedPersons data={projectInfo?.employees || []} />;
+      }
       case '2':
-        return <Contracts />;
+        return <Contracts project_id={projectId} />;
       case '3':
-        return <FinancialInfo />;
+        return <FinancialInfo data={projectInfo?.sums || []} />;
       case '4':
-        return <OrderedMaterials />;
+        return <OrderedMaterials data={projectInfo?.materials || []} />;
       default:
         return null;
     }
@@ -81,21 +83,12 @@ export const GeneralTab = ({projectInfo, onBackToProject}: GeneralTabProps) => {
   return (
     <View style={styles.container}>
       {blocks.map((block) => (
-        <TouchableOpacity
+        <BlockItem
           key={block.id}
-          style={styles.block}
+          title={block.title}
+          icon={block.icon}
           onPress={() => handleBlockPress(block)}
-        >
-          <View style={styles.blockContent}>
-            <View style={styles.leftSection}>
-              <View style={styles.iconContainer}>
-                <Icon name={block.icon as any} width={16} height={16} fill={COLORS.primary} />
-              </View>
-              <Text style={styles.blockTitle}>{block.title}</Text>
-            </View>
-            <Icon name="arrowRightAlt" width={16} height={16} fill={COLORS.gray} />
-          </View>
-        </TouchableOpacity>
+        />
       ))}
     </View>
   );
@@ -130,40 +123,5 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: COLORS.backgroundWhite,
     gap: 12,
-  },
-  block: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 0,
-  },
-  blockContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  leftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  iconContainer: {
-    backgroundColor: '#DFEFFF',
-    borderRadius: 6,
-    padding: 7,
-    marginRight: 15,
-  },
-  blockTitle: {
-    fontSize: SIZES.medium,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-    flex: 1,
   },
 });

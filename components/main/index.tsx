@@ -13,7 +13,7 @@ import {
   getIsProjectSBS,
 } from "./services";
 import { COLORS } from "@/constants";
-import { ProjectFloorType, Tabulation } from "./types";
+import { ProjectFloorType, Tabulation, SelectedDataType } from "./types";
 import { setPageSettings } from "@/services/redux/reducers/app";
 
 export const MainPage = () => {
@@ -21,7 +21,7 @@ export const MainPage = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSbs, setIsSbs] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null);
-  const [selectedData, setSelectedData] = useState<any>(null);
+  const [selectedData, setSelectedData] = useState<Partial<SelectedDataType> | null>(null);
   const [tabs, setTabs] = useState<Tabulation[] | null>(null);
   const [tab, setTab] = useState<string>("");
   const [filters, setFilters] = useState({
@@ -39,6 +39,7 @@ export const MainPage = () => {
       })
     );
   }, [])
+
   const getData = async (
     isRefreshing = false,
     controller?: AbortController
@@ -63,7 +64,6 @@ export const MainPage = () => {
 
   const onFiltersChange = (key: string, value: any, row: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
-    console.log(key, value, row);
     if (!!row)
       setSelectedData(selectedData ? { ...selectedData, ...row } : { ...row });
 
@@ -97,7 +97,6 @@ export const MainPage = () => {
 
   const handleContinue = () => {
     if (!isAllFiltersFilled()) return;
-    console.log("Продолжить с данными:", { filters, selectedData });
     setShowProjectPage(true);
     dispatch(setHideFooterNav(true));
     dispatch(
@@ -109,7 +108,6 @@ export const MainPage = () => {
   };
 
   const handleTabPress = (tab: Tabulation) => {
-    console.log("Tab pressed:", tab);
     // Here you can implement navigation to specific tab content
   };
 
@@ -126,14 +124,6 @@ export const MainPage = () => {
   };
 
   if (showProjectPage && tabs && selectedData) {
-    const projectInfo = {
-      project_name: selectedData.project_name || "Nexpo Classic",
-      project_type_name: selectedData.project_type_name || "Черновая",
-      start_date: selectedData.start_date || "12.05.2025",
-      finish_date: selectedData.finish_date || "25.05.2025",
-      entrance: selectedData.entrance || 1,
-      block_name: selectedData.block_name || "Блок №5",
-    };
 
     return (
       <ProjectPage

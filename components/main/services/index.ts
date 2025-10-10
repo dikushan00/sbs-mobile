@@ -26,19 +26,6 @@ export const signDocument = async (body) => {
     return res?.data || [];
   } catch (e) {}
 };
-export const downloadDocumentPDF = async (project_agreement_id: number) => {
-  const { downloadFile } = await import("@/services");
-  const url = `/project/agreement/sign/download/`;
-  const fileName = "Документ";
-  await downloadFile(
-    url,
-    fileName,
-    { project_agreement_id },
-    "pdf",
-    "post",
-    true
-  );
-};
 export const getResidentList = async (): Promise<ResidentType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getResidentials();
@@ -74,7 +61,7 @@ export const getEntranceApartments = async (params: ProjectFiltersType): Promise
   try {
     const res = await residentialSettingsAPI.getEntranceApartments(params);
     if (!res) return;
-    return res?.data?.reverse() || []
+    return res?.data || []
   } catch (e) {}
 };
 export const getEntranceWorkSets = async (params) => {

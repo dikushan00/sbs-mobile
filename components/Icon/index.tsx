@@ -10,7 +10,9 @@ import Close from "@/assets/icons/close.svg";
 import FullScreen from "@/assets/icons/full-screen.svg";
 import AddCircle from "@/assets/icons/add-cirlce.svg";
 import Back from "@/assets/icons/back.svg";
+import Check from "@/assets/icons/check.svg";
 import CheckCircle from "@/assets/icons/check-circle.svg";
+import CheckCircleBlue from "@/assets/icons/check-circle-blue.svg";
 import Info from "@/assets/icons/info.svg";
 import Folder from "@/assets/icons/folder.svg";
 import Map from "@/assets/icons/map.svg";
@@ -21,8 +23,10 @@ import Flag from "@/assets/icons/flag.svg";
 import Work from "@/assets/icons/work.svg";
 import People from "@/assets/icons/people.svg";
 import Money from "@/assets/icons/money.svg";
+import MoneyAlt from "@/assets/icons/money_alt.svg";
 import Note from "@/assets/icons/note.svg";
 import docCar from "@/assets/icons/doc_car.svg";
+import Logout from "@/assets/icons/logout.svg";
 import { ViewStyle } from "react-native";
 
 const icons = {
@@ -35,7 +39,9 @@ const icons = {
   arrowRightAlter: ArrowRightAlter,
   close: Close,
   addCircle: AddCircle,
+  check: Check,
   checkCircle: CheckCircle,
+  checkCircleBlue: CheckCircleBlue,
   fullScreen: FullScreen,
   back: Back,
   cloud: Cloud,
@@ -49,8 +55,10 @@ const icons = {
   work: Work,
   people: People,
   money: Money,
+  moneyAlt: MoneyAlt,
   note: Note,
   docCar: docCar,
+  logout: Logout,
 };
 
 type IconKeysType = keyof typeof icons;

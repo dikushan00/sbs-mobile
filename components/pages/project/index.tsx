@@ -47,6 +47,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
   onTabPress,
   onBack, filters
 }) => {
+  console.log(selectedData)
   const dispatch = useDispatch();
   const [isFetching, setIsFetching] = useState(false);
   const [currentTab, setCurrentTab] = useState<Tabulation | null>(null);
@@ -71,6 +72,14 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     }
   }, [projectId])
 
+  const backToProject = () => {
+    setCurrentTab(null);
+    dispatch(setUserPageHeaderData({
+      title: "Ведение проекта",
+      desc: "",
+    }));
+  }
+
   useEffect(() => {
     if (currentTab) {
       dispatch(setPageSettings({ 
@@ -94,6 +103,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     switch (currentTab.grant_code) {
       case 'M__ProjectFormInfoTab':
         return <GeneralTab 
+          projectId={projectId}
           projectInfo={projectInfo} 
           onBackToProject={() => {
             setCurrentTab(null);
@@ -104,7 +114,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
           }}
         />;
       case 'EntranceSchema':
-        return <FloorSchemaTab filters={filters} />;
+        return <FloorSchemaTab filters={filters} onBack={backToProject} selectedData={selectedData} />;
       case 'M__ProjectFormWorkTab':
         return <WorkTab />;
       case 'M__ProjectFormMaterialTab':
@@ -117,6 +127,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
         return <StagesTab />;
       default:
         return <GeneralTab 
+          projectId={projectId}
           projectInfo={projectInfo} 
           onBackToProject={() => {
             setCurrentTab(null);

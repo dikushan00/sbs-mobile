@@ -1,5 +1,5 @@
 import { instance } from "@/services/api";
-import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ResidentType, Tabulation } from "../types";
+import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation } from "../types";
 import { ReqResponse } from "@/services/types";
 export const residentialSettingsAPI = {
   async getDocuments(project_id: number): Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
@@ -15,7 +15,7 @@ export const residentialSettingsAPI = {
   async downloadDocumentPDF(body = {}) {
     return await instance()
       .post(`/project/agreement/sign/download/`, body)
-      .then((res) => res?.data);
+      .then((res) => res);
   },
   async getResidentials(): Promise<ReqResponse<ResidentType[]>> {
     return await instance()

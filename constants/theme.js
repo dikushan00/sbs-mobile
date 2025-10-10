@@ -1,6 +1,7 @@
 const COLORS = {
   primary: "#134686",
   primaryLight: "#0060FE",
+  red: "red",
   primaryDisabled: "rgba(19, 116, 207, 0.25)",
   disabled: "#dedede",
   primaryBorder: "rgba(19, 116, 207, 0.5)",
@@ -26,7 +27,7 @@ const COLORS = {
   gray: "#83829A",
   darkGray: "#757575",
   gray2: "#C1C0C8",
-  black: "#404040",
+  black: "#000",
   dark: "#000",
 
   white: "#FFF",
@@ -62,6 +63,7 @@ const SIZES = {
   xxSmall: 5,
   xSmall: 10,
   small: 12,
+  regular: 14,
   medium: 16,
   large: 20,
   xLarge: 24,
