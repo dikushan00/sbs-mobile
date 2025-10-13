@@ -1,4 +1,4 @@
-import { FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, ProjectDocumentType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType } from "../types";
+import { CompleteWorkSetBodyType, FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, ProjectDocumentType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType } from "../types";
 import { residentialSettingsAPI } from "./api";
 
 export const residentSettingsBlockNames = {
@@ -190,7 +190,7 @@ export const getFloorWorkSetParams = async (floor_map_id: number, work_set_id: n
     return res?.data;
   } catch (e) {}
 };
-export const completeWorkSet = async (floor_map_id: number, body) => {
+export const completeWorkSet = async (floor_map_id: number, body: CompleteWorkSetBodyType) => {
   try {
     const res = await residentialSettingsAPI.completeWorkSet(
       floor_map_id,

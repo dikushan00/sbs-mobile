@@ -1,5 +1,5 @@
 import { instance } from "@/services/api";
-import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType } from "../types";
+import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType } from "../types";
 import { ReqResponse } from "@/services/types";
 export const residentialSettingsAPI = {
   async getDocuments(project_id: number): Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
@@ -111,7 +111,7 @@ export const residentialSettingsAPI = {
       )
       .then((res) => res?.data);
   },
-  async completeWorkSet(floor_map_id: number, body = {}) {
+  async completeWorkSet(floor_map_id: number, body: CompleteWorkSetBodyType) {
     return await instance()
       .post(`/project/floor_map/${floor_map_id}/work_set/complete/`, body)
       .then((res) => res?.data);

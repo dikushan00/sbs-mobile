@@ -1,35 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getFloorMaterials, getFloorWorkSets } from '@/components/main/services';
-import { WorkSetsMaterialsResponseType, MaterialType, FloorMapWorkSetWithMaterialsType, FloorMapWorkSetsResponseType, FloorMapWorkSetType } from '@/components/main/types';
-import { MaterialsList } from '@/components/pages/project/tabs/MaterialsList';
-import { MaterialsAccordion } from '@/components/pages/project/tabs/MaterialsAccordion';
+import { getFloorWorkSets } from '@/components/main/services';
+import { FloorMapWorkSetsResponseType, FloorMapWorkSetType } from '@/components/main/types';
 import { BlockItem } from '@/components/common/BlockItem';
 import { CustomLoader } from '@/components/common/CustomLoader';
+import { WorkSetAccordion } from './WorksetAccordion';
 
 interface MaterialsTabProps {
   floor_map_id: number;
 }
 
-export const MaterialsTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
-  const [materialsData, setMaterialsData] = useState<WorkSetsMaterialsResponseType | null>(null);
+export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
   const [loading, setLoading] = useState(true);
-  const [selectedPlacement, setSelectedPlacement] = useState<FloorMapWorkSetWithMaterialsType | null>(null);
+
+  const [workSets, setWorkSets] = useState<FloorMapWorkSetsResponseType | null>(null);
+  const [selectedPlacement, setSelectedPlacement] = useState<FloorMapWorkSetType | null>(null);
 
   useEffect(() => {
-    const fetchMaterials = async () => {
+    const getFloorWorkSetsData = async () => {
       setLoading(true);
-      const data = await getFloorMaterials(floor_map_id);
+      const res = await getFloorWorkSets(floor_map_id);
       setLoading(false);
-      if (data) {
-        setMaterialsData(data);
-      }
+      setWorkSets(res || null);
     };
-    fetchMaterials();
+    getFloorWorkSetsData();
   }, [floor_map_id]);
 
-  const handlePlacementSelect = (placement: FloorMapWorkSetWithMaterialsType | null, placementAlt: FloorMapWorkSetType | null = null) => {
+  const handlePlacementSelect = (placement: FloorMapWorkSetType) => {
     setSelectedPlacement(placement);
   };
 
@@ -45,16 +43,16 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-          <Text style={styles.loadingText}>Загрузка материалов...</Text>
+          <Text style={styles.loadingText}>Загрузка...</Text>
         </View>
       </View>
     );
   }
 
-  if (!materialsData) {
+  if (!workSets) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Не удалось загрузить данные о материалах</Text>
+        <Text style={styles.errorText}>Не удалось загрузить данные</Text>
       </View>
     );
   }
@@ -62,24 +60,23 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {(selectedPlacement) ? (
-        <MaterialsAccordion
+        <WorkSetAccordion
           placement={selectedPlacement}
           onBack={handleBackToList}
         />
       ) : (
         <>
           <View style={styles.accordionContainer}>
-            <Text style={styles.accordionTitle}>Материалы по конструктивам</Text>
-            {materialsData.materials_ws.map((placement) => (
+            
+            {workSets?.data.map((workSetGroup) => (
               <BlockItem
-                key={placement.placement_type_id}
-                title={placement.placement_type_name}
-                onPress={() => handlePlacementSelect(placement)}
+                key={workSetGroup.placement_type_id}
+                title={workSetGroup.placement_type_name}
+                onPress={() => handlePlacementSelect(workSetGroup)}
                 blockMode={false}
               />
             ))}
           </View>
-          <MaterialsList materials={materialsData.materials} />
         </>
       )}
     </ScrollView>

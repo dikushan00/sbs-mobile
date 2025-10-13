@@ -338,3 +338,10 @@ export interface WorkSetsMaterialsResponseType {
 	materials_ws: FloorMapWorkSetWithMaterialsType[]
 	materials: MaterialType[]
 }
+
+export type CompleteWorkSetBodyType = {
+	is_ready: boolean;
+	work_set_id: number | null;
+	placement_type_id: number;
+	work_set_check_group_id: number | null;
+}

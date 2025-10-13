@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
-import { FloorMapWorkSetWithMaterialsType, WorkSetCheckGroupWithMaterialsType, WorkSetMaterialType, WorkSetType } from '@/components/main/types';
+import { FloorMapWorkSetType, WorkSetType } from '@/components/main/types';
 import { numberWithCommas } from '@/utils';
 
 interface MaterialsAccordionProps {
-  placement: FloorMapWorkSetWithMaterialsType;
+  placement: FloorMapWorkSetType;
   onBack: () => void;
 }
 
-export const MaterialsAccordion: React.FC<MaterialsAccordionProps> = ({ placement, onBack }) => {
+export const WorkSetAccordion: React.FC<MaterialsAccordionProps> = ({ placement, onBack }) => {
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
 
   const toggleGroup = (groupId: number) => {
@@ -21,10 +21,6 @@ export const MaterialsAccordion: React.FC<MaterialsAccordionProps> = ({ placemen
       newExpanded.add(groupId);
     }
     setExpandedGroups(newExpanded);
-  };
-
-  const calculateGroupTotal = (group: WorkSetCheckGroupWithMaterialsType) => {
-    return group.work_sets.reduce((sum, workSet) => sum + workSet.material_sum, 0);
   };
 
   return (
@@ -38,9 +34,8 @@ export const MaterialsAccordion: React.FC<MaterialsAccordionProps> = ({ placemen
         </TouchableOpacity>
       </View>
 
-      {placement.work_set_check_groups.map((group) => {
+      {placement?.work_set_check_groups.map((group) => {
         const isExpanded = expandedGroups.has(group.work_set_check_group_id);
-        const groupTotal = calculateGroupTotal(group);
 
         return (
           <View key={group.work_set_check_group_id} style={styles.groupContainer}>
@@ -57,15 +52,15 @@ export const MaterialsAccordion: React.FC<MaterialsAccordionProps> = ({ placemen
                 />
                 <View style={{marginLeft: 10}}>
                   <Text style={styles.groupTitle}>{group.work_set_check_group_name}</Text>
+                  <Text style={styles.groupTotalAlt}>{numberWithCommas(group.total_sum)} 〒</Text>
                 </View>
               </View>
-              <Text style={styles.groupTotal}>{numberWithCommas(groupTotal)} 〒</Text>
             </TouchableOpacity>
 
             {isExpanded && (
               <View style={styles.groupContent}>
                 {group.work_sets.map((workSet) => (
-                  <WorkSetItem key={workSet.work_set_id + '-' + ('material_id' in workSet && workSet.material_id)} workSet={workSet as WorkSetMaterialType} />
+                  <WorkSetItem key={workSet.work_set_id} workSet={workSet} />
                 ))}
               </View>
             )}
@@ -77,33 +72,30 @@ export const MaterialsAccordion: React.FC<MaterialsAccordionProps> = ({ placemen
 };
 
 interface WorkSetItemProps {
-  workSet: WorkSetMaterialType;
+  workSet: WorkSetType;
 }
 
 const WorkSetItem: React.FC<WorkSetItemProps> = ({ workSet }) => {
   return (
     <View style={styles.workSetContainer}>
       <View style={styles.workSetHeader}>
-        <Text style={styles.workSetName}>{workSet.work_set_name }</Text>
+        <Text style={styles.workSetName}>{workSet.work_set_name}</Text>
       </View>
       
       <View style={styles.workSetDetails}>
-        {workSet.material_name && <View style={styles.materialInfo}>
-          <Text style={styles.materialName}>{workSet.material_name}</Text>
-        </View>}
         
         <View style={styles.workSetMeta}>
           <View style={styles.quantitySection}>
             <Text style={styles.detailLabel}>Количество</Text>
             <Text style={styles.detailValue}>
-              {numberWithCommas(workSet.material_amount)} {workSet.unit_name}
+              {numberWithCommas(workSet.num)} {workSet.unit_name}
             </Text>
           </View>
           
           <View style={styles.sumSection}>
             <Text style={styles.detailLabel}>Сумма, 〒</Text>
             <Text style={styles.detailValue}>
-              {numberWithCommas(workSet.material_sum)}
+              {numberWithCommas(workSet.total_sum)}
             </Text>
           </View>
         </View>
