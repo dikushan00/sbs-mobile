@@ -27,6 +27,7 @@ const COLORS = {
   gray: "#83829A",
   darkGray: "#757575",
   gray2: "#C1C0C8",
+  grayLight: "#f2f2f2",
   black: "#000",
   dark: "#000",
 

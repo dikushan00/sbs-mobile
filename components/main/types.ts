@@ -40,8 +40,11 @@ export interface ProjectEmployeesType {
 }
 
 export interface MaterialType {
-	material_name: string
 	material_id: number
+	material_name: string
+	material_sum: number
+	material_amount: number
+	sell_unit_name: string
 }
 
 export interface ProjectMaterialType extends MaterialType {
@@ -172,4 +175,166 @@ export interface SelectedDataType {
 	project_type_name: string;
 	resident_id: number;
 	resident_name: string;
+}
+
+export interface FloorMapType {
+	floor_map_id: number;
+	to_delete__resident_id: number;
+	to_delete__entrance_num: number;
+	level_num: number;
+	image_url: string;
+	comments: string | null;
+	rowversion: string;
+	wall_height: number;
+	length_for_scale: number | null;
+	length_geom: number | null;
+	scale: number;
+	window_height: number;
+	door_height: number;
+	min_x: number;
+	min_y: number;
+	max_y: number;
+	autocad_scale: number;
+	code: string;
+	slope_width: number;
+	floor_map_orig_id: number;
+	to_delete__project_id: number;
+	autocad_url: string | null;
+	project_entrance_id: number;
+	script_info: string | null;
+	smeta_recalc_date: string;
+	smeta_status_code: string;
+	smeta_error: string | null;
+	can_choose_material: boolean;
+}
+
+export interface FlatType {
+	flat_id: number;
+	area: number;
+	room_cnt: number;
+	entrance: string;
+	floor: string;
+	flat_num: string;
+	floor_flat_id: number;
+	kvlist: string;
+}
+
+export interface FloorParamType {
+	floor_param_id: number;
+	floor_buffer_id: number | null;
+	floor_param_type_id: number;
+	floor_param_type_name: string;
+	floor_param_type_code: string;
+	floor_param_type_color: string;
+	floor_flat_id: number;
+	room_id: number;
+	floor_param_type_id_relative: number | null;
+	floor_param_type_name_relative: string | null;
+	coord_type: string;
+	points: number[][];
+	center_point: number[];
+	frame_name: string | null;
+	okk_status_colour: string;
+}
+
+export interface FloorSchemaResponseType {
+	data: FloorParamType[]
+	flat: FlatType[]
+	floor_map: FloorMapType
+	status: boolean
+}
+
+export interface FloorSchemaResRefactorType extends FloorSchemaResponseType {
+	flatColors: Record<number, string>
+	lines: FloorParamType[]
+	circles: FloorParamType[]
+	texts: FloorParamType[]
+}
+
+export interface WorkSetType {
+	work_set_id: number;
+	work_set_name: string;
+	to_disable: boolean;
+	is_ready_for_work_set: string;
+	done: number;
+	num: number;
+	unit_name: string;
+	work_set_amount: number;
+	total_sum: number;
+}
+
+export interface WorkSetMaterialType {
+	work_set_id: number;
+	work_set_name: string;
+	material_id: number;
+	material_name: string;
+	unit_name: string;
+	material_amount: number;
+	material_sum: number;
+}
+
+export interface WorkSetCheckGroupType {
+	work_set_check_group_id: number;
+	work_set_check_group_name: string;
+	checked_status: string | null;
+	checked_status_code: string | null;
+	checked_status_colour: string | null;
+	to_disable: boolean;
+	is_defect_exist: boolean;
+	work_sets: WorkSetType[];
+	total_sum: number;
+	is_ready_for_work_set_check_group: string;
+}
+
+export interface WorkSetCheckGroupWithMaterialsType {
+	work_set_check_group_id: number;
+	work_set_check_group_name: string;
+	work_sets: WorkSetMaterialType[];
+}
+
+export interface FloorMapWorkSetType {
+	placement_type_id: number;
+	placement_type_name: string;
+	placement_percent: number;
+	placement_okk_status_colours: string | null;
+	total_sum: number;
+	is_defect_exist: boolean;
+	work_set_check_groups: WorkSetCheckGroupType[];
+}
+
+export interface FloorMapWorkSetWithMaterialsType {
+	placement_type_id: number;
+	placement_type_name: string;
+	work_set_check_groups: WorkSetCheckGroupWithMaterialsType[];
+}
+
+export interface FloorMapWorkSetsResponseType {
+	data: FloorMapWorkSetType[]
+	is_defect_exist: boolean
+}
+
+export interface WorkSetFloorParamType {
+	floor_param_id: number;
+	floor_flat_id: number;
+	planirovka_room_id: number | null;
+	floor_param_type_id: number;
+	param_geom: string;
+	rowversion: string;
+	param_height: number | null;
+	room_id: number;
+	floor_param_type_id2: number | null;
+	floor_buffer_id: number | null;
+	frame_id: number | null;
+	floor_param_type_id3: number | null;
+	script_comment: string | null;
+	floor_param_orig_id: number | null;
+}
+
+export interface WorkSetFloorParamsResponseType {
+	data: WorkSetFloorParamType[]
+}
+
+export interface WorkSetsMaterialsResponseType {
+	materials_ws: FloorMapWorkSetWithMaterialsType[]
+	materials: MaterialType[]
 }

@@ -1,4 +1,4 @@
-import { ProjectDocumentType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation } from "../types";
+import { FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, ProjectDocumentType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType } from "../types";
 import { residentialSettingsAPI } from "./api";
 
 export const residentSettingsBlockNames = {
@@ -125,8 +125,8 @@ export const getIsProjectSBS = async (projectId: number): Promise<{is_sbs: boole
   } catch (e) {}
 };
 
-const floorSchemaDataRefactor = (res) => {
-  const flatColors = {};
+const floorSchemaDataRefactor = (res: FloorSchemaResponseType): FloorSchemaResRefactorType => {
+  const flatColors: Record<number, string> = {};
   if (res?.data?.length)
     res.data?.forEach((item) => {
       if (!flatColors[item.floor_flat_id]) {
@@ -141,21 +141,21 @@ const floorSchemaDataRefactor = (res) => {
   );
   return {
     ...res,
-    data: !!res?.data?.length,
     flatColors,
     lines,
     circles,
     texts,
   };
 };
-export const getFloorSchema = async (floor_map_id: number) => {
+export const getFloorSchema = async (floor_map_id: number): Promise<FloorSchemaResRefactorType | undefined> => {
+  if(!floor_map_id) return;
   try {
     const res = await residentialSettingsAPI.getFloorSchema(floor_map_id);
     if (!res) return;
     return floorSchemaDataRefactor(res);
   } catch (e) {}
 };
-export const getFloorMaterials = async (floor_map_id: number) => {
+export const getFloorMaterials = async (floor_map_id: number): Promise<WorkSetsMaterialsResponseType | undefined> => {
   try {
     const res = await residentialSettingsAPI.getFloorMaterials(floor_map_id);
     return res;
@@ -175,13 +175,13 @@ export const getFloorParamTypes = async () => {
     return res?.data;
   } catch (e) {}
 };
-export const getFloorWorkSets = async (floor_map_id: number) => {
+export const getFloorWorkSets = async (floor_map_id: number): Promise<FloorMapWorkSetsResponseType | undefined> => {
   try {
     const res = await residentialSettingsAPI.getFloorWorkSets(floor_map_id);
     return res;
   } catch (e) {}
 };
-export const getFloorWorkSetParams = async (floor_map_id: number, work_set_id: number) => {
+export const getFloorWorkSetParams = async (floor_map_id: number, work_set_id: number): Promise<WorkSetFloorParamType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getFloorWorkSetParams(
       floor_map_id,
@@ -234,7 +234,7 @@ export const getEntranceMaterialRequests = async (params) => {
 };
 export const deleteEntranceMaterialRequest = async (
   filters,
-  provider_request_item_id
+  provider_request_item_id: number
 ) => {
   const params = { ...filters, provider_request_item_id };
   try {

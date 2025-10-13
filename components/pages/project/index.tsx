@@ -47,7 +47,6 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
   onTabPress,
   onBack, filters
 }) => {
-  console.log(selectedData)
   const dispatch = useDispatch();
   const [isFetching, setIsFetching] = useState(false);
   const [currentTab, setCurrentTab] = useState<Tabulation | null>(null);

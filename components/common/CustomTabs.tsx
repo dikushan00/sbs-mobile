@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#EAEDF0",
     borderRadius: 8,
     padding: 3,
-    maxHeight: 50
+    maxHeight: 46
   },
   tab: {
     height: 48,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   // Alt styles for segmented control look
   tabAlt: {
     flex: 1,
-    height: 44,
+    height: 40,
     borderRadius: 6,
     paddingHorizontal: 16,
     justifyContent: "center",
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   tabTextAlt: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#000",
     fontFamily: FONT.regular,
   },

@@ -1,7 +1,9 @@
 import CloseCircle from "@/assets/icons/close_circle.svg";
 import CloseCircleRed from "@/assets/icons/close-circle-red.svg";
 import ArrowRight from "@/assets/icons/arrow-right.svg";
+import ArrowDown from "@/assets/icons/arrow_down.svg";
 import ArrowRightAlt from "@/assets/icons/arrow_right_alt.svg";
+import ArrowRightBlack from "@/assets/icons/arrow_right_black.svg";
 import ArrowRightAlter from "@/assets/icons/arrow-right-alt.svg";
 import Download from "./iconComponents/download";
 import DownloadAlt from "@/assets/icons/download_alt.svg";
@@ -35,6 +37,8 @@ const icons = {
   closeCircle: CloseCircle,
   closeCircleRed: CloseCircleRed,
   arrowRight: ArrowRight,
+  arrowDown: ArrowDown,
+  arrowRightBlack: ArrowRightBlack,
   arrowRightAlt: ArrowRightAlt,
   arrowRightAlter: ArrowRightAlter,
   close: Close,

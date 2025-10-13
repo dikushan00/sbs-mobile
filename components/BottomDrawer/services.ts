@@ -1,7 +1,11 @@
 import React from "react";
 import { CustomSelectProps } from "../common/CustomSelect";
+import { FlatSelectProps } from "../common/FlatSelect";
+import { WorkSetSelectProps } from "../common/WorkSetSelect";
 import { ConfirmBlock } from "./content/confirm";
 import { CustomSelectList } from "./content/customSelectList";
+import { FlatSelectList } from "./content/flatSelectList";
+import { WorkSetSelectList } from "./content/workSetSelectList";
 import { SelectModule } from "./content/selectModule";
 import { UploadMedia } from "./content/uploadMedia";
 import {
@@ -15,6 +19,8 @@ export const BOTTOM_DRAWER_KEYS = {
   uploadMedia: "uploadMedia",
   customSelectList: "customSelectList",
   selectModule: "selectModule",
+  flatSelectList: "flatSelectList",
+  workSetSelectList: "workSetSelectList",
 } as const;
 
 export const getBottomDrawerContent = (isOkk = false) => ({
@@ -45,5 +51,19 @@ export const getBottomDrawerContent = (isOkk = false) => ({
       handleClose: () => void;
     }>,
     snapPoints: [500],
+  },
+  [BOTTOM_DRAWER_KEYS.flatSelectList]: {
+    component: FlatSelectList as React.FC<{
+      data: FlatSelectProps;
+      handleClose: () => void;
+    }>,
+    snapPoints: [500],
+  },
+  [BOTTOM_DRAWER_KEYS.workSetSelectList]: {
+    component: WorkSetSelectList as React.FC<{
+      data: any;
+      handleClose: () => void;
+    }>,
+    snapPoints: [600],
   },
 });

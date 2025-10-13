@@ -6,6 +6,7 @@ import { Icon } from '@/components/Icon';
 interface BlockItemProps {
   title: string;
   icon?: string;
+  blockMode?: boolean;
   iconColor?: string;
   onPress: () => void;
   children?: React.ReactNode;
@@ -15,12 +16,14 @@ export const BlockItem: React.FC<BlockItemProps> = ({
   title, 
   icon, 
   iconColor = COLORS.primary,
+  blockMode = true, 
   onPress, 
   children 
 }) => {
+  const blockStyle = blockMode ? styles.blockMode : styles.block;
   return (
     <TouchableOpacity
-      style={styles.block}
+      style={blockStyle}
       onPress={onPress}
     >
       <View style={styles.blockContent}>
@@ -41,18 +44,7 @@ export const BlockItem: React.FC<BlockItemProps> = ({
 
 const styles = StyleSheet.create({
   block: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 0,
+    paddingVertical: 16
   },
   blockContent: {
     flexDirection: 'row',
@@ -75,5 +67,19 @@ const styles = StyleSheet.create({
     fontFamily: FONT.regular,
     color: COLORS.black,
     flex: 1,
+  },
+  blockMode: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 0,
   },
 });

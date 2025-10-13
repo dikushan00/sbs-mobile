@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { COLORS } from '@/constants';
-import { ProjectFiltersType, ProjectFloorType, SelectedDataType } from '@/components/main/types';
-import { CustomLoader } from '@/components/common/CustomLoader';
-import { getEntranceApartments } from '@/components/main/services';
+import { ProjectFiltersType, SelectedDataType } from '@/components/main/types';
 import { BlockItem } from '@/components/common/BlockItem';
 import { FloorSchemaContent } from './FloorSchemaContent';
 import { useDispatch } from 'react-redux';
@@ -11,9 +9,6 @@ import { setPageSettings } from '@/services/redux/reducers/app';
 import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/reducers/userApp';
 
 export const FloorSchemaTab = ({filters, onBack, selectedData}: {filters: ProjectFiltersType, onBack?: () => void, selectedData: SelectedDataType}) => {
-  const [floorsPlan, setFloorsPlan] = useState<ProjectFloorType[] | null>(null);
-  const [floorParamData, setFloorParamData] = useState<any>(null);
-  const [isFetching, setIsFetching] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
   const dispatch = useDispatch();
 
@@ -69,8 +64,6 @@ export const FloorSchemaTab = ({filters, onBack, selectedData}: {filters: Projec
 
   return (
     <View style={styles.container}>
-      {isFetching && <CustomLoader />}
-      
       <BlockItem
         title="Схема этажа и материалы"
         icon="map"

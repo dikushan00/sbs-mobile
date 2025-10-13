@@ -172,6 +172,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    paddingBottom: 5
   },
   headerTitle: {
     fontSize: SIZES.medium,

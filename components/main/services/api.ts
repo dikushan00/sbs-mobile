@@ -1,5 +1,5 @@
 import { instance } from "@/services/api";
-import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation } from "../types";
+import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType } from "../types";
 import { ReqResponse } from "@/services/types";
 export const residentialSettingsAPI = {
   async getDocuments(project_id: number): Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
@@ -101,7 +101,7 @@ export const residentialSettingsAPI = {
       .get(`/project/floor_map/${floor_map_id}/work_set/read/`, { params })
       .then((res) => res?.data);
   },
-  async getFloorWorkSetParams(floor_map_id: number, work_set_id: number, params = {}) {
+  async getFloorWorkSetParams(floor_map_id: number, work_set_id: number, params = {}): Promise<WorkSetFloorParamsResponseType | undefined> {
     return await instance()
       .get(
         `/project/floor_map/${floor_map_id}/work_set/${work_set_id}/floor_param/read/`,
