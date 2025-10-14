@@ -116,7 +116,7 @@ export const residentialSettingsAPI = {
       .post(`/project/floor_map/${floor_map_id}/work_set/complete/`, body)
       .then((res) => res?.data);
   },
-  async callOKK(floor_map_id: number, body = {}) {
+  async callOKK(floor_map_id: number, body: {placement_type_id: number, work_set_check_group_id: number}) {
     return await instance()
       .post(`/project/floor_map/${floor_map_id}/work_set/call/`, body)
       .then((res) => res?.data);

@@ -296,7 +296,7 @@ export interface FloorMapWorkSetType {
 	placement_type_id: number;
 	placement_type_name: string;
 	placement_percent: number;
-	placement_okk_status_colours: string | null;
+	placement_okk_status_colours: string[] | null;
 	total_sum: number;
 	is_defect_exist: boolean;
 	work_set_check_groups: WorkSetCheckGroupType[];

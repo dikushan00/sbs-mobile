@@ -10,6 +10,7 @@ interface BlockItemProps {
   iconColor?: string;
   onPress: () => void;
   children?: React.ReactNode;
+  renderContent?: () => React.ReactNode;
 }
 
 export const BlockItem: React.FC<BlockItemProps> = ({ 
@@ -18,7 +19,8 @@ export const BlockItem: React.FC<BlockItemProps> = ({
   iconColor = COLORS.primary,
   blockMode = true, 
   onPress, 
-  children 
+  children,
+  renderContent
 }) => {
   const blockStyle = blockMode ? styles.blockMode : styles.block;
   return (
@@ -35,6 +37,7 @@ export const BlockItem: React.FC<BlockItemProps> = ({
           )}
           <Text style={styles.blockTitle}>{title}</Text>
         </View>
+        {renderContent && renderContent()}
         <Icon name="arrowRightAlt" width={20} height={20} fill={COLORS.gray} />
       </View>
       {children}
@@ -54,7 +57,6 @@ const styles = StyleSheet.create({
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
   iconContainer: {
     backgroundColor: '#DFEFFF',
@@ -66,7 +68,6 @@ const styles = StyleSheet.create({
     fontSize: SIZES.medium,
     fontFamily: FONT.regular,
     color: COLORS.black,
-    flex: 1,
   },
   blockMode: {
     backgroundColor: COLORS.white,

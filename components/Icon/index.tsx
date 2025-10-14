@@ -22,6 +22,7 @@ import Materials from "@/assets/icons/materials.svg";
 import Payment from "@/assets/icons/payment.svg";
 import Document from "@/assets/icons/document.svg";
 import Flag from "@/assets/icons/flag.svg";
+import FlagTime from "@/assets/icons/flat-time.svg";
 import Work from "@/assets/icons/work.svg";
 import People from "@/assets/icons/people.svg";
 import Money from "@/assets/icons/money.svg";
@@ -56,6 +57,7 @@ const icons = {
   payment: Payment,
   document: Document,
   flag: Flag,
+  flagTime: FlagTime,
   work: Work,
   people: People,
   money: Money,

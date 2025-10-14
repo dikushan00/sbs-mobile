@@ -199,7 +199,7 @@ export const completeWorkSet = async (floor_map_id: number, body: CompleteWorkSe
     return res;
   } catch (e) {}
 };
-export const callOKK = async (floor_map_id: number, body) => {
+export const callOKK = async (floor_map_id: number, body: {placement_type_id: number, work_set_check_group_id: number}) => {
   try {
     const res = await residentialSettingsAPI.callOKK(floor_map_id, body);
     return res;

@@ -21,8 +21,7 @@ export const STORE_KEYS = {
 
 const DEV_API_URL = "https://devmaster-back.smart-remont.kz";
 const PROD_API_URL = "https://master-api.smartremont.kz";
-export const apiUrl = PROD_API_URL;
-// export const apiUrl = __DEV__ ? DEV_API_URL : PROD_API_URL;
+export const apiUrl = __DEV__ ? DEV_API_URL : PROD_API_URL;
 
 export const FILE_URL = "https://office.smartremont.kz";
 

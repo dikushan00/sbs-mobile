@@ -6,6 +6,7 @@ import { FloorMapWorkSetsResponseType, FloorMapWorkSetType } from '@/components/
 import { BlockItem } from '@/components/common/BlockItem';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { WorkSetAccordion } from './WorksetAccordion';
+import { Icon } from '@/components/Icon';
 
 interface MaterialsTabProps {
   floor_map_id: number;
@@ -35,6 +36,19 @@ export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
     setSelectedPlacement(null);
   };
 
+  const handleWorkSetsUpdate = (updatedWorkSets: FloorMapWorkSetsResponseType) => {
+    setWorkSets(updatedWorkSets);
+    
+    if (selectedPlacement) {
+      const updatedPlacement = updatedWorkSets.data.find(
+        placement => placement.placement_type_id === selectedPlacement.placement_type_id
+      );
+      if (updatedPlacement) {
+        setSelectedPlacement(updatedPlacement);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -61,21 +75,34 @@ export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {(selectedPlacement) ? (
         <WorkSetAccordion
+          floor_map_id={floor_map_id}
           placement={selectedPlacement}
           onBack={handleBackToList}
+          setWorkSets={handleWorkSetsUpdate}
         />
       ) : (
         <>
           <View style={styles.accordionContainer}>
-            
-            {workSets?.data.map((workSetGroup) => (
-              <BlockItem
-                key={workSetGroup.placement_type_id}
-                title={workSetGroup.placement_type_name}
-                onPress={() => handlePlacementSelect(workSetGroup)}
-                blockMode={false}
-              />
-            ))}
+            {workSets?.data.map((placementType) => {
+              const showContent = !!placementType.placement_okk_status_colours?.length
+              return (
+                <BlockItem  
+                  key={placementType.placement_type_id}
+                  title={placementType.placement_type_name}
+                  onPress={() => handlePlacementSelect(placementType)}
+                  blockMode={false}
+                  renderContent={showContent ? () => <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                    {
+                      placementType.placement_okk_status_colours?.map(item => {
+                        return (
+                          <Icon key={item} name="flagTime" width={16} height={16} fill={item || '#000'} />
+                        )
+                      })
+                    }
+                  </View> : undefined}
+                />
+              )
+            })}
           </View>
         </>
       )}
@@ -109,7 +136,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   accordionContainer: {
-    marginTop: 20,
   },
   accordionTitle: {
     fontSize: 17,

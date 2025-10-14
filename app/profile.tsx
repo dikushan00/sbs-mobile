@@ -37,7 +37,7 @@ export default function ProfilePage() {
       </View>
       
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Icon name="logout" width={20} height={20} fill="#FF4444" />
+        <Icon name="logout" width={20} height={20} />
         <Text style={styles.logoutText}>Выйти</Text>
       </TouchableOpacity>
     </View>
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#FF4444",
+    borderColor: "#000",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -75,7 +75,6 @@ const styles = StyleSheet.create({
   logoutText: {
     marginLeft: 10,
     fontSize: 16,
-    color: "#FF4444",
     fontWeight: "500",
   },
 });
