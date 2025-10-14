@@ -36,20 +36,20 @@ export const FloorSchemaTab = ({filters, onBack, selectedData}: {filters: Projec
     setSelectedFloorForOkk(floor);
     dispatch(setUserPageHeaderData({
       title: "Вызов ОКК",
-      desc: `Этаж ${floor.floor}`,
-    }));
-  };
-
-  const handleBackToFloorSelection = () => {
-    setSelectedFloorForOkk(null);
-    dispatch(setUserPageHeaderData({
-      title: "Вызов ОКК",
-      desc: "Выберите этаж для вызова ОКК",
+      desc: `Подъезд ${selectedData.entrance}, Блок ${selectedData.block_name}, Этаж №${floor.floor}`,
     }));
   };
 
   useEffect(() => {
-    if (selectedBlock) {
+    if(selectedFloorForOkk) {
+      dispatch(setPageSettings({ 
+        backBtn: true, 
+        goBack: () => {
+          setSelectedFloorForOkk(null)
+        }
+      }));
+    }
+    else if (selectedBlock) {
       dispatch(setPageSettings({ 
         backBtn: true, 
         goBack: handleBackToFloors
@@ -60,7 +60,7 @@ export const FloorSchemaTab = ({filters, onBack, selectedData}: {filters: Projec
         goBack: onBack
       }));
     }
-  }, [selectedBlock]);
+  }, [selectedBlock, selectedFloorForOkk]);
 
   const renderBlockContent = () => {
     switch (selectedBlock) {
@@ -80,7 +80,6 @@ export const FloorSchemaTab = ({filters, onBack, selectedData}: {filters: Projec
             <OkkFloorSelection 
               filters={filters} 
               onBack={handleBackToFloors} 
-              selectedData={selectedData}
               onFloorSelect={handleFloorSelectForOkk}
             />
           );

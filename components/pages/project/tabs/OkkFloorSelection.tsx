@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectFiltersType, ProjectFloorType, SelectedDataType } from '@/components/main/types';
+import { ProjectFiltersType, ProjectFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { getEntranceApartments } from '@/components/main/services';
 import { Icon } from '@/components/Icon';
@@ -12,14 +12,12 @@ import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/red
 interface OkkFloorSelectionProps {
   filters: ProjectFiltersType;
   onBack: () => void;
-  selectedData: SelectedDataType;
   onFloorSelect: (floor: ProjectFloorType) => void;
 }
 
 export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({ 
   filters, 
   onBack, 
-  selectedData, 
   onFloorSelect 
 }) => {
   const dispatch = useDispatch();
@@ -48,7 +46,7 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
     }));
     dispatch(setUserPageHeaderData({
       title: "Вызов ОКК",
-      desc: "Выберите этаж для вызова ОКК",
+      desc: "",
     }));
   }, [onBack, dispatch]);
 
@@ -139,7 +137,7 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
       {isFetching && <CustomLoader />}
       
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Выберите этаж для вызова ОКК</Text>
+        <Text style={styles.headerTitle}>Выберите этаж</Text>
         <Text style={styles.headerCount}>
           <Text style={styles.countLabel}>Кол-во:</Text> {floorsPlan?.length || 0}
         </Text>

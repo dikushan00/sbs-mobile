@@ -49,6 +49,7 @@ export const HeaderTitle = ({ title }: PropsType) => {
 const styles = StyleSheet.create({
   headerContainer: {
     alignItems: "center",
+    minWidth: 190
   },
   headerText: {
     fontFamily: FONT.semiBold,
