@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
+import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { FloorMapWorkSetWithMaterialsType, WorkSetCheckGroupWithMaterialsType, WorkSetMaterialType, WorkSetType } from '@/components/main/types';
 import { numberWithCommas } from '@/utils';
 
@@ -53,7 +54,7 @@ export const MaterialsAccordion: React.FC<MaterialsAccordionProps> = ({ placemen
                   name={isExpanded ? "arrowDown" : "arrowRightBlack"}
                   width={13}
                   height={13}
-                  fill={COLORS.gray}
+                  fill={COLORS.black}
                 />
                 <View style={{marginLeft: 10}}>
                   <Text style={styles.groupTitle}>{group.work_set_check_group_name}</Text>
@@ -93,12 +94,10 @@ const WorkSetItem: React.FC<WorkSetItemProps> = ({ workSet }) => {
         </View>}
         
         <View style={styles.workSetMeta}>
-          <View style={styles.quantitySection}>
-            <Text style={styles.detailLabel}>Количество</Text>
-            <Text style={styles.detailValue}>
-              {numberWithCommas(workSet.material_amount)} {workSet.unit_name}
-            </Text>
-          </View>
+          <ValueDisplay
+            label="Количество"
+            value={`${numberWithCommas(workSet.material_amount)} ${workSet.unit_name}`}
+          />
           
           <View style={styles.sumSection}>
             <Text style={styles.detailLabel}>Сумма, 〒</Text>
@@ -204,9 +203,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 85,
     marginTop: 7
-  },
-  quantitySection: {
-    flex: 1,
   },
   sumSection: {
     flex: 1,

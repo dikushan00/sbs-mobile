@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "../Icon";
-import { FONT } from "@/constants";
+import { COLORS, FONT } from "@/constants";
 import { useSelector } from "react-redux";
 import { appState } from "@/services/redux/reducers/app";
 
@@ -24,7 +24,7 @@ export const BottomDrawerHeader = ({
       <Text style={styles.title}>{title || ""}</Text>
       <Pressable onPress={onClose}>
         <View style={styles.close}>
-          <Icon name="close" />
+          <Icon name="close" stroke={COLORS.darkGray} width={22} height={22} />
         </View>
       </Pressable>
     </View>

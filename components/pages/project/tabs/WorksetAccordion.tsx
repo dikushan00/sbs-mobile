@@ -132,7 +132,7 @@ export const WorkSetAccordion: React.FC<MaterialsAccordionProps> = ({ placement,
                   name={isExpanded ? "arrowDown" : "arrowRightBlack"}
                   width={13}
                   height={13}
-                  fill={COLORS.gray}
+                  fill={COLORS.black}
                 />
                 <View style={{marginLeft: 10}}>
                   <Text style={styles.groupTitle}>{group.work_set_check_group_name}</Text>

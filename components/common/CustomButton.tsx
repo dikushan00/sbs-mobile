@@ -1,6 +1,6 @@
 import { COLORS, FONT } from "@/constants";
 import { useMemo } from "react";
-import { StyleSheet, Text, ViewStyle } from "react-native";
+import { StyleSheet, Text, ViewStyle, ActivityIndicator } from "react-native";
 import { Button } from "react-native-paper";
 import { View } from "../Themed";
 
@@ -19,6 +19,7 @@ type PropsType = {
   stylesProps?: ViewStyle;
   textStyles?: ViewStyle;
   wrapperStyles?: ViewStyle;
+  loading?: boolean;
 };
 export const CustomButton = ({
   title = "",
@@ -33,6 +34,7 @@ export const CustomButton = ({
   autoHeight = false,
   disabled = false,
   alignSelf = "auto",
+  loading = false,
   onClick,
   children,
 }: PropsType) => {
@@ -66,25 +68,27 @@ export const CustomButton = ({
           ? COLORS.disabled
           : COLORS.primaryDisabled
         : COLORS.primary
-      : COLORS.white;
+      : disabled ? COLORS.darkGray : COLORS.white;
   }, [type, disabled, color]);
 
   const handleClick = () => {
-    if (disabled) return;
+    if (disabled || loading) return;
     onClick && onClick();
   };
+
 
   return (
     <View
       style={{
         height: small ? (autoHeight ? "auto" : 44) : 64,
         backgroundColor: "none",
+        borderRadius: small ? 8 : 12,
         ...wrapperStyles,
       }}
     >
       <Button
         mode={"outlined"}
-        disabled={disabled}
+        disabled={disabled || loading}
         style={
           {
             width: small ? "auto" : "100%",
@@ -109,21 +113,30 @@ export const CustomButton = ({
         }}
       >
         <View style={styles.btnContent} >
-          {children && !childrenRight && children}
-          {!!title && (
-            <Text
-              style={{
-                ...styles.buttonText,
-                fontSize: small ? 14 : 16,
-                fontFamily: small ? FONT.medium : FONT.bold,
-                color: textColor,
-                ...textStyles,
-              }}
-            >
-              {title || ""}
-            </Text>
+          {loading ? (
+            <ActivityIndicator 
+              size="small" 
+              color={type === "contained" ? COLORS.white : COLORS.primary} 
+            />
+          ) : (
+            <>
+              {children && !childrenRight && children}
+              {!!title && (
+                <Text
+                  style={{
+                    ...styles.buttonText,
+                    fontSize: small ? 14 : 16,
+                    fontFamily: FONT.medium,
+                    color: textColor,
+                    ...textStyles,
+                  }}
+                >
+                  {title || ""}
+                </Text>
+              )}
+              {children && childrenRight && children}
+            </>
           )}
-          {children && childrenRight && children}
         </View>
       </Button>
     </View>

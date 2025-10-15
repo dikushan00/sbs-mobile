@@ -2,6 +2,7 @@ import CloseCircle from "@/assets/icons/close_circle.svg";
 import CloseCircleRed from "@/assets/icons/close-circle-red.svg";
 import ArrowRight from "@/assets/icons/arrow-right.svg";
 import ArrowDown from "@/assets/icons/arrow_down.svg";
+import ArrowDownColor from "@/assets/icons/arrow_down_color.svg";
 import ArrowRightAlt from "@/assets/icons/arrow_right_alt.svg";
 import ArrowRightBlack from "@/assets/icons/arrow_right_black.svg";
 import ArrowRightAlter from "@/assets/icons/arrow-right-alt.svg";
@@ -30,6 +31,9 @@ import MoneyAlt from "@/assets/icons/money_alt.svg";
 import Note from "@/assets/icons/note.svg";
 import docCar from "@/assets/icons/doc_car.svg";
 import Logout from "@/assets/icons/logout.svg";
+import More from "@/assets/icons/more.svg";
+import Trash from "@/assets/icons/trash.svg";
+import Search from "@/assets/icons/search.svg";
 import { ViewStyle } from "react-native";
 
 const icons = {
@@ -39,6 +43,7 @@ const icons = {
   closeCircleRed: CloseCircleRed,
   arrowRight: ArrowRight,
   arrowDown: ArrowDown,
+  arrowDownColor: ArrowDownColor,
   arrowRightBlack: ArrowRightBlack,
   arrowRightAlt: ArrowRightAlt,
   arrowRightAlter: ArrowRightAlter,
@@ -64,7 +69,10 @@ const icons = {
   moneyAlt: MoneyAlt,
   note: Note,
   docCar: docCar,
+  more: More,
+  trash: Trash,
   logout: Logout,
+  search: Search,
 };
 
 type IconKeysType = keyof typeof icons;

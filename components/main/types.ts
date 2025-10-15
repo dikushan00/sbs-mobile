@@ -43,8 +43,10 @@ export interface MaterialType {
 	material_id: number
 	material_name: string
 	material_sum: number
+	material_price: number
 	material_amount: number
 	sell_unit_name: string
+	unit_name: string
 }
 
 export interface ProjectMaterialType extends MaterialType {
@@ -344,4 +346,56 @@ export type CompleteWorkSetBodyType = {
 	work_set_id: number | null;
 	placement_type_id: number;
 	work_set_check_group_id: number | null;
+}
+
+export type ProviderRequestStatusCodeType = 'BRING_TO_CONTRACTOR' | 'SHIP' | 'AVAIL' | 'CREATE';
+
+export interface MaterialRequestType {
+	material_name: string;
+	qty_atom: number;
+	date_shipping: string;
+	provider_request_status_name: string;
+	atom_unit_name: string;
+	price: number;
+	material_sum: number;
+	material_cnt: number;
+	sell_unit_name: string;
+	provider_request_id: number;
+	provider_request_item_id: number;
+	provider_request_status_code: ProviderRequestStatusCodeType;
+	date_create: string;
+	expeditor_file_url: string | null;
+}
+
+export interface ProjectMainDocumentType {
+    floor_map_document_id: number;
+    date_begin: string;
+    date_end: string;
+    date_create: string;
+    rowversion: string;
+    floor_map_document_type_name: string;
+    master_url: string;
+    work_set_check_group_name: string;
+    placement_type_name: string;
+    is_signed: boolean;
+    floor: string;
+    block_name: string;
+    file_ext: string;
+    assign_signs: ProjectMainAssignSignType[];
+    is_avr_sent_bi: boolean;
+    avr_code: string | null;
+    avr_sum: number | null;
+    guid: string | null;
+    esf_status: string | null;
+    can_sent_1c: boolean;
+}
+
+export interface ProjectMainAssignSignType {
+    phone: string;
+    can_sign: boolean;
+    is_signed: boolean;
+    sign_date: string | null;
+    employee_fio: string;
+    assign_type_id: number;
+    assign_type_name: string;
 }

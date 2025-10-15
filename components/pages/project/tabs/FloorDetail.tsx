@@ -11,7 +11,7 @@ import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/red
 import { getFloorSchema, getFloorWorkSets, getFloorWorkSetParams } from '@/components/main/services';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { FloorSchema } from '../FloorSchema';
-import { MaterialsTab } from './MaterialsTab';
+import { MaterialsFloorTab } from './MaterialsFloorTab';
 
 interface FloorDetailProps {
   floor: ProjectFloorType;
@@ -135,7 +135,7 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
 
   const renderMaterialsContent = () => (
     <View style={styles.tabContent}>
-      <MaterialsTab floor_map_id={floor.floor_map_id} />
+      <MaterialsFloorTab floor_map_id={floor.floor_map_id} />
     </View>
   );
 

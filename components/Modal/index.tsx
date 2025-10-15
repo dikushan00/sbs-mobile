@@ -4,6 +4,7 @@ import { Modal, Portal } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { Icon } from "../Icon";
 import { ModalContent } from "./services";
+import { COLORS } from "@/constants";
 
 export const CustomModal = () => {
   const dispatch = useDispatch();
@@ -22,7 +23,7 @@ export const CustomModal = () => {
       >
         {data?.close !== false && (
           <TouchableOpacity onPress={hideModal} style={styles.close}>
-            <Icon name="close" />
+            <Icon name="close" stroke={COLORS.darkGray} width={22} height={22} />
           </TouchableOpacity>
         )}
         {!!Component && <Component />}

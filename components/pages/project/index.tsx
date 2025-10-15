@@ -117,11 +117,11 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       case 'M__ProjectFormWorkTab':
         return <WorkTab />;
       case 'M__ProjectFormMaterialTab':
-        return <MaterialsTab />;
+        return <MaterialsTab filters={filters} onBack={backToProject} />;
       case 'M__ProjectFormRemontCostTab':
         return <PaymentsTab />;
       case 'M__ProjectFormDocumentTab':
-        return <DocumentsTab />;
+        return <DocumentsTab filters={filters} onBack={backToProject} />;
       case 'M__ProjectFormStagesTab':
         return <StagesTab />;
       default:

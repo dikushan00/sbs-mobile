@@ -1,6 +1,7 @@
 import { FileType } from "@/services/types";
 import { CustomSelectProps } from "../common/CustomSelect";
 import { PointType } from "../pages/okk/services";
+import { MaterialRequestType, ProjectFiltersType } from "../main/types";
 import { BOTTOM_DRAWER_KEYS } from "./services";
 
 export type BottomDrawerContentKeys = keyof typeof BOTTOM_DRAWER_KEYS;
@@ -35,6 +36,19 @@ export type SelectModuleProps = {
   onSubmit: (res: any, key: "master" | "okk") => void;
 };
 
+export type MaterialActionsDrawerType = {
+  material: MaterialRequestType;
+  onSubmit: (res: MaterialRequestType[]) => void;
+  params: ProjectFiltersType;
+  provider_request_item_id: number;
+};
+
+export type DatePickerDrawerType = {
+  title: string;
+  initialDate?: Date;
+  onConfirm: (date: Date) => void;
+};
+
 export type BottomDrawerDataType = {
   show: boolean;
   data: any;
@@ -47,6 +61,8 @@ type BottomDrawerPayloadMap = {
   [BOTTOM_DRAWER_KEYS.uploadMedia]: UploadMediaDrawerType;
   [BOTTOM_DRAWER_KEYS.customSelectList]: CustomSelectProps;
   [BOTTOM_DRAWER_KEYS.selectModule]: SelectModuleProps;
+  [BOTTOM_DRAWER_KEYS.materialActions]: MaterialActionsDrawerType;
+  [BOTTOM_DRAWER_KEYS.datePicker]: DatePickerDrawerType;
 };
 
 export type BottomDrawerPayload<T extends BottomDrawerContentKeys | null> = {

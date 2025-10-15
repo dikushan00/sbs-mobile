@@ -6,6 +6,7 @@ import { Text } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { COLORS } from "@/constants";
 import { useMemo } from "react";
+import { Icon } from "../Icon";
 
 export type CustomSelectProps = {
   list: any[];
@@ -17,12 +18,14 @@ export type CustomSelectProps = {
   isLoading?: boolean;
   disabled?: boolean;
   required?: boolean;
+  alt?: boolean;
   placeholder?: string;
+  style?: any
 };
 export const CustomSelect = (props: CustomSelectProps) => {
   const dispatch = useDispatch();
 
-  const {label} = props
+  const {label, style} = props
   const openList = async () => {
     if (props.disabled || !props.list?.length) return;
     dispatch(
@@ -48,11 +51,12 @@ export const CustomSelect = (props: CustomSelectProps) => {
 
   const isPlaceholder = !selectedItem;
 
+  const styles = style || {}
   return (
     <View>
       {!!label && (
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-          <Text style={{ fontSize: 16, color: "#333" }}>{label}</Text>
+          <Text style={{ fontSize: 16, color: "#000" }}>{label}</Text>
           {props.required && (
             <Text style={{ color: COLORS.error, marginLeft: 0, fontSize: 16 }}>*</Text>
           )}
@@ -62,23 +66,29 @@ export const CustomSelect = (props: CustomSelectProps) => {
         onPress={openList}
         style={{
           padding: 10,
-          paddingHorizontal: 15,
+          paddingHorizontal: 16,
           backgroundColor: "#f0f0f0",
           borderRadius: 12,
           width: "100%",
           height: 48,
           flexDirection: "row",
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: "center", 
+          ...styles
         }}
       >
         <Text style={{ 
-          color: isPlaceholder ? "#757575" : "#333",
+          color: isPlaceholder ? COLORS.darkGray : "#000",
           fontSize: 16 
         }}>
           {displayText}
         </Text>
-        <FontAwesome5 name="chevron-down" size={14} color={COLORS.black} />
+        {
+          props.alt 
+            ? <Icon name="arrowDown" width={16} height={16} fill={COLORS.darkGray} />
+            : <FontAwesome5 name="chevron-down" size={14} color={COLORS.black} /> 
+        }
+        
       </Pressable>
     </View>
   );

@@ -1,40 +1,100 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getFloorMaterials, getFloorWorkSets } from '@/components/main/services';
-import { WorkSetsMaterialsResponseType, MaterialType, FloorMapWorkSetWithMaterialsType, FloorMapWorkSetsResponseType, FloorMapWorkSetType } from '@/components/main/types';
-import { MaterialsList } from '@/components/pages/project/tabs/MaterialsList';
-import { MaterialsAccordion } from '@/components/pages/project/tabs/MaterialsAccordion';
-import { BlockItem } from '@/components/common/BlockItem';
+import { getEntranceMaterialRequests } from '@/components/main/services';
+import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
+import { ValueDisplay } from '@/components/common/ValueDisplay';
+import { CustomButton } from '@/components/common/CustomButton';
+import { MaterialOrderForm } from './MaterialOrderForm';
+import { numberWithCommas } from '@/utils';
+import { Icon } from '@/components/Icon';
+import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
+import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
 
 interface MaterialsTabProps {
-  floor_map_id: number;
+  filters: ProjectFiltersType;
+  onBack: () => void;
 }
 
-export const MaterialsTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
-  const [materialsData, setMaterialsData] = useState<WorkSetsMaterialsResponseType | null>(null);
+export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack }) => {
+  const dispatch = useDispatch();
+  const [materialsData, setMaterialsData] = useState<MaterialRequestType[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedPlacement, setSelectedPlacement] = useState<FloorMapWorkSetWithMaterialsType | null>(null);
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+  const [showOrderForm, setShowOrderForm] = useState(false);
 
   useEffect(() => {
     const fetchMaterials = async () => {
       setLoading(true);
-      const data = await getFloorMaterials(floor_map_id);
+      const data = await getEntranceMaterialRequests(filters);
       setLoading(false);
       if (data) {
         setMaterialsData(data);
       }
     };
     fetchMaterials();
-  }, [floor_map_id]);
+  }, [filters]);
 
-  const handlePlacementSelect = (placement: FloorMapWorkSetWithMaterialsType | null, placementAlt: FloorMapWorkSetType | null = null) => {
-    setSelectedPlacement(placement);
+  useEffect(() => {
+    if(!showOrderForm) {
+    dispatch(setPageSettings({ 
+        backBtn: true, 
+        goBack: onBack
+      }));
+    }
+  }, [onBack, showOrderForm])
+
+  const getStatusColour = (statusCode: ProviderRequestStatusCodeType) => {
+    switch (statusCode) {
+      case 'BRING_TO_CONTRACTOR':
+        return '#F6BA30';
+      case 'SHIP':
+        return '#35E744';
+      case 'AVAIL':
+        return COLORS.primary;
+      default:
+        return COLORS.primary;
+    }
+  }
+
+  const toggleExpanded = (itemId: number) => {
+    const newExpanded = new Set(expandedItems);
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+    } else {
+      newExpanded.add(itemId);
+    }
+    setExpandedItems(newExpanded);
   };
 
-  const handleBackToList = () => {
-    setSelectedPlacement(null);
+  const handleOrderMaterial = () => {
+    setShowOrderForm(true);
+  };
+
+  const handleBackToMaterials = () => {
+    setShowOrderForm(false);
+  };
+
+  const handleSubmitOrder = (res: MaterialRequestType[]) => {
+    if(!res) return
+    setMaterialsData(res)
+  };
+
+  const handleMoreActions = (material: MaterialRequestType) => {
+    dispatch(showBottomDrawer({
+      type: BOTTOM_DRAWER_KEYS.materialActions,
+      data: {
+        material,
+        onSubmit: (res: MaterialRequestType[]) => {
+          if(!res) return
+          setMaterialsData(res);
+        },
+        params: filters,
+        provider_request_item_id: material.provider_request_item_id
+      }
+    }))
   };
 
   if (loading) {
@@ -59,36 +119,110 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
     );
   }
 
+  if (showOrderForm) {
+    return (
+      <MaterialOrderForm
+        onBack={handleBackToMaterials}
+        onSubmit={handleSubmitOrder}
+        filters={filters}
+      />
+    );
+  }
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {(selectedPlacement) ? (
-        <MaterialsAccordion
-          placement={selectedPlacement}
-          onBack={handleBackToList}
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.scrollContainer} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.accordionContainer}>
+          {materialsData?.map((item) => {
+            const isExpanded = expandedItems.has(item.provider_request_item_id);
+            return (
+              <View key={item.provider_request_item_id} style={styles.materialContainer}>
+                <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
+                  <Text style={styles.materialName}>{item.material_name}</Text>
+                  <TouchableOpacity 
+                    style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
+                    onPress={() => handleMoreActions(item)}
+                  >
+                    <Icon name='more' width={16} height={16} />
+                  </TouchableOpacity>
+                </View>
+                <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.provider_request_status_code)}}>
+                  <Text style={{color: COLORS.white}}>{item.provider_request_status_name}</Text>
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
+                  <ValueDisplay label='Дата отгрузки' value={item.date_shipping} />
+                  <ValueDisplay label='Сумма' value={numberWithCommas(item.material_sum)} />
+                  {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
+                    style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
+                    onPress={() => toggleExpanded(item.provider_request_item_id)}
+                  >
+                    <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
+                    <Icon 
+                      name={"arrowDownColor"} 
+                      width={13} 
+                      height={13} 
+                      fill={COLORS.primaryLight}
+                    />
+                  </TouchableOpacity>}
+                </View>
+                {isExpanded && (
+                  <View style={styles.expandedContent}>
+                    <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
+                      <ValueDisplay label='Дата заказа' value={item.date_create} />
+                      <ValueDisplay label='Цена' value={numberWithCommas(item.price)} />
+                      <View style={{width: 85}}></View>
+                    </View>
+                    <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
+                      <ValueDisplay label='Мин. кол-во' value={`${item.qty_atom} ${item.atom_unit_name}`} />
+                      <ValueDisplay label='Кол-во в ед. продаж' value={`${item.material_cnt} ${item.sell_unit_name}`} />
+                        <TouchableOpacity 
+                          style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
+                          onPress={() => toggleExpanded(item.provider_request_item_id)}
+                        >
+                          <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
+                          <Icon 
+                            name={"arrowDownColor"} 
+                            width={13} 
+                            height={13} 
+                            fill={COLORS.primaryLight}
+                            style={{ transform: [{ rotate: '180deg' }] }}
+                          />
+                        </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+      <View style={styles.fixedButtonContainer}>
+        <CustomButton
+          title="Заказать материал"
+          type='contained'
+          onClick={handleOrderMaterial}
+          stylesProps={styles.orderButton}
+          wrapperStyles={{height: 52}}
         />
-      ) : (
-        <>
-          <View style={styles.accordionContainer}>
-            <Text style={styles.accordionTitle}>Материалы по конструктивам</Text>
-            {materialsData.materials_ws.map((placement) => (
-              <BlockItem
-                key={placement.placement_type_id}
-                title={placement.placement_type_name}
-                onPress={() => handlePlacementSelect(placement)}
-                blockMode={false}
-              />
-            ))}
-          </View>
-          <MaterialsList materials={materialsData.materials} />
-        </>
-      )}
-    </ScrollView>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 80, // Отступ снизу для кнопки
   },
   loadingContainer: {
     flex: 1,
@@ -120,5 +254,39 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     marginBottom: 10,
     marginTop: 10
+  },
+  statusContainer: {
+    padding: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: COLORS.primary,
+    alignSelf: 'flex-start',
+    marginTop: 15
+  },
+  materialContainer: {
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: COLORS.white,
+    marginBottom: 10,
+  },
+  expandedContent: {  },
+  fixedButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  orderButton: {
+    backgroundColor: COLORS.primary,
+  },
+  materialName: {
+    flex: 1,
+    fontSize: SIZES.regular,
+    fontFamily: FONT.regular,
+    color: COLORS.black,
+    lineHeight: 20,
+    flexWrap: 'wrap',
   },
 });

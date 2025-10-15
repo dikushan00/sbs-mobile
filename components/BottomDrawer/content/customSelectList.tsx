@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, Text, View, TextInput } from "react-native";
 import { useDispatch } from "react-redux";
 import { BottomDrawerHeader } from "../BottomDrawerHeader";
 import { COLORS } from "@/constants";
+import { Icon } from "@/components/Icon";
 
 type PropsType = { data: CustomSelectProps; handleClose: () => void };
 
@@ -42,7 +43,7 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
       {/* Поле поиска */}
       <View style={styles.searchContainer}>
         <View style={styles.searchIcon}>
-          <Text style={styles.searchIconText}>🔍</Text>
+          <Icon name="search" />
         </View>
         <TextInput
           style={styles.searchInput}
@@ -60,14 +61,15 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
                 style={{
                   ...styles.item,
                   backgroundColor:
-                    value === item[valueKey || "id"] ? "#ddd" : "#fff",
+                    value === item[valueKey || "id"] ? "rgba(0, 108, 255, 0.1)" : "#fff",
                 }}
                 key={String(item[valueKey || "id"])}
                 onPress={() =>
                   !disabled && handleChange(item[valueKey || "id"], item)
                 }
               >
-                <Text style={{fontSize: 16}}>{item[labelKey || "label"] || ""}</Text>
+                <Text style={{fontSize: 16, color: 
+                    value === item[valueKey || "id"] ? COLORS.primaryLight : "#000",}}>{item[labelKey || "label"] || ""}</Text>
               </Pressable>
             );
           })
@@ -113,6 +115,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     alignItems: "center",
     flexDirection: "row",
+    borderRadius: 8
   },
   notFound: {
     paddingVertical: 20,

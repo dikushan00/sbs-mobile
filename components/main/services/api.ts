@@ -1,5 +1,5 @@
 import { instance } from "@/services/api";
-import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType } from "../types";
+import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType } from "../types";
 import { ReqResponse } from "@/services/types";
 export const residentialSettingsAPI = {
   async getDocuments(project_id: number): Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
@@ -121,19 +121,21 @@ export const residentialSettingsAPI = {
       .post(`/project/floor_map/${floor_map_id}/work_set/call/`, body)
       .then((res) => res?.data);
   },
-  async getEntranceMaterials(params) {
+  async getEntranceMaterials(params: ProjectFiltersType): Promise<ReqResponse<MaterialType[] | undefined>> {
     return await instance()
       .get(`/project/materials/read/`, { params })
       .then((res) => res?.data);
   },
-  async createEntranceMaterialRequest(body, params) {
-    return await instance()
-      .post(`/project/provider_requests/create/`, body, { params })
-      .then((res) => res?.data);
-  },
-  async getEntranceMaterialRequests(params) {
+  async getEntranceMaterialRequests(params: ProjectFiltersType): Promise<ReqResponse<MaterialRequestType[] | undefined>> {
     return await instance()
       .get(`/project/provider_requests/read/`, { params })
+      .then((res) => res?.data);
+  },
+  async createEntranceMaterialRequest(body: {
+    material_id: number | null, qty_sell: number | null, date_shipping: string
+  }, params: ProjectFiltersType) {
+    return await instance()
+      .post(`/project/provider_requests/create/`, body, { params })
       .then((res) => res?.data);
   },
   async deleteEntranceMaterialRequest(params = {}) {
@@ -166,7 +168,7 @@ export const residentialSettingsAPI = {
       .get(`/project/common/placement_types/read/`)
       .then((res) => res?.data);
   },
-  async getEntranceDocuments(params) {
+  async getEntranceDocuments(params: ProjectFiltersType): Promise<ReqResponse<ProjectMainDocumentType[] | undefined>> {
     return await instance()
       .get(`/project/documents/read/`, { params })
       .then((res) => res?.data);

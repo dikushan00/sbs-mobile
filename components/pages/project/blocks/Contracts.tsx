@@ -157,7 +157,7 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
                 onPress={() => downloadPDF(agreement)}
               >
                 <Text style={styles.downloadText}>Скачать документ</Text>
-                <Icon name="downloadAlt" width={16} height={16} fill={COLORS.primary} />
+                <Icon name="downloadAlt" width={16} height={16} fill={COLORS.primaryLight} />
               </TouchableOpacity>
             </Block>
           );

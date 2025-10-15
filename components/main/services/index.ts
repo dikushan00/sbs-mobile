@@ -1,4 +1,4 @@
-import { CompleteWorkSetBodyType, FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, ProjectDocumentType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType } from "../types";
+import { CompleteWorkSetBodyType, FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, MaterialRequestType, MaterialType, ProjectDocumentType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectMainDocumentType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType } from "../types";
 import { residentialSettingsAPI } from "./api";
 
 export const residentSettingsBlockNames = {
@@ -218,13 +218,13 @@ export const updateFloorMapLine = async (body) => {
   } catch (e) {}
 };
 
-export const getEntranceMaterials = async (params) => {
+export const getEntranceMaterials = async (params: ProjectFiltersType): Promise<MaterialType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getEntranceMaterials(params);
     return res?.data;
   } catch (e) {}
 };
-export const getEntranceMaterialRequests = async (params) => {
+export const getEntranceMaterialRequests = async (params: ProjectFiltersType): Promise<MaterialRequestType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getEntranceMaterialRequests(
       params
@@ -233,9 +233,9 @@ export const getEntranceMaterialRequests = async (params) => {
   } catch (e) {}
 };
 export const deleteEntranceMaterialRequest = async (
-  filters,
+  filters: ProjectFiltersType,
   provider_request_item_id: number
-) => {
+):Promise<MaterialRequestType[] | undefined> => {
   const params = { ...filters, provider_request_item_id };
   try {
     const res = await residentialSettingsAPI.deleteEntranceMaterialRequest(
@@ -279,7 +279,9 @@ export const getPlacementTypes = async () => {
     return res?.data;
   } catch (e) {}
 };
-export const createEntranceMaterialRequest = async (body, params) => {
+export const createEntranceMaterialRequest = async (body: {
+  material_id: number | null, qty_sell: number | null, date_shipping: string
+}, params: ProjectFiltersType): Promise<MaterialRequestType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.createEntranceMaterialRequest(
       body,
@@ -288,7 +290,7 @@ export const createEntranceMaterialRequest = async (body, params) => {
     return res?.data;
   } catch (e) {}
 };
-export const getEntranceDocuments = async (params) => {
+export const getEntranceDocuments = async (params: ProjectFiltersType): Promise<ProjectMainDocumentType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getEntranceDocuments(params);
     return res?.data?.map((item) => ({

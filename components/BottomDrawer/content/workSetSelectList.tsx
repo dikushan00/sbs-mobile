@@ -134,7 +134,7 @@ export const WorkSetSelectList = ({ data, handleClose }: PropsType) => {
           <Icon 
             name={isExpanded ? "arrowDown" : "arrowRightBlack"} 
             width={isExpanded ? 14 : 13} 
-            height={isExpanded ? 14 : 13} 
+            height={isExpanded ? 14 : 13} fill="#000"
           />
           <Text style={styles.placementTypeTitle}>{placementType.placement_type_name}</Text>
         </Pressable>
