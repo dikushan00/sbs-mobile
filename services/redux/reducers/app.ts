@@ -14,6 +14,7 @@ const initialState: AppStateType = {
   networkWasOff: false,
   newVersionBannerShowed: false,
   bottomDrawerData: { show: false, data: null, type: null, loading: false },
+  secondBottomDrawerData: { show: false, data: null, type: null, loading: false },
   modal: { show: false, data: null, type: null },
   shouldPageDataReload: false,
   pageSettings: { backBtn: false, goBack: null },
@@ -62,6 +63,24 @@ const appSlice = createSlice({
     setBottomDrawerLoading: (state, { payload }) => {
       state.bottomDrawerData = { ...state.bottomDrawerData, loading: payload };
     },
+    showSecondBottomDrawer: (
+      state,
+      action: PayloadAction<BottomDrawerPayload<BottomDrawerContentKeys | null>>
+    ) => {
+      const { payload } = action;
+      state.secondBottomDrawerData = { ...payload, show: true, loading: false };
+    },
+    closeSecondBottomDrawer: (state) => {
+      state.secondBottomDrawerData = {
+        show: false,
+        type: null,
+        data: null,
+        loading: false,
+      };
+    },
+    setSecondBottomDrawerLoading: (state, { payload }) => {
+      state.secondBottomDrawerData = { ...state.secondBottomDrawerData, loading: payload };
+    },
     setPageSettings: (state, { payload }) => {
       try {
         state.pageSettings = { ...state.pageSettings, ...payload };
@@ -95,6 +114,9 @@ export const {
   setNetworkStatus,
   closeBottomDrawer,
   setBottomDrawerLoading,
+  showSecondBottomDrawer,
+  closeSecondBottomDrawer,
+  setSecondBottomDrawerLoading,
   showModal,
   closeModal,
   setPageSettings,

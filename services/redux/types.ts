@@ -10,6 +10,7 @@ export interface AppStateType {
   shouldPageDataReload: boolean;
   webViewMode: { active: boolean; loading: boolean };
   bottomDrawerData: BottomDrawerDataType;
+  secondBottomDrawerData: BottomDrawerDataType;
   modal: ModalDataType;
   pageSettings: { backBtn: boolean; goBack: (() => void) | null };
   hideFooterNav: boolean;

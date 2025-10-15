@@ -4,7 +4,7 @@ import { COLORS, FONT, SIZES } from '@/constants';
 
 interface ValueDisplayProps {
   label: string;
-  value: string | number;
+  value: string | number | null;
   style?: any;
 }
 
@@ -19,7 +19,7 @@ export const ValueDisplay: React.FC<ValueDisplayProps> = ({
   if(style)
     wrapperStyles = {...wrapperStyles, ...style}
   return (
-    <View style={styles.valueSection}>
+    <View style={wrapperStyles}>
       <Text style={styles.detailLabel}>{label}</Text>
       <Text style={styles.detailValue}>{value}</Text>
     </View>

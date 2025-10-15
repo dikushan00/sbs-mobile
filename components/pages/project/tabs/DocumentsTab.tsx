@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceDocuments, getEntranceMaterialRequests } from '@/components/main/services';
-import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType, ProjectMainDocumentType } from '@/components/main/types';
+import { getEntranceDocuments, getEntranceMaterialRequests, getEntranceDocumentFloors, getEntranceDocumentTypes } from '@/components/main/services';
+import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType, ProjectMainDocumentType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { CustomButton } from '@/components/common/CustomButton';
@@ -12,6 +12,9 @@ import { numberWithCommas } from '@/utils';
 import { Icon } from '@/components/Icon';
 import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
+import { FlatSelect } from '@/components/common/FlatSelect';
+import { WorkSetSelect } from '@/components/common/WorkSetSelect';
+import { CustomSelect } from '@/components/common/CustomSelect';
 
 interface DocumentsTabProps {
   filters: ProjectFiltersType;
@@ -23,28 +26,40 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
   const [documentsData, setDocumentsData] = useState<ProjectMainDocumentType[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
-  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [floorsData, setFloorsData] = useState<SimpleFloorType[]>([]);
+  const [documentTypesData, setDocumentTypesData] = useState<any[]>([]);
+  const [localFilters, setLocalFilters] = useState({
+    floor: null as any,
+    floor_map_document_type_id: null as any
+  });
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const [floors, documentTypes] = await Promise.all([
+        getEntranceDocumentFloors(filters),
+        getEntranceDocumentTypes()
+      ]);
+      if (floors) {
+        setFloorsData(floors);
+      }
+      if (documentTypes) {
+        setDocumentTypesData(documentTypes);
+      }
+    };
+    fetchInitialData();
+  }, []);
 
   useEffect(() => {
     const fetchDocuments = async () => {
       setLoading(true);
-      const data = await getEntranceDocuments(filters);
+      const documents = await getEntranceDocuments({...filters, ...localFilters});
       setLoading(false);
-      if (data) {
-        setDocumentsData(data);
+      if (documents) {
+        setDocumentsData(documents);
       }
     };
     fetchDocuments();
-  }, [filters]);
-
-  useEffect(() => {
-    if(!showOrderForm) {
-    dispatch(setPageSettings({ 
-        backBtn: true, 
-        goBack: onBack
-      }));
-    }
-  }, [onBack, showOrderForm])
+  }, [localFilters, filters]);
 
   const getStatusColour = (isSigned: boolean) => {
     if(isSigned) {
@@ -63,50 +78,28 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
     }
     setExpandedItems(newExpanded);
   };
-
-  const handleOrderMaterial = () => {
-    setShowOrderForm(true);
-  };
-
-  const handleBackToMaterials = () => {
-    setShowOrderForm(false);
-  };
-
-  const handleSubmitOrder = (res: ProjectMainDocumentType[]) => {
+  
+  const handleSubmitOrder = (res: any[]) => {
     if(!res) return
     setDocumentsData(res)
   };
 
-  const handleMoreActions = (material: ProjectMainDocumentType) => {
+  const handleMoreActions = (document: ProjectMainDocumentType) => {
     dispatch(showBottomDrawer({
-      type: BOTTOM_DRAWER_KEYS.materialActions,
+      type: BOTTOM_DRAWER_KEYS.documentActions,
       data: {
         document,
-        onSubmit: (res: ProjectMainDocumentType[]) => {
+        onSubmit: (res: any[]) => {
           if(!res) return
-            setDocumentsData(res);
+          setDocumentsData(res);
         },
         params: filters,
-        provider_request_item_id: material.floor_map_document_id
+        floor_map_document_id: document.floor_map_document_id
       }
     }))
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <CustomLoader />
-        <View style={{
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-          <Text style={styles.loadingText}>Загрузка документов...</Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (!documentsData) {
+  if (!documentsData && !loading) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Не удалось загрузить данные</Text>
@@ -116,11 +109,34 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
 
   return (
     <View style={styles.container}>
+      <View style={styles.selectsContainer}>
+        <View style={styles.selectWrapper}>
+          <CustomSelect
+            list={floorsData}
+            valueKey="floor"
+            labelKey="floor_name"
+            onChange={(value) => setLocalFilters(prev => ({ ...prev, floor: value }))}
+            value={localFilters.floor}
+            placeholder="Этаж" alt
+          />
+        </View>
+        <View style={styles.selectWrapper}>
+          <CustomSelect
+            list={documentTypesData}
+            valueKey="floor_map_document_type_id"
+            labelKey="floor_map_document_type_name"
+            onChange={(value) => setLocalFilters(prev => ({ ...prev, floor_map_document_type_id: value }))}
+            value={localFilters.floor_map_document_type_id}
+            placeholder="Тип документа" alt
+          />
+        </View>
+      </View>
       <ScrollView 
         style={styles.scrollContainer} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {loading && <CustomLoader />}
         <View style={styles.accordionContainer}>
             {documentsData?.map((item) => {
             const isExpanded = expandedItems.has(item.floor_map_document_id);
@@ -138,21 +154,26 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
                 <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.is_signed)}}>
                   <Text style={{color: COLORS.white}}>{item.is_signed ? 'Подписано' : 'На подписании'}</Text>
                 </View>
-                <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-end', marginTop: 15}}>
-                  <ValueDisplay label='Группа работ' value={item.work_set_check_group_name} />
-                  <ValueDisplay label='Тип' value={item.placement_type_name} />
-                  {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
-                    style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                    onPress={() => toggleExpanded(item.floor_map_document_id)}
-                  >
-                    <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
-                    <Icon 
-                      name={"arrowDownColor"} 
-                      width={13} 
-                      height={13} 
-                      fill={COLORS.primaryLight}
-                    />
-                  </TouchableOpacity>}
+                <View style={{marginTop: 15}}>
+                  <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
+                    <ValueDisplay label='Группа работ' value={item.work_set_check_group_name} />
+                    <ValueDisplay label='Тип' value={item.placement_type_name} />
+                    {isExpanded ? <View style={{width: 85}}></View> : <View style={{width: 85}}></View>}
+                  </View>
+                  {!isExpanded && (
+                    <TouchableOpacity 
+                      style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
+                      onPress={() => toggleExpanded(item.floor_map_document_id)}
+                    >
+                      <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
+                      <Icon 
+                        name={"arrowDownColor"} 
+                        width={13} 
+                        height={13} 
+                        fill={COLORS.primaryLight}
+                      />
+                    </TouchableOpacity>
+                  )}
                 </View>
                 {isExpanded && (
                   <View>
@@ -257,5 +278,16 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     lineHeight: 20,
     flexWrap: 'wrap',
+  },
+  selectsContainer: {
+    flexDirection: 'row',
+    gap: 15,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
+    backgroundColor: COLORS.white
+  },
+  selectWrapper: {
+    flex: 1,
   },
 });

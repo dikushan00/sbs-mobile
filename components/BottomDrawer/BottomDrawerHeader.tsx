@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "../Icon";
-import { COLORS, FONT } from "@/constants";
+import { COLORS } from "@/constants";
 import { useSelector } from "react-redux";
 import { appState } from "@/services/redux/reducers/app";
 
@@ -43,7 +43,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   close: {
-    backgroundColor: "#f6f6f6",
     width: 40,
     height: 40,
     alignItems: "center",

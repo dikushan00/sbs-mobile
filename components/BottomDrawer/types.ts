@@ -1,7 +1,7 @@
 import { FileType } from "@/services/types";
 import { CustomSelectProps } from "../common/CustomSelect";
 import { PointType } from "../pages/okk/services";
-import { MaterialRequestType, ProjectFiltersType } from "../main/types";
+import { MaterialRequestType, ProjectFiltersType, ProjectMainDocumentType } from "../main/types";
 import { BOTTOM_DRAWER_KEYS } from "./services";
 
 export type BottomDrawerContentKeys = keyof typeof BOTTOM_DRAWER_KEYS;
@@ -43,6 +43,19 @@ export type MaterialActionsDrawerType = {
   provider_request_item_id: number;
 };
 
+export type DocumentActionsDrawerType = {
+  document: ProjectMainDocumentType;
+  onSubmit: (res: ProjectMainDocumentType[]) => void;
+  params: ProjectFiltersType;
+  floor_map_document_id: number;
+};
+
+export type SignatoriesListDrawerType = {
+  document: ProjectMainDocumentType;
+  onSubmit: (res: ProjectMainDocumentType[]) => void;
+  onSign: () => void;
+};
+
 export type DatePickerDrawerType = {
   title: string;
   initialDate?: Date;
@@ -62,6 +75,8 @@ type BottomDrawerPayloadMap = {
   [BOTTOM_DRAWER_KEYS.customSelectList]: CustomSelectProps;
   [BOTTOM_DRAWER_KEYS.selectModule]: SelectModuleProps;
   [BOTTOM_DRAWER_KEYS.materialActions]: MaterialActionsDrawerType;
+  [BOTTOM_DRAWER_KEYS.documentActions]: DocumentActionsDrawerType;
+  [BOTTOM_DRAWER_KEYS.signatoriesList]: SignatoriesListDrawerType;
   [BOTTOM_DRAWER_KEYS.datePicker]: DatePickerDrawerType;
 };
 

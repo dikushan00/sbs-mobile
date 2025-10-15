@@ -9,12 +9,16 @@ import { WorkSetSelectList } from "./content/workSetSelectList";
 import { SelectModule } from "./content/selectModule";
 import { UploadMedia } from "./content/uploadMedia";
 import { MaterialActions } from "./content/materialActions";
+import { DocumentActions } from "./content/documentActions";
+import { SignatoriesList } from "./content/signatoriesList";
 import { DatePicker } from "./content/datePicker";
 import {
   ConfirmDrawerType,
   SelectModuleProps,
   UploadMediaDrawerType,
   MaterialActionsDrawerType,
+  DocumentActionsDrawerType,
+  SignatoriesListDrawerType,
   DatePickerDrawerType,
 } from "./types";
 
@@ -26,6 +30,8 @@ export const BOTTOM_DRAWER_KEYS = {
   flatSelectList: "flatSelectList",
   workSetSelectList: "workSetSelectList",
   materialActions: "materialActions",
+  documentActions: "documentActions",
+  signatoriesList: "signatoriesList",
   datePicker: "datePicker",
 } as const;
 
@@ -78,6 +84,20 @@ export const getBottomDrawerContent = (isOkk = false) => ({
       handleClose: () => void;
     }>,
     snapPoints: [300],
+  },
+  [BOTTOM_DRAWER_KEYS.documentActions]: {
+    component: DocumentActions as React.FC<{
+      data: DocumentActionsDrawerType;
+      handleClose: () => void;
+    }>,
+    snapPoints: [300],
+  },
+  [BOTTOM_DRAWER_KEYS.signatoriesList]: {
+    component: SignatoriesList as React.FC<{
+      data: SignatoriesListDrawerType;
+      handleClose: () => void;
+    }>,
+    snapPoints: ['80%'],
   },
   [BOTTOM_DRAWER_KEYS.datePicker]: {
     component: DatePicker as React.FC<{

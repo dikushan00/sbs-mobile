@@ -1,4 +1,5 @@
 import { BottomDrawer } from "@/components/BottomDrawer";
+import { SecondBottomDrawer } from "@/components/SecondBottomDrawer";
 import { CustomModal } from "@/components/Modal";
 import { NotificationsProvider } from "@/components/NorificationsProvider";
 import { CustomLoader } from "@/components/common/CustomLoader";
@@ -68,6 +69,7 @@ export default function RootLayout() {
                 </NavigationContainer>
               </NavigationIndependentTree>
               <BottomDrawer />
+              <SecondBottomDrawer />
               <CustomModal />
             </SnackbarProvider>
           </SafeAreaProvider>

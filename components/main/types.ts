@@ -109,6 +109,11 @@ export interface ProjectFloorType {
 	is_selected: boolean
 }
 
+export type SimpleFloorType = {
+	floor: number;
+  floor_name: string;
+}
+
 export interface ProjectDocumentType {
 	project_agreement_id: number
 	doc_name: string

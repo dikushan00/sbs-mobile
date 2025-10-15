@@ -34,6 +34,7 @@ import Logout from "@/assets/icons/logout.svg";
 import More from "@/assets/icons/more.svg";
 import Trash from "@/assets/icons/trash.svg";
 import Search from "@/assets/icons/search.svg";
+import Calendar from "@/assets/icons/calendar.svg";
 import { ViewStyle } from "react-native";
 
 const icons = {
@@ -73,6 +74,7 @@ const icons = {
   trash: Trash,
   logout: Logout,
   search: Search,
+  calendar: Calendar,
 };
 
 type IconKeysType = keyof typeof icons;

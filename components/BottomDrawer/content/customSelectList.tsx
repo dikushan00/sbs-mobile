@@ -15,7 +15,7 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { list, valueKey, onChange, value, labelKey, disabled, label } = data;
+  const { list, valueKey, onChange, value, labelKey, disabled, label, placeholder } = data;
 
   // Фильтруем список по поисковому запросу
   const filteredList = useMemo(() => {
@@ -37,7 +37,7 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
     <View style={styles.container}>
       <BottomDrawerHeader
         handleClose={handleClose}
-        title={label || "Выберите.."}
+        title={label || placeholder || "Выберите.."}
       />
       
       {/* Поле поиска */}
