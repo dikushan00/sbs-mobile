@@ -10,16 +10,16 @@ interface StagesActionsProps {
     stage: ProjectStageType;
     onSubmit: (res: ProjectStageType[]) => void;
     onViewComments: (stage: ProjectStageType) => void;
+    onOpenSchema: (stage: ProjectStageType) => void;
   };
   handleClose: () => void;
 }
 
 export const StagesActions: React.FC<StagesActionsProps> = ({ data, handleClose }) => {
-  const { stage, onSubmit, onViewComments } = data;
+  const { stage, onSubmit, onViewComments, onOpenSchema } = data;
 
   const handleOpenScheme = () => {
-    // TODO: Implement open scheme logic
-    console.log('Opening scheme for stage:', stage.floor_map_id);
+    onOpenSchema(stage);
     handleClose();
   };
 

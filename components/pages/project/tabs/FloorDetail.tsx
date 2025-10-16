@@ -65,6 +65,7 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
 
   useEffect(() => {
     dispatch(setUserPageHeaderData({
+      title: 'Схема этажа',
       desc: `Подъезд ${selectedData.entrance}, Блок ${selectedData.block_name}, Этаж №${floor.floor}`,
     }));
     dispatch(setPageSettings({ 

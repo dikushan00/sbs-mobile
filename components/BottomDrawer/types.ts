@@ -59,6 +59,7 @@ export type StagesActionsDrawerType = {
   stage: ProjectStageType;
   onSubmit: (res: ProjectStageType[]) => void;
   onViewComments: (stage: ProjectStageType) => void;
+  onOpenSchema: (stage: ProjectStageType) => void;
 };
 
 export type SignatoriesListDrawerType = {

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceStages, getEntranceDocumentFloors, getPlacementTypes, getFloorMapChecks } from '@/components/main/services';
-import { ProjectStageType, ProjectFiltersType, ProjectStagesFiltersType, PlacementType, SimpleFloorType, ProjectCheckType, ProjectStagesChecksParamsType, SelectedDataType } from '@/components/main/types';
+import { getEntranceStages, getEntranceDocumentFloors, getPlacementTypes } from '@/components/main/services';
+import { ProjectStageType, ProjectFiltersType, PlacementType, SimpleFloorType, SelectedDataType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
@@ -13,6 +13,7 @@ import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { CommentsView } from './CommentsView';
 import { setPageHeaderData } from '@/services/redux/reducers/userApp';
+import { FloorDetail } from './FloorDetail';
 
 interface StagesTabProps {
   filters: ProjectFiltersType;
@@ -33,8 +34,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     floor: null as number | null,
   });
 
-  // New state for comments view
-  const [viewMode, setViewMode] = useState<'stages' | 'comments'>('stages');
+  const [viewMode, setViewMode] = useState<'stages' | 'comments' | 'schema'>('stages');
   const [selectedStage, setSelectedStage] = useState<ProjectStageType | null>(null);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
   }, []);
 
   useEffect(() => {
-    if(viewMode !== 'comments')
+    if(viewMode === 'stages')
       dispatch(setPageHeaderData({
         title: "Этапы",
         desc: "",
@@ -67,9 +67,8 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     fetchStages();
   }, [localFilters, filters]);
 
-  // Update page settings when view mode changes
   useEffect(() => {
-    if (viewMode !== 'comments') 
+    if (viewMode === 'stages') 
       dispatch(setPageSettings({ backBtn: true, goBack: onBack }));
   }, [viewMode, dispatch, onBack]);
 
@@ -108,6 +107,10 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
         onViewComments: (selectedStage: ProjectStageType) => {
           setSelectedStage(selectedStage);
           setViewMode('comments');
+        },
+        onOpenSchema: (selectedStage: ProjectStageType) => {
+          setSelectedStage(selectedStage);
+          setViewMode('schema');
         }
       }
     }))
@@ -128,6 +131,17 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
         selectedStage={selectedStage}
         onBack={handleBackToStages}
         selectedData={selectedData}
+      />
+    );
+  }
+
+  // Render schema view
+  if (viewMode === 'schema' && selectedStage?.floor) {
+    return (
+      <FloorDetail
+        floor={{floor_map_id: selectedStage.floor_map_id, floor: selectedStage.floor}} 
+        selectedData={selectedData} 
+        onBack={handleBackToStages} 
       />
     );
   }
