@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
@@ -95,6 +95,10 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
     handleClose();
   };
 
+  const signDocument = useMemo(() => {
+    return document.assign_signs?.find((signatory) => !signatory.is_signed && signatory.can_sign)
+  }, [document]);
+
   if (showDateChange) {
     return (
       <View style={styles.container}>
@@ -136,7 +140,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
             <View style={styles.actionIcon}>
               <Icon name="people" width={20} height={20} fill={COLORS.primary} />
             </View>
-            <Text style={styles.actionText}>Подписать</Text>
+            <Text style={styles.actionText}>{signDocument ? 'Подписать' : 'Подписанты'}</Text>
           </TouchableOpacity>
         )}
         

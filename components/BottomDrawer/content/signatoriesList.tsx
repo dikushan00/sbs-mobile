@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
@@ -27,6 +27,10 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
     return isSigned ? 'Подписан' : 'На подписании';
   };
 
+  const signDocument = useMemo(() => {
+    return document.assign_signs?.find((signatory) => !signatory.is_signed && signatory.can_sign)
+  }, [document]);
+  
   return (
     <View style={styles.container}>
       <BottomDrawerHeader handleClose={handleClose} title={`Подписанты: ${document.work_set_check_group_name}`} />
@@ -35,34 +39,38 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
         {document.assign_signs?.map((signatory, index) => (
           <View key={index} style={styles.signatoryCard}>
             <View style={styles.signatoryInfo}>
-              <Text style={styles.signatoryName}>
-                {signatory.employee_fio} / {signatory.assign_type_id}
-              </Text>
+              <View style={{flexDirection: 'row', gap: 10,
+               alignItems: 'center', marginBottom: 10}}>
+                 <Text style={styles.signatoryName} numberOfLines={0}>
+                   {signatory.employee_fio} / {signatory.assign_type_id}
+                 </Text>
+                <View 
+                  style={[
+                    styles.statusButton, 
+                    { backgroundColor: getStatusColor(signatory.is_signed) }
+                  ]}
+                >
+                  <Text style={styles.statusText}>
+                    {getStatusText(signatory.is_signed)}
+                  </Text>
+                </View>
+              </View>
 
-              <View style={{flexDirection: 'row', gap: 10, justifyContent: 'space-between', marginTop: 10}}>
-                <ValueDisplay label='Должность' value={signatory.assign_type_name} />
-                <ValueDisplay label='Номер телефона' value={signatory.phone} />
+              <View style={{flexDirection: 'row', gap: 10, marginTop: 10, width: '100%'}}>
+                <View style={{flex: 1}}>
+                  <ValueDisplay label='Должность' value={signatory.assign_type_name} />
+                </View>
+                <View style={{flex: 1}}>
+                  <ValueDisplay label='Номер телефона' value={signatory.phone} />
+                </View>
               </View>
-              <ValueDisplay label='Дата подписания' value={signatory.sign_date} style={{marginTop: 15}} />
-            </View>
-            
-            <View style={styles.statusContainer}>
-              <View 
-                style={[
-                  styles.statusButton, 
-                  { backgroundColor: getStatusColor(signatory.is_signed) }
-                ]}
-              >
-                <Text style={styles.statusText}>
-                  {getStatusText(signatory.is_signed)}
-                </Text>
-              </View>
+              {!!signatory.sign_date && <ValueDisplay label='Дата подписания' value={signatory.sign_date} style={{marginTop: 15}} />}
             </View>
           </View>
         ))}
       </View>
 
-      <View style={styles.actionContainer}>
+      {!!signDocument && <View style={styles.actionContainer}>
         <CustomButton
           title="Подписать"
           onClick={onSign}
@@ -70,7 +78,7 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
           stylesProps={{ backgroundColor: COLORS.primary }}
           wrapperStyles={styles.signButton}
         />
-      </View>
+      </View>}
     </View>
   );
 };
@@ -116,7 +124,8 @@ const styles = StyleSheet.create({
     fontSize: SIZES.medium,
     fontFamily: FONT.regular,
     color: COLORS.black,
-    marginBottom: 8,
+    flex: 1,
+    flexWrap: 'wrap'
   },
   signatoryDetails: {
     flexDirection: 'row',
@@ -142,7 +151,7 @@ const styles = StyleSheet.create({
   statusButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 6,
     minWidth: 100,
     alignItems: 'center',
   },
@@ -156,5 +165,6 @@ const styles = StyleSheet.create({
   },
   signButton: {
     width: '100%',
+    height: 52
   },
 });
