@@ -1,5 +1,6 @@
-import { CompleteWorkSetBodyType, DocumentTypeType, FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, MaterialRequestType, MaterialType, PlacementType, ProjectDocumentType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectMainDocumentType, ProjectTypeType, ResidentType, SimpleFloorType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType, ProjectPaymentType, ProjectPaymentsFiltersType } from "../types";
+import { CompleteWorkSetBodyType, DocumentTypeType, FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, MaterialRequestType, MaterialType, PlacementType, ProjectDocumentType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectMainDocumentType, ProjectTypeType, ResidentType, SimpleFloorType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectStagesFiltersType, ProjectStageType, ProjectStagesChecksParamsType } from "../types";
 import { residentialSettingsAPI } from "./api";
+import { ProjectCheckType } from "../types";
 
 export const residentSettingsBlockNames = {
   M__ProjectFormInfoTab: "residentInfo",
@@ -250,7 +251,7 @@ export const getEntrancePayments = async (params: ProjectPaymentsFiltersType): P
     return res?.data;
   } catch (e) {}
 };
-export const getEntranceStages = async (params = {}) => {
+export const getEntranceStages = async (params: ProjectStagesFiltersType): Promise<ProjectStageType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getEntranceStages(params);
     return res?.data;
@@ -303,7 +304,7 @@ export const signEntranceDocument = async (body, params) => {
     return res?.data;
   } catch (e) {}
 };
-export const getFloorMapPoints = async (floor_map_id, params) => {
+export const getFloorMapPoints = async (floor_map_id: number, params) => {
   try {
     const res = await residentialSettingsAPI.getFloorMapPoints(
       floor_map_id,
@@ -313,8 +314,8 @@ export const getFloorMapPoints = async (floor_map_id, params) => {
   } catch (e) {}
 };
 export const getFloorMapPointInfo = async (
-  floor_map_id,
-  call_check_list_point_id
+  floor_map_id: number,
+  call_check_list_point_id: number
 ) => {
   try {
     const res = await residentialSettingsAPI.getFloorMapPointInfo(
@@ -324,7 +325,7 @@ export const getFloorMapPointInfo = async (
     return res?.data;
   } catch (e) {}
 };
-export const getFloorMapChecks = async (floor_map_id, params) => {
+export const getFloorMapChecks = async (floor_map_id: number, params: ProjectStagesChecksParamsType): Promise<ProjectCheckType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getFloorMapChecks(
       floor_map_id,
@@ -333,7 +334,7 @@ export const getFloorMapChecks = async (floor_map_id, params) => {
     return res?.data?.map((item, i) => ({ ...item, index: i + 1 }));
   } catch (e) {}
 };
-export const getFloorOpenspace = async (floor_map_id) => {
+export const getFloorOpenspace = async (floor_map_id: number) => {
   try {
     const res = await residentialSettingsAPI.getFloorOpenspace(floor_map_id);
     return (

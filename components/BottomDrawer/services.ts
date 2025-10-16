@@ -11,6 +11,7 @@ import { UploadMedia } from "./content/uploadMedia";
 import { MaterialActions } from "./content/materialActions";
 import { DocumentActions } from "./content/documentActions";
 import { PaymentActions } from "./content/paymentActions";
+import { StagesActions } from "./content/stagesActions";
 import { SignatoriesList } from "./content/signatoriesList";
 import { DatePicker } from "./content/datePicker";
 import {
@@ -20,6 +21,7 @@ import {
   MaterialActionsDrawerType,
   DocumentActionsDrawerType,
   PaymentActionsDrawerType,
+  StagesActionsDrawerType,
   SignatoriesListDrawerType,
   DatePickerDrawerType,
 } from "./types";
@@ -34,6 +36,7 @@ export const BOTTOM_DRAWER_KEYS = {
   materialActions: "materialActions",
   documentActions: "documentActions",
   paymentActions: "paymentActions",
+  stagesActions: "stagesActions",
   signatoriesList: "signatoriesList",
   datePicker: "datePicker",
 } as const;
@@ -98,6 +101,13 @@ export const getBottomDrawerContent = (isOkk = false) => ({
   [BOTTOM_DRAWER_KEYS.paymentActions]: {
     component: PaymentActions as React.FC<{
       data: PaymentActionsDrawerType;
+      handleClose: () => void;
+    }>,
+    snapPoints: [200],
+  },
+  [BOTTOM_DRAWER_KEYS.stagesActions]: {
+    component: StagesActions as React.FC<{
+      data: StagesActionsDrawerType;
       handleClose: () => void;
     }>,
     snapPoints: [200],

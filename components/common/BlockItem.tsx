@@ -38,7 +38,7 @@ export const BlockItem: React.FC<BlockItemProps> = ({
           <Text style={styles.blockTitle}>{title}</Text>
         </View>
         {renderContent && renderContent()}
-        <Icon name="arrowRightAlt" width={20} height={20} fill={COLORS.gray} />
+        <Icon name="arrowRightAlt" width={20} height={20} fill={COLORS.primaryLight} />
       </View>
       {children}
     </TouchableOpacity>

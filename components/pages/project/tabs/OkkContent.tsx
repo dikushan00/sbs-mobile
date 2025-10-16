@@ -28,7 +28,6 @@ export const OkkContent: React.FC<OkkContentProps> = ({ floor, onBack }) => {
 
   const handleStartOkk = () => {
     // Здесь будет логика запуска ОКК
-    console.log('Запуск ОКК для этажа:', floor.floor);
   };
 
   return (

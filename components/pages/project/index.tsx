@@ -123,7 +123,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       case 'M__ProjectFormDocumentTab':
         return <DocumentsTab filters={filters} onBack={backToProject} />;
       case 'M__ProjectFormStagesTab':
-        return <StagesTab />;
+        return <StagesTab filters={filters} onBack={backToProject} project_id={projectId} selectedData={selectedData}/>;
       default:
         return <GeneralTab 
           projectId={projectId}
@@ -193,7 +193,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
                 name={getIconForGrantCode(tab?.grant_code) as any} 
                 width={20} 
                 height={20} 
-                fill={COLORS.primary} 
+                fill={COLORS.primaryLight} 
               />
             </View>
           </TouchableOpacity>

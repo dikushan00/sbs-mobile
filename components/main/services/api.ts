@@ -1,6 +1,8 @@
 import { instance } from "@/services/api";
-import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType, SimpleFloorType, PlacementType, DocumentTypeType, ProjectPaymentType, ProjectPaymentsFiltersType } from "../types";
+import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType, SimpleFloorType, PlacementType, DocumentTypeType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectCheckType, ProjectStagesChecksParamsType } from "../types";
 import { ReqResponse } from "@/services/types";
+import { ProjectStageType } from "../types";
+import { ProjectStagesFiltersType } from "../types";
 export const residentialSettingsAPI = {
   async getDocuments(project_id: number): Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
     return await instance()
@@ -148,7 +150,7 @@ export const residentialSettingsAPI = {
       .get(`/project/remont_costs/read/`, { params })
       .then((res) => res?.data);
   },
-  async getEntranceStages(params) {
+  async getEntranceStages(params: ProjectStagesFiltersType): Promise<ReqResponse<ProjectStageType[] | undefined>> {
     return await instance()
       .get(`/project/stages/read/`, { params })
       .then((res) => res?.data);
@@ -195,7 +197,7 @@ export const residentialSettingsAPI = {
       )
       .then((res) => res?.data);
   },
-  async getFloorMapChecks(floor_map_id: number, params = {}) {
+  async getFloorMapChecks(floor_map_id: number, params:ProjectStagesChecksParamsType): Promise<ReqResponse<ProjectCheckType[] | undefined>> {
     return await instance()
       .get(`/project/floor_map/${floor_map_id}/checks/read/`, { params })
       .then((res) => res?.data);

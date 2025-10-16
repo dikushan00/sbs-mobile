@@ -97,7 +97,7 @@ export const FloorSchemaTab = ({filters, onBack, selectedData}: {filters: Projec
     <View style={styles.container}>
       <BlockItem
         title="Схема этажа и материалы"
-        icon="map"
+        icon="map" iconColor={COLORS.primaryLight}
         onPress={() => handleBlockPress('1')}
       />
       <BlockItem

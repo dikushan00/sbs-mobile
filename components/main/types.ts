@@ -156,6 +156,17 @@ export interface ProjectPaymentsFiltersType extends ProjectFiltersType {
 	placement_type_id: number | null,
 }
 
+export interface ProjectStagesFiltersType extends ProjectFiltersType {
+	floor: number | null,
+	placement_type_id: number | null,
+}
+
+export interface ProjectStagesChecksParamsType extends ProjectFiltersType {
+	work_set_check_group_id: number | null,
+  project_id: number | null,
+  placement_type_id: number | null,
+}
+
 export interface ResidentType {
 	resident_id: number
 	resident_name: string
@@ -446,5 +457,34 @@ export interface ProjectPaymentType {
 	avr_code: string | null;
 	guid: string | null;
 	error: string | null;
+}
+
+export interface ProjectStageType {
+	block_name: string;
+	floor: number;
+	placement_type_name: string;
+	work_set_check_group_name: string;
+	call_employee_fio: string;
+	check_employee_fio: string;
+	check_status: string;
+	check_status_code: string;
+	call_date: string;
+	check_date: string;
+	floor_map_id: number;
+	work_set_check_group_id: number;
+	placement_type_id: number;
+}
+
+export interface ProjectCheckType {
+	index: number;
+	call_check_list_point_id: number;
+	is_accepted: boolean;
+	file_urls: string[];
+	comments: string | null;
+	check_name: string;
+	check_date: string | null;
+	call_date: string;
+	call_employee_fio: string;
+	check_employee_fio: string;
 }
 
