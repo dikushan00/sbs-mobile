@@ -29,7 +29,14 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
 
   const handleChange = (selectedId: number | null, item: any) => {
     if (disabled) return;
-    onChange && onChange(selectedId, item);
+    
+    // Если выбран уже выбранный элемент, сбрасываем выбор
+    if (value === selectedId) {
+      onChange && onChange(null, null);
+    } else {
+      onChange && onChange(selectedId, item);
+    }
+    
     dispatch(closeBottomDrawer());
   };
 

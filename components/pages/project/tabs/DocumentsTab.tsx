@@ -1,19 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceDocuments, getEntranceMaterialRequests, getEntranceDocumentFloors, getEntranceDocumentTypes } from '@/components/main/services';
-import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType, ProjectMainDocumentType, SimpleFloorType } from '@/components/main/types';
+import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes } from '@/components/main/services';
+import { DocumentTypeType, ProjectFiltersType, ProjectMainDocumentType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
-import { CustomButton } from '@/components/common/CustomButton';
-import { MaterialOrderForm } from './MaterialOrderForm';
-import { numberWithCommas } from '@/utils';
 import { Icon } from '@/components/Icon';
-import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
+import { showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
-import { FlatSelect } from '@/components/common/FlatSelect';
-import { WorkSetSelect } from '@/components/common/WorkSetSelect';
 import { CustomSelect } from '@/components/common/CustomSelect';
 
 interface DocumentsTabProps {
@@ -27,7 +22,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [floorsData, setFloorsData] = useState<SimpleFloorType[]>([]);
-  const [documentTypesData, setDocumentTypesData] = useState<any[]>([]);
+  const [documentTypesData, setDocumentTypesData] = useState<DocumentTypeType[]>([]);
   const [localFilters, setLocalFilters] = useState({
     floor: null as any,
     floor_map_document_type_id: null as any
@@ -77,11 +72,6 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
       newExpanded.add(itemId);
     }
     setExpandedItems(newExpanded);
-  };
-  
-  const handleSubmitOrder = (res: any[]) => {
-    if(!res) return
-    setDocumentsData(res)
   };
 
   const handleMoreActions = (document: ProjectMainDocumentType) => {
@@ -158,10 +148,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
                   <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
                     <ValueDisplay label='Группа работ' value={item.work_set_check_group_name} />
                     <ValueDisplay label='Тип' value={item.placement_type_name} />
-                    {isExpanded ? <View style={{width: 85}}></View> : <View style={{width: 85}}></View>}
-                  </View>
-                  {!isExpanded && (
-                    <TouchableOpacity 
+                    {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
                       style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
                       onPress={() => toggleExpanded(item.floor_map_document_id)}
                     >
@@ -172,8 +159,8 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
                         height={13} 
                         fill={COLORS.primaryLight}
                       />
-                    </TouchableOpacity>
-                  )}
+                    </TouchableOpacity>}
+                  </View>
                 </View>
                 {isExpanded && (
                   <View>
@@ -224,16 +211,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80, // Отступ снизу для кнопки
-  },
-  loadingContainer: {
-    flex: 1,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: SIZES.medium,
-    fontFamily: FONT.regular,
-    color: COLORS.gray,
+    paddingBottom: 80,
   },
   errorContainer: {
     flex: 1,
@@ -249,13 +227,6 @@ const styles = StyleSheet.create({
   },
   accordionContainer: {
     marginTop: 20,
-  },
-  accordionTitle: {
-    fontSize: 17,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-    marginBottom: 10,
-    marginTop: 10
   },
   statusContainer: {
     padding: 10,

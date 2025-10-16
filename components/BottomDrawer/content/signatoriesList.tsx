@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { Icon } from '@/components/Icon';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ProjectMainDocumentType } from '@/components/main/types';
 import { BottomDrawerHeader } from '../BottomDrawerHeader';
@@ -89,21 +88,6 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '100%'
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: SIZES.large,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-    flex: 1,
-  },
-  closeButton: {
-    padding: 5,
-  },
   signatoriesList: {
     flex: 1,
     marginBottom: 20,
@@ -126,27 +110,6 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     flex: 1,
     flexWrap: 'wrap'
-  },
-  signatoryDetails: {
-    flexDirection: 'row',
-    marginBottom: 4,
-  },
-  detailLabel: {
-    fontSize: SIZES.regular,
-    fontFamily: FONT.regular,
-    color: COLORS.gray,
-    minWidth: 120,
-  },
-  detailValue: {
-    fontSize: SIZES.regular,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-    flex: 1,
-  },
-  statusContainer: {
-    marginLeft: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   statusButton: {
     paddingHorizontal: 12,

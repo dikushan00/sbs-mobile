@@ -1,5 +1,5 @@
 import { instance } from "@/services/api";
-import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType, SimpleFloorType } from "../types";
+import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType, SimpleFloorType, PlacementType, DocumentTypeType, ProjectPaymentType, ProjectPaymentsFiltersType } from "../types";
 import { ReqResponse } from "@/services/types";
 export const residentialSettingsAPI = {
   async getDocuments(project_id: number): Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
@@ -143,7 +143,7 @@ export const residentialSettingsAPI = {
       .delete(`/project/provider_requests/delete/`, { params })
       .then((res) => res?.data);
   },
-  async getEntrancePayments(params) {
+  async getEntrancePayments(params: ProjectPaymentsFiltersType): Promise<ReqResponse<ProjectPaymentType[] | undefined>> {
     return await instance()
       .get(`/project/remont_costs/read/`, { params })
       .then((res) => res?.data);
@@ -158,12 +158,12 @@ export const residentialSettingsAPI = {
       .get(`/project/documents/floors/read/`, { params })
       .then((res) => res?.data);
   },
-  async getEntranceDocumentTypes() {
+  async getEntranceDocumentTypes(): Promise<ReqResponse<DocumentTypeType[] | undefined>> {
     return await instance()
       .get(`/project/common/document_types/read/`)
       .then((res) => res?.data);
   },
-  async getPlacementTypes() {
+  async getPlacementTypes(): Promise<ReqResponse<PlacementType[] | undefined>> {
     return await instance()
       .get(`/project/common/placement_types/read/`)
       .then((res) => res?.data);

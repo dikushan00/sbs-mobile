@@ -10,6 +10,7 @@ import { SelectModule } from "./content/selectModule";
 import { UploadMedia } from "./content/uploadMedia";
 import { MaterialActions } from "./content/materialActions";
 import { DocumentActions } from "./content/documentActions";
+import { PaymentActions } from "./content/paymentActions";
 import { SignatoriesList } from "./content/signatoriesList";
 import { DatePicker } from "./content/datePicker";
 import {
@@ -18,6 +19,7 @@ import {
   UploadMediaDrawerType,
   MaterialActionsDrawerType,
   DocumentActionsDrawerType,
+  PaymentActionsDrawerType,
   SignatoriesListDrawerType,
   DatePickerDrawerType,
 } from "./types";
@@ -31,6 +33,7 @@ export const BOTTOM_DRAWER_KEYS = {
   workSetSelectList: "workSetSelectList",
   materialActions: "materialActions",
   documentActions: "documentActions",
+  paymentActions: "paymentActions",
   signatoriesList: "signatoriesList",
   datePicker: "datePicker",
 } as const;
@@ -91,6 +94,13 @@ export const getBottomDrawerContent = (isOkk = false) => ({
       handleClose: () => void;
     }>,
     snapPoints: [300],
+  },
+  [BOTTOM_DRAWER_KEYS.paymentActions]: {
+    component: PaymentActions as React.FC<{
+      data: PaymentActionsDrawerType;
+      handleClose: () => void;
+    }>,
+    snapPoints: [200],
   },
   [BOTTOM_DRAWER_KEYS.signatoriesList]: {
     component: SignatoriesList as React.FC<{

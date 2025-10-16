@@ -49,6 +49,20 @@ export interface MaterialType {
 	unit_name: string
 }
 
+export interface PlacementType {
+  "placement_type_id": number,
+  "placement_type_name": string,
+  "placement_type_code": string,
+  "order_num": number,
+  "color": string,
+  "color_description": string
+}
+
+export interface DocumentTypeType {
+  "floor_map_document_type_id": number,
+  "floor_map_document_type_name": string
+}
+
 export interface ProjectMaterialType extends MaterialType {
 	material_cnt: number
 	material_sum: number
@@ -131,10 +145,15 @@ export interface ProjectDocumentType {
 	error: string
 }
 
-export type ProjectFiltersType = {
+export interface ProjectFiltersType {
 	resident_id: number | null,
 	project_type_id: number | null,
 	project_entrance_id: number | null,
+}
+
+export interface ProjectPaymentsFiltersType extends ProjectFiltersType {
+	floor: number | null,
+	placement_type_id: number | null,
 }
 
 export interface ResidentType {
@@ -154,6 +173,11 @@ export interface ProjectEntranceType {
 	block_name: string,
 	contractor_name: string,
 	project_entrance_id: number
+}
+
+export interface ProjectEntranceAllInfoType extends ProjectEntranceType {
+  entrance_name: string;
+  entrance_full_name: string;
 }
 
 export interface TabulationBlock {
@@ -396,11 +420,31 @@ export interface ProjectMainDocumentType {
 }
 
 export interface ProjectMainAssignSignType {
-    phone: string;
-    can_sign: boolean;
-    is_signed: boolean;
-    sign_date: string | null;
-    employee_fio: string;
-    assign_type_id: number;
-    assign_type_name: string;
+	phone: string;
+	can_sign: boolean;
+	is_signed: boolean;
+	sign_date: string | null;
+	employee_fio: string;
+	assign_type_id: number;
+	assign_type_name: string;
 }
+
+export interface ProjectPaymentType {
+	remont_costs_id: number;
+	contragent: string;
+	work_set_check_group_name: string;
+	placement_type_name: string;
+	block_name: string;
+	floor: number;
+	col_sum: number;
+	date_create: string;
+	payment_amount: number;
+	date_payment: string;
+	status_code: string;
+	status_name: string;
+	is_avr_sent_bi: boolean | null;
+	avr_code: string | null;
+	guid: string | null;
+	error: string | null;
+}
+

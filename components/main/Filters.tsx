@@ -6,18 +6,18 @@ import {
   getProjectTypes,
   getResidentialEntrances,
 } from "./services";
-import { ProjectFiltersType } from "./types";
+import { ProjectEntranceAllInfoType, ProjectFiltersType, ProjectTypeType, ResidentType } from "./types";
 
 type PropsType = {
   onChange: (key: string, value: any, row: any) => void;
   filters: ProjectFiltersType;
 };
 export const MainPageFilters = ({ onChange, filters }: PropsType) => {
-  const [residents, setResidents] = useState([]);
-  const [projectTypes, setProjectTypes] = useState([]);
-  const [entrances, setEntrances] = useState([]);
+  const [residents, setResidents] = useState<ResidentType[]>([]);
+  const [projectTypes, setProjectTypes] = useState<ProjectTypeType[]>([]);
+  const [entrances, setEntrances] = useState<ProjectEntranceAllInfoType[]>([]);
 
-  const getResidents = useCallback(async () => {
+  const getResidents = useCallback(async () => {  
     getResidentList().then((res) => setResidents(res || []));
   }, []);
 
