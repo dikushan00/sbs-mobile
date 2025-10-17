@@ -1,13 +1,15 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, ScrollView } from "react-native";
 import { Icon } from "@/components/Icon";
 import { useDispatch, useSelector } from "react-redux";
 import { logout, userAppState } from "@/services/redux/reducers/userApp";
 import { AppDispatch } from "@/services/redux";
+import { COLORS } from "@/constants";
 
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>()
-  const { logoutLoading } = useSelector(userAppState);
+  const { logoutLoading, userData } = useSelector(userAppState);
+
   const handleLogout = () => {
     Alert.alert(
       "Выход",
@@ -30,52 +32,211 @@ export default function ProfilePage() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Профиль</Text>
-        <Text style={styles.description}>Страница профиля пользователя.</Text>
+        
+        {/* Аватар и основная информация */}
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarContainer}>
+            {userData?.image_url ? (
+              <Image source={{ uri: userData.image_url }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                  {userData?.fio ? userData.fio.charAt(0).toUpperCase() : 'U'}
+                </Text>
+              </View>
+            )}
+          </View>
+          
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>{userData?.fio || 'Не указано'}</Text>
+            <Text style={styles.userPosition}>{userData?.position_name || 'Не указано'}</Text>
+          </View>
+        </View>
+
+        {/* Детальная информация */}
+        <View style={styles.detailsSection}>
+          <View style={styles.detailItem}>
+            <Icon name="work" width={20} height={20} />
+            <View style={styles.detailContent}>
+              <Text style={styles.detailLabel}>Компания</Text>
+              <Text style={styles.detailValue}>{userData?.company_name || 'Не указано'}</Text>
+            </View>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Icon name="map" width={20} height={20} fill={COLORS.primaryLight} />
+            <View style={styles.detailContent}>
+              <Text style={styles.detailLabel}>Город</Text>
+              <Text style={styles.detailValue}>{userData?.city_name || 'Не указано'}</Text>
+            </View>
+          </View>
+
+          <View style={styles.detailItem}>
+            <Icon name="people" width={20} height={20} fill={COLORS.primaryLight} />
+            <View style={styles.detailContent}>
+              <Text style={styles.detailLabel}>Email</Text>
+              <Text style={styles.detailValue}>{userData?.email || 'Не указано'}</Text>
+            </View>
+          </View>
+
+          {userData?.group_names && (
+            <View style={styles.detailItem}>
+              <Icon name="flag" width={20} height={20} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Роли</Text>
+                <Text style={styles.detailValue}>{userData.group_names}</Text>
+              </View>
+            </View>
+          )}
+
+          <View style={styles.detailItem}>
+            <Icon name="info" width={20} height={20} fill={COLORS.primaryLight} />
+            <View style={styles.detailContent}>
+              <Text style={styles.detailLabel}>ID сотрудника</Text>
+              <Text style={styles.detailValue}>{userData?.employee_id || 'Не указано'}</Text>
+            </View>
+          </View>
+        </View>
       </View>
       
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Icon name="logout" width={20} height={20} />
         <Text style={styles.logoutText}>Выйти</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    padding: 25,
-    justifyContent: "space-between"
+    backgroundColor: "#f5f5f5",
   },
   content: {
-    flex: 1,
+    padding: 20,
   },
-  title: { fontSize: 18, fontWeight: "600", marginBottom: 10 },
-  description: { fontSize: 14, color: "#666" },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
+  title: { 
+    fontSize: 24, 
+    fontWeight: "700", 
+    marginBottom: 20,
+    color: "#333",
+    textAlign: "center"
+  },
+  
+  // Профиль пользователя
+  profileHeader: {
     backgroundColor: "#FFF",
-    padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#000",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  avatarContainer: {
+    marginBottom: 15,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#007AFF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: {
+    color: "#FFF",
+    fontSize: 32,
+    fontWeight: "600",
+  },
+  userInfo: {
+    alignItems: "center",
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 5,
+  },
+  userPosition: {
+    fontSize: 16,
+    color: "#666",
+  },
+
+  // Детальная информация
+  detailsSection: {
+    backgroundColor: "#FFF",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  detailItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  detailContent: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 2,
+  },
+  detailValue: {
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "500",
+  },
+
+  // Кнопка выхода
+  logoutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    padding: 15,
+    margin: 20,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   logoutText: {
     marginLeft: 10,
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
+    color: "#333",
   },
 });
 
