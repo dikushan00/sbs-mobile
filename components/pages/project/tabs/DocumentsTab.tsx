@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes } from '@/components/main/services';
@@ -14,9 +14,10 @@ import { CustomSelect } from '@/components/common/CustomSelect';
 interface DocumentsTabProps {
   filters: ProjectFiltersType;
   onBack: () => void;
+  isSBS: boolean;
 }
 
-export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) => {
+export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isSBS }) => {
   const dispatch = useDispatch();
   const [documentsData, setDocumentsData] = useState<ProjectMainDocumentType[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,6 +131,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
         <View style={styles.accordionContainer}>
             {documentsData?.map((item) => {
             const isExpanded = expandedItems.has(item.floor_map_document_id);
+            const show1cInfo = isSBS && item.is_avr_sent_bi && (item.guid || item.esf_status || item.avr_code || item.error)
             return (
               <View key={item.floor_map_document_id} style={styles.materialContainer}>
                 <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
@@ -141,8 +143,21 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
                     <Icon name='more' width={16} height={16} />
                   </TouchableOpacity>
                 </View>
-                <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.is_signed)}}>
-                  <Text style={{color: COLORS.white}}>{item.is_signed ? 'Подписано' : 'На подписании'}</Text>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 15, justifyContent: 'space-between'}}>
+                  <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.is_signed)}}>
+                    <Text style={{color: COLORS.white}}>{item.is_signed ? 'Подписано' : 'На подписании'}</Text>
+                  </View>
+                  {
+                    item.is_avr_sent_bi 
+                      ? <View style={styles.sentTo1CContainer}>
+                        <Icon name="checkCircle" width={16} height={16} fill={COLORS.green} />
+                        <Text style={styles.sentTo1CText}>Отправлено в 1С</Text>
+                      </View> 
+                      : !!item.is_signed && <View style={styles.notSentContainer}>
+                          <Icon name="closeCircle" width={16} height={16} fill={COLORS.gray} />
+                          <Text style={styles.notSentText}>Не отправлено в 1С</Text>
+                        </View>
+                  }
                 </View>
                 <View style={{marginTop: 15}}>
                   <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
@@ -177,6 +192,48 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
                     <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
                       <ValueDisplay label='Дата начала' value={`${item.date_begin}`} />
                       <ValueDisplay label='Дата окончания' value={`${item.date_end}`} />
+                      {show1cInfo ? <View style={{width: 85}}></View> : <TouchableOpacity 
+                        style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
+                        onPress={() => toggleExpanded(item.floor_map_document_id)}
+                      >
+                        <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
+                        <Icon 
+                          name={"arrowDownColor"} 
+                          width={13} 
+                          height={13} 
+                          fill={COLORS.primaryLight}
+                          style={{ transform: [{ rotate: '180deg' }] }}
+                        />
+                      </TouchableOpacity> }
+                    </View>
+                    
+                    {show1cInfo && (
+                      <View style={styles.sbsInfoContainer}>
+                        {item.guid && (
+                          <Text style={styles.guidText}>GUID: {item.guid}</Text>
+                        )}
+                        
+                        {item.esf_status && (
+                          <Text style={styles.esfStatusText}>Статус ЭСФ: {item.esf_status}</Text>
+                        )}
+                        
+                        {item.avr_code && (
+                          <Text style={styles.avrCodeText}>Код АВР в 1C: {item.avr_code}</Text>
+                        )}
+                        
+                        {item.error && (
+                          <TouchableOpacity 
+                            style={styles.sbsErrorContainer}
+                            onPress={() => Alert.alert('Ошибка', item.error || 'Неизвестная ошибка')}
+                          >
+                            <Text style={styles.sbsErrorText}>Ошибка</Text>
+                            <Icon name="info" width={16} height={16} fill={COLORS.red} />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    )}
+                    {
+                      show1cInfo && <View style={{flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end',  marginTop: 15}}>
                         <TouchableOpacity 
                           style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
                           onPress={() => toggleExpanded(item.floor_map_document_id)}
@@ -191,6 +248,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
                           />
                         </TouchableOpacity>
                     </View>
+                    }
                   </View>
                 )}
               </View>
@@ -234,7 +292,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: COLORS.primary,
     alignSelf: 'flex-start',
-    marginTop: 15
   },
   materialContainer: {
     padding: 15,
@@ -260,5 +317,70 @@ const styles = StyleSheet.create({
   },
   selectWrapper: {
     flex: 1,
+  },
+  
+  // Стили для информации о 1С
+  sbsInfoContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 6,
+    padding: 12,
+    marginTop: 15,
+    gap: 8,
+  },
+  sentTo1CContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sentTo1CText: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.medium,
+    color: COLORS.green,
+  },
+  sendTo1CContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sendTo1CText: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.medium,
+    color: COLORS.primary,
+  },
+  notSentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  notSentText: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.medium,
+    color: COLORS.gray,
+  },
+  guidText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: COLORS.gray,
+  },
+  esfStatusText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: COLORS.gray,
+  },
+  avrCodeText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: COLORS.gray,
+  },
+  sbsErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+  },
+  sbsErrorText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.medium,
+    color: COLORS.red,
   },
 });

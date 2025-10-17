@@ -124,7 +124,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
         return <GeneralTab 
           projectId={projectId}
           projectInfo={projectInfo} 
-          isSBS={isSBS}
+          isSBS={isSBS} 
           onBackToProject={() => {
             setCurrentTab(null);
             dispatch(setUserPageHeaderData({
@@ -142,7 +142,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       case 'M__ProjectFormRemontCostTab':
         return <PaymentsTab filters={filters} onBack={backToProject} project_id={projectId} />;
       case 'M__ProjectFormDocumentTab':
-        return <DocumentsTab filters={filters} onBack={backToProject} />;
+        return <DocumentsTab filters={filters} onBack={backToProject} isSBS={isSBS} />;
       case 'M__ProjectFormStagesTab':
         return <StagesTab filters={filters} onBack={backToProject} project_id={projectId} selectedData={selectedData}/>;
       default:

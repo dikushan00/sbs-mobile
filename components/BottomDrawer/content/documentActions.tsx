@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
 import { CustomButton } from '@/components/common/CustomButton';
@@ -8,7 +8,7 @@ import { CustomDatePicker } from '@/components/common/CustomDatePicker';
 import { BOTTOM_DRAWER_KEYS } from '../services';
 import { showSecondBottomDrawer } from '@/services/redux/reducers/app';
 import { useDispatch } from 'react-redux';
-import { changeDateEntranceDocument } from '@/components/main/services';
+import { changeDateEntranceDocument, sendAvrTo1C, signEntranceDocument } from '@/components/main/services';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
 import { BottomDrawerHeader } from '../BottomDrawerHeader';
 import { downloadFile } from '@/utils';
@@ -32,6 +32,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
   const { document, params, floor_map_document_id, onSubmit } = data;
   const [processing, setProcessing] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [sendingTo1C, setSendingTo1C] = useState(false);
   const [selectedDates, setSelectedDates] = useState({
     date_begin: document.date_begin,
     date_end: document.date_end
@@ -53,6 +54,39 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
     }
   };
 
+  const handleSendTo1C = async () => {
+    if (sendingTo1C) return;
+    
+    Alert.alert(
+      "Отправка в 1С",
+      "Вы действительно хотите отправить АВР в 1С?",
+      [
+        {
+          text: "Отмена",
+          style: "cancel",
+        },
+        {
+          text: "Отправить",
+          style: "default",
+          onPress: async () => {
+            setSendingTo1C(true);
+            try {
+              const res = await sendAvrTo1C(floor_map_document_id, params);
+              
+              if (res) {
+                showSuccessSnackbar('АВР успешно отправлен в 1С');
+                onSubmit(res);
+                handleClose();
+              }
+            } catch (error) {
+            }
+            setSendingTo1C(false);
+          },
+        },
+      ]
+    );
+  };
+
   const handleChangeDates = () => {
     setShowDateChange(true);
   };
@@ -62,11 +96,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
       type: BOTTOM_DRAWER_KEYS.signatoriesList,
       data: {
         document,
-        onSubmit,
-        onSign: () => {
-          // TODO: Implement actual sign logic
-          console.log('Signing document:', document.floor_map_document_id);
-        }
+        onSign: confirmSign
       }
     }));
   };
@@ -74,16 +104,21 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
   const confirmSign = async () => {
     if (processing) return;
     setProcessing(true);
-    
+
+    const body = {
+      floor_map_document_id,
+    };
+
+    const res = await signEntranceDocument(body, params);
+    if(!res) return;
     try {
-      // TODO: Implement sign document logic
-      Alert.alert('Успех', 'Документ подписан');
-      handleClose();
-    } catch (error) {
-      Alert.alert('Ошибка', 'Не удалось подписать документ');
-    } finally {
-      setProcessing(false);
-    }
+      if (res?.redirect_url) {
+        const canOpen = await Linking.canOpenURL(res.redirect_url);
+        if (canOpen) {
+          await Linking.openURL(res.redirect_url);
+        }
+      }
+    } catch (error) {}
   };
 
   const handleDateChange = async () => {
@@ -130,7 +165,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
     <View style={styles.container}>
       <BottomDrawerHeader title='Действия' handleClose={handleClose} />
       
-      {(downloading || processing) && <CustomLoader />}
+      {(downloading || processing || sendingTo1C) && <CustomLoader />}
       <View style={styles.actionsList}>
         <TouchableOpacity style={styles.actionItem} onPress={handleChangeDates}>
           <View style={styles.actionIcon}>
@@ -154,6 +189,22 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
               <Icon name="downloadAlt" width={20} height={20} fill={COLORS.primary} />
             </View>
             <Text style={styles.actionText}>Скачать</Text>
+          </TouchableOpacity>
+        )}
+        
+        
+        {!document.is_avr_sent_bi && document.can_sent_1c && (
+          <TouchableOpacity 
+            style={styles.actionItem} 
+            onPress={handleSendTo1C}
+            disabled={sendingTo1C}
+          >
+            <View style={styles.actionIcon}>
+              <Icon name="check" width={20} height={20} fill={COLORS.primary} />
+            </View>
+            <Text style={styles.actionText}>
+              {sendingTo1C ? 'Отправка...' : 'Отправить в 1С'}
+            </Text>
           </TouchableOpacity>
         )}
       </View>

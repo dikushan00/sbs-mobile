@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ProjectMainDocumentType } from '@/components/main/types';
@@ -9,14 +9,31 @@ import { ValueDisplay } from '@/components/common/ValueDisplay';
 interface SignatoriesListProps {
   data: {
     document: ProjectMainDocumentType;
-    onSubmit: (res: ProjectMainDocumentType[]) => void;
     onSign: () => void;
   };
   handleClose: () => void;
 }
 
 export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleClose }) => {
-  const { document, onSubmit, onSign } = data;
+  const { document, onSign } = data;
+
+  const handleSign = useCallback(async () => {
+    Alert.alert(
+      "Подписание документа",
+      "Вы действительно хотите подписать документ?",
+      [
+        {
+          text: "Отмена",
+          style: "cancel",
+        },
+        {
+          text: "Подписать",
+          style: "default",
+          onPress: onSign
+        },
+      ]
+    );
+  }, []);
 
   const getStatusColor = (isSigned: boolean) => {
     return isSigned ? COLORS.green : '#F6BA30';
@@ -24,7 +41,7 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
 
   const getStatusText = (isSigned: boolean) => {
     return isSigned ? 'Подписан' : 'На подписании';
-  };
+  }
 
   const signDocument = useMemo(() => {
     return document.assign_signs?.find((signatory) => !signatory.is_signed && signatory.can_sign)
@@ -72,7 +89,7 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
       {!!signDocument && <View style={styles.actionContainer}>
         <CustomButton
           title="Подписать"
-          onClick={onSign}
+          onClick={handleSign}
           type="contained"
           stylesProps={{ backgroundColor: COLORS.primary }}
           wrapperStyles={styles.signButton}

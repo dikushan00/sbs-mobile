@@ -64,7 +64,6 @@ export type StagesActionsDrawerType = {
 
 export type SignatoriesListDrawerType = {
   document: ProjectMainDocumentType;
-  onSubmit: (res: ProjectMainDocumentType[]) => void;
   onSign: () => void;
 };
 

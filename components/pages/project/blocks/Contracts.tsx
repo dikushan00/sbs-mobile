@@ -1,20 +1,23 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Platform, Linking } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectDocumentType } from '@/components/main/types';
-import { getDocuments, sendAgreementTo1C } from '@/components/main/services';
+import { ProjectDocumentType, ProjectFiltersType } from '@/components/main/types';
+import { getDocuments, sendAgreementTo1C, signDocument } from '@/components/main/services';
 import { Block, BlockContainer } from './Block';
 import { Icon } from '@/components/Icon';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { residentialSettingsAPI } from '@/components/main/services/api';
 import { downloadFile } from '@/utils';
+import { useSnackbar } from '@/components/snackbar/SnackbarContext';
 
 export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS: boolean }) => {
+  const {showSuccessSnackbar} = useSnackbar()
   const [agreements, setAgreements] = useState<ProjectDocumentType[]>([]);
   const [isFetching, setIsFetching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [signing, setSigning] = useState(false);
 
   const getData = useCallback((refresh: boolean = false) => {
     if(project_id) {
@@ -43,12 +46,67 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
 
   const sendTo1C = useCallback(async () => {
     if(sending || !project_id) return
-    setSending(true)
-    const res = await sendAgreementTo1C(project_id)
-    setSending(false)
-    if(!res) return getData()
-    setAgreements(res || [])
-  }, [sending, getData]);
+    
+    Alert.alert(
+      "Отправка в 1С",
+      "Вы действительно хотите отправить документ в 1С?",
+      [
+        {
+          text: "Отмена",
+          style: "cancel",
+        },
+        {
+          text: "Отправить",
+          style: "default",
+          onPress: async () => {
+            setSending(true)
+            const res = await sendAgreementTo1C(project_id)
+            setSending(false)
+            if(!res) return getData()
+            setAgreements(res || [])
+            showSuccessSnackbar('Документ успешно отправлен в 1С')
+          },
+        },
+      ]
+    );
+  }, [sending, project_id, getData]);
+
+  const handleSignDocument = useCallback(async () => {
+    if(signing || !agreements.length) return
+    
+    Alert.alert(
+      "Подписание документа",
+      "Вы действительно хотите подписать документ?",
+      [
+        {
+          text: "Отмена",
+          style: "cancel",
+        },
+        {
+          text: "Подписать",
+          style: "default",
+          onPress: async () => {
+            setSigning(true)
+            try {
+              const agreement = agreements[0];
+              const res = await signDocument({
+                project_agreement_id: agreement.project_agreement_id
+              });
+              
+              if (res?.redirect_url) {
+                const canOpen = await Linking.canOpenURL(res.redirect_url);
+                if (canOpen) {
+                  await Linking.openURL(res.redirect_url);
+                }
+              }
+            } catch (error) {
+            }
+            setSigning(false)
+          },
+        },
+      ]
+    );
+  }, [signing, agreements]);
   
   useEffect(() => {
     getData();
@@ -65,15 +123,18 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
   };
 
   return (
-    <ScrollView style={styles.container} 
-    refreshControl={
-      <RefreshControl
-        refreshing={isRefreshing}
-        onRefresh={() => getData(true)}
-      />
-    }>
-      <BlockContainer>
-        {(isFetching || downloading) && <CustomLoader />}
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={() => getData(true)}
+          />
+        }
+      >
+        <BlockContainer>
+          {(isFetching || downloading || signing) && <CustomLoader />}
         {agreements.map((agreement) => {
           const contractorStatus = getStatusInfo(agreement.contractor_is_sign, agreement.contractor_can_sign);
           const customerStatus = getStatusInfo(agreement.project_head_is_sign, agreement.project_head_can_sign);
@@ -168,6 +229,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
           );
         })}
       </BlockContainer>
+      </ScrollView>
       
       {agreements.length > 0 && (
         (() => {
@@ -179,14 +241,20 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
           
           return canSign ? (
             <View style={styles.signButtonContainer}>
-              <TouchableOpacity style={styles.signButton}>
-                <Text style={styles.signButtonText}>Подписать</Text>
+              <TouchableOpacity 
+                style={styles.signButton}
+                onPress={handleSignDocument}
+                disabled={signing}
+              >
+                <Text style={styles.signButtonText}>
+                  {signing ? 'Подписание...' : 'Подписать'}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : null;
         })()
       )}
-    </ScrollView>
+    </View>
   );
 };
 
@@ -265,14 +333,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.backgroundWhite,
   },
+  scrollView: {
+    flex: 1,
+  },
   signButtonContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
     backgroundColor: COLORS.white,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    paddingBottom: 20,
   },
   signButton: {
     backgroundColor: COLORS.primary,
@@ -307,7 +375,7 @@ const styles = StyleSheet.create({
   },
   sendTo1CButton: {
     backgroundColor: COLORS.primaryLight,
-    borderRadius: 4,
+    borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 30,
     alignSelf: 'flex-start',

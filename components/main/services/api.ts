@@ -10,7 +10,7 @@ export const residentialSettingsAPI = {
       .get(`/project/agreement/project_id/${project_id}/`)
       .then((res) => res?.data);
   },
-  async signDocument(body = {}) {
+  async signDocument(body: {project_agreement_id: number}): Promise<ReqResponse<{redirect_url: string} | undefined>> {
     return await instance()
       .post(`/project/agreement/sign/`, body)
       .then((res) => res?.data);
@@ -50,10 +50,10 @@ export const residentialSettingsAPI = {
       .get("/project/common/tabulation/read/", { params })
       .then((res) => res?.data);
   },
-  async sendAvrTo1C(remont_costs_id: number, params = {}) {
+  async sendAvrTo1C(floor_map_document_id: number, params = {}) {
     return await instance()
       .post(
-        `/project/remont_costs/${remont_costs_id}/avr/send/`,
+        `/project/documents/${floor_map_document_id}/avr/send/`,
         {},
         { params }
       )
@@ -176,12 +176,12 @@ export const residentialSettingsAPI = {
       .get(`/project/documents/read/`, { params })
       .then((res) => res?.data);
   },
-  async changeDateEntranceDocument(body, params) {
+  async changeDateEntranceDocument(body: {floor_map_document_id: number, date_begin: string, date_end: string}, params: ProjectFiltersType) {
     return await instance()
       .put(`/project/documents/change_date/`, body, { params })
       .then((res) => res?.data);
   },
-  async signEntranceDocument(body, params) {
+  async signEntranceDocument(body: {floor_map_document_id: number}, params: ProjectFiltersType) {
     return await instance()
       .post(`/project/documents/sign/`, body, { params })
       .then((res) => res?.data);

@@ -21,10 +21,10 @@ export const getDocuments = async (project_id: number): Promise<ProjectDocumentT
     return res?.data || [];
   } catch (e) {}
 };
-export const signDocument = async (body) => {
+export const signDocument = async (body: {project_agreement_id: number}) => {
   try {
     const res = await residentialSettingsAPI.signDocument(body);
-    return res?.data || [];
+    return res?.data
   } catch (e) {}
 };
 export const getResidentList = async (): Promise<ResidentType[] | undefined> => {
@@ -110,10 +110,10 @@ export const sendAgreementTo1C = async (projectId: number):Promise<ProjectDocume
     return res?.data;
   } catch (e) {}
 };
-export const sendAvrTo1C = async (remont_costs_id: number, params = {}) => {
+export const sendAvrTo1C = async (floor_map_document_id: number, params = {}) => {
   try {
     const res = await residentialSettingsAPI.sendAvrTo1C(
-      remont_costs_id,
+      floor_map_document_id,
       params
     );
     return res?.data;
@@ -212,12 +212,6 @@ export const updateFloorParam = async (body, params) => {
     return floorSchemaDataRefactor(res);
   } catch (e) {}
 };
-export const updateFloorMapLine = async (body) => {
-  try {
-    const res = await residentialSettingsAPI.updateFloorMapLine(body);
-    return res;
-  } catch (e) {}
-};
 
 export const getEntranceMaterials = async (params: ProjectFiltersType): Promise<MaterialType[] | undefined> => {
   try {
@@ -289,7 +283,7 @@ export const getEntranceDocuments = async (params: ProjectFiltersType): Promise<
     }));
   } catch (e) {}
 };
-export const changeDateEntranceDocument = async (body, params) => {
+export const changeDateEntranceDocument = async (body: {floor_map_document_id: number, date_begin: string, date_end: string}, params: ProjectFiltersType) => {
   try {
     const res = await residentialSettingsAPI.changeDateEntranceDocument(
       body,
@@ -298,7 +292,7 @@ export const changeDateEntranceDocument = async (body, params) => {
     return res?.data;
   } catch (e) {}
 };
-export const signEntranceDocument = async (body, params) => {
+export const signEntranceDocument = async (body: {floor_map_document_id: number}, params: ProjectFiltersType) => {
   try {
     const res = await residentialSettingsAPI.signEntranceDocument(body, params);
     return res?.data;
@@ -333,41 +327,6 @@ export const getFloorMapChecks = async (floor_map_id: number, params: ProjectSta
     );
     return res?.data?.map((item, i) => ({ ...item, index: i + 1 }));
   } catch (e) {}
-};
-export const getFloorOpenspace = async (floor_map_id: number) => {
-  try {
-    const res = await residentialSettingsAPI.getFloorOpenspace(floor_map_id);
-    return (
-      res?.data?.map((item, i) => ({
-        ...item,
-        openspace_name: `Openspace ${i + 1}`,
-      })) || []
-    );
-  } catch (e) {}
-};
-
-
-export const flattenPoints = (pointsArray) => {
-  return pointsArray.reduce((acc, [x, y]) => {
-    acc.push(x, y);
-    return acc;
-  }, []);
-};
-
-export const checkFlatFloor = (floor, apartment, addData, isSubmit = false) => {
-  if (Number(addData?.flat_num) === Number(apartment.flat_num))
-    return !isSubmit;
-  if (floor.is_selected) {
-    const floorsOffset = Number(addData?.floor) - Number(floor.floor);
-    const direction = floorsOffset > 0 ? 1 : -1;
-    const offset = Math.abs(floorsOffset);
-    const flatNum =
-      direction === 1
-        ? Number(addData?.flat_num) - offset * addData?.floorFlatLength
-        : Number(addData?.flat_num) + offset * addData?.floorFlatLength;
-    if (flatNum === Number(apartment.flat_num)) return true;
-  }
-  return false;
 };
 
 export const borderColors = [

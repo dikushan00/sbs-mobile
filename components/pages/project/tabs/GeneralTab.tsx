@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectInfoResponseType } from '@/components/main/types';
+import { ProjectFiltersType, ProjectInfoResponseType } from '@/components/main/types';
 import { useDispatch } from 'react-redux';
 import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/reducers/userApp';
 import { setPageSettings } from '@/services/redux/reducers/app';

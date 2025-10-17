@@ -429,6 +429,7 @@ export interface ProjectMainDocumentType {
     guid: string | null;
     esf_status: string | null;
     can_sent_1c: boolean;
+    error: string | null;
 }
 
 export interface ProjectMainAssignSignType {
@@ -456,6 +457,7 @@ export interface ProjectPaymentType {
 	status_name: string;
 	is_avr_sent_bi: boolean | null;
 	avr_code: string | null;
+	avr_info: string | null;
 	guid: string | null;
 	error: string | null;
 }

@@ -206,22 +206,26 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
                       <ValueDisplay label='Дата платежа' value={`${item.date_payment}`} />
                       <View style={{width: 85}}></View>
                     </View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
+                    <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
                       <ValueDisplay label='Блок' value={`№${item.block_name}`} />
                       <ValueDisplay label='Дата cоздания' value={`${item.date_create}`} />
-                        <TouchableOpacity 
-                          style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                          onPress={() => toggleExpanded(item.remont_costs_id)}
-                        >
-                          <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
-                          <Icon 
-                            name={"arrowDownColor"} 
-                            width={13} 
-                            height={13} 
-                            fill={COLORS.primaryLight}
-                            style={{ transform: [{ rotate: '180deg' }] }}
-                          />
-                        </TouchableOpacity>
+                      <View style={{width: 85}}></View>
+                    </View>
+                    <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
+                      <ValueDisplay label='АВР инфо' value={item.avr_info} />
+                      <TouchableOpacity 
+                        style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
+                        onPress={() => toggleExpanded(item.remont_costs_id)}
+                      >
+                        <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
+                        <Icon 
+                          name={"arrowDownColor"} 
+                          width={13} 
+                          height={13} 
+                          fill={COLORS.primaryLight}
+                          style={{ transform: [{ rotate: '180deg' }] }}
+                        />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 )}
