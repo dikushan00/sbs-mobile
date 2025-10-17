@@ -17,9 +17,10 @@ interface GeneralTabProps {
   projectId: number | null;
   projectInfo: ProjectInfoResponseType | null;
   onBackToProject?: () => void;
+  isSBS: boolean;
 }
 
-export const GeneralTab = ({projectInfo, onBackToProject, projectId}: GeneralTabProps) => {
+export const GeneralTab = ({projectInfo, onBackToProject, projectId, isSBS}: GeneralTabProps) => {
   const dispatch = useDispatch();
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
 
@@ -37,7 +38,7 @@ export const GeneralTab = ({projectInfo, onBackToProject, projectId}: GeneralTab
         return <AssignedPersons data={projectInfo?.employees || []} />;
       }
       case '2':
-        return <Contracts project_id={projectId} />;
+        return <Contracts project_id={projectId} isSBS={isSBS} />;
       case '3':
         return <FinancialInfo data={projectInfo?.sums || []} />;
       case '4':
@@ -122,6 +123,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: COLORS.backgroundWhite,
-    gap: 12,
+    gap: 5,
   },
 });

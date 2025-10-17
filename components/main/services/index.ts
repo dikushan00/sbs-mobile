@@ -104,7 +104,7 @@ export const getProjectInfo = async (projectId: number, params = {}): Promise<Pr
     return res;
   } catch (e) {}
 };
-export const sendAgreementTo1C = async (projectId: number) => {
+export const sendAgreementTo1C = async (projectId: number):Promise<ProjectDocumentType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.sendAgreementTo1C(projectId);
     return res?.data;

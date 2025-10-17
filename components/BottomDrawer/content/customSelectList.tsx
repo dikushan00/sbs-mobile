@@ -15,7 +15,7 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { list, valueKey, onChange, value, labelKey, disabled, label, placeholder } = data;
+  const { list, valueKey, onChange, value, labelKey, disabled, label, placeholder, showResetBtn } = data;
 
   // Фильтруем список по поисковому запросу
   const filteredList = useMemo(() => {
@@ -85,10 +85,10 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
             <NotFound title="Не найдено" />
           </View>
         )}
-        <CustomButton small stylesProps={{marginTop: 15, minHeight: 50}}
+        {showResetBtn && <CustomButton small stylesProps={{marginTop: 15, minHeight: 50}}
         type="contained" onClick={() => handleChange(null, null)} color={COLORS.error} title='Сбросить'>
 
-        </CustomButton>
+        </CustomButton>}
       </View>
     </View>
   );

@@ -2,21 +2,19 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Platform } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { ProjectDocumentType } from '@/components/main/types';
-import { getDocuments } from '@/components/main/services';
+import { getDocuments, sendAgreementTo1C } from '@/components/main/services';
 import { Block, BlockContainer } from './Block';
 import { Icon } from '@/components/Icon';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { residentialSettingsAPI } from '@/components/main/services/api';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import { arrayBufferToBase64 } from '@/services';
-import { downloadFile, saveFile } from '@/utils';
+import { downloadFile } from '@/utils';
 
-export const Contracts = ({project_id}: {project_id: number | null}) => {
+export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS: boolean }) => {
   const [agreements, setAgreements] = useState<ProjectDocumentType[]>([]);
   const [isFetching, setIsFetching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const getData = useCallback((refresh: boolean = false) => {
     if(project_id) {
@@ -42,11 +40,18 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
     }
     setDownloading(false)
   }, []);
+
+  const sendTo1C = useCallback(async () => {
+    if(sending || !project_id) return
+    setSending(true)
+    const res = await sendAgreementTo1C(project_id)
+    setSending(false)
+    if(!res) return getData()
+    setAgreements(res || [])
+  }, [sending, getData]);
   
   useEffect(() => {
-    if(project_id){
-      getData();
-    }
+    getData();
   }, [project_id]);
 
   const getStatusInfo = (contractor_is_sign: boolean, contractor_can_sign: boolean) => {
@@ -114,6 +119,44 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
                 </View>
               </View>
               
+              {/* Информация о статусе отправки в 1С */}
+              {isSBS && (
+                <View style={styles.sbsInfoContainer}>
+                  {agreement.is_sent_to_1c ? (
+                    <View style={styles.sentTo1CContainer}>
+                      <Icon name="checkCircle" width={16} height={16} fill={COLORS.green} />
+                      <Text style={styles.sentTo1CText}>Отправлено в 1С</Text>
+                    </View>
+                  ) : (
+                    <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+                      <TouchableOpacity 
+                        style={styles.sendTo1CButton}
+                        onPress={sendTo1C} 
+                        disabled={sending}
+                      >
+                        <Text style={styles.sendTo1CButtonText}>
+                          {sending ? 'Отправка...' : 'Отправить в 1С'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  
+                  {agreement.guid && (
+                    <Text style={styles.guidText}>GUID: {agreement.guid}</Text>
+                  )}
+                  
+                  {agreement.error && (
+                    <TouchableOpacity 
+                      style={styles.errorContainer}
+                      onPress={() => Alert.alert('Ошибка', agreement.error)}
+                    >
+                      <Text style={styles.errorText}>Ошибка</Text>
+                      <Icon name="info" width={16} height={16} fill={COLORS.red} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+              
               <TouchableOpacity 
                 style={styles.downloadButton}
                 onPress={() => downloadPDF(agreement)} disabled={downloading}
@@ -126,7 +169,6 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
         })}
       </BlockContainer>
       
-      {/* Кнопка подписания внизу */}
       {agreements.length > 0 && (
         (() => {
           const agreement = agreements[0];
@@ -243,5 +285,52 @@ const styles = StyleSheet.create({
     fontSize: SIZES.medium,
     fontFamily: FONT.medium,
     color: COLORS.white,
+  },
+  
+  // Стили для информации о 1С
+  sbsInfoContainer: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  sentTo1CContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  sentTo1CText: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.medium,
+    color: COLORS.green,
+  },
+  sendTo1CButton: {
+    backgroundColor: COLORS.primaryLight,
+    borderRadius: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    alignSelf: 'flex-start',
+  },
+  sendTo1CButtonText: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.medium,
+    color: COLORS.white,
+  },
+  guidText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: COLORS.gray,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+  },
+  errorText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.medium,
+    color: COLORS.red,
   },
 });

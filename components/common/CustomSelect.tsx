@@ -21,6 +21,7 @@ export type CustomSelectProps = {
   alt?: boolean;
   placeholder?: string;
   style?: any
+  showResetBtn?: boolean
 };
 export const CustomSelect = (props: CustomSelectProps) => {
   const dispatch = useDispatch();

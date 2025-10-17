@@ -3,7 +3,7 @@ import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFl
 import { ReqResponse } from "@/services/types";
 import { ProjectStageType, ProjectWorkSetType } from "../types";
 import { ProjectStagesFiltersType } from "../types";
-import { arrayBufferToBase64 } from "@/services";
+
 export const residentialSettingsAPI = {
   async getDocuments(project_id: number): Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
     return await instance()
@@ -64,7 +64,7 @@ export const residentialSettingsAPI = {
       .get(`/project/${project_id}/info/`, { params })
       .then((res) => res?.data);
   },
-  async sendAgreementTo1C(project_id: number) {
+  async sendAgreementTo1C(project_id: number):Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
     return await instance()
       .post(`/project/${project_id}/agreement/send/`)
       .then((res) => res?.data);

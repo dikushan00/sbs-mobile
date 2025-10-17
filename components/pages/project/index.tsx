@@ -16,7 +16,7 @@ import {
   StagesTab 
 } from './tabs';
 import { FloorSchemaTab } from './tabs/FloorSchemaTab';
-import { getFloorTabs, getProjectInfo } from '@/components/main/services';
+import { getFloorTabs, getIsProjectSBS, getProjectInfo } from '@/components/main/services';
 import { CustomLoader } from '@/components/common/CustomLoader';
 
 interface ProjectPageProps {
@@ -49,6 +49,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
   const [tabulations, setTabulations] = useState<Tabulation[]>([]);
   const [currentTab, setCurrentTab] = useState<Tabulation | null>(null);
   const [projectInfo, setProjectInfo] = useState<ProjectInfoResponseType | null>(null);
+  const [isSBS, setIsSBS] = useState(false);
 
   const getTabs = async () => {
     if (tabulations?.length) return;
@@ -62,6 +63,15 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
   useEffect(() => {
     getTabs()
   }, [])
+
+  useEffect(() => {
+    const getIsSBS = async () => {
+      if(!projectId) return setIsSBS(false)
+      const res = await getIsProjectSBS(projectId);
+      setIsSBS(!!res?.is_sbs);
+    };
+    getIsSBS()
+  }, [projectId])
 
   const handleTabPress = (tab: Tabulation) => {
     setCurrentTab(tab);
@@ -114,6 +124,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
         return <GeneralTab 
           projectId={projectId}
           projectInfo={projectInfo} 
+          isSBS={isSBS}
           onBackToProject={() => {
             setCurrentTab(null);
             dispatch(setUserPageHeaderData({
@@ -135,17 +146,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       case 'M__ProjectFormStagesTab':
         return <StagesTab filters={filters} onBack={backToProject} project_id={projectId} selectedData={selectedData}/>;
       default:
-        return <GeneralTab 
-          projectId={projectId}
-          projectInfo={projectInfo} 
-          onBackToProject={() => {
-            setCurrentTab(null);
-            dispatch(setUserPageHeaderData({
-              title: "Ведение проекта",
-              desc: "",
-            }));
-          }}
-        />;
+        return null
     }
   };
 

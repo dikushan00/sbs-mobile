@@ -143,6 +143,7 @@ export interface ProjectDocumentType {
 	contractor_date: string
 	guid: string
 	error: string
+	is_sent_to_1c: boolean
 }
 
 export interface ProjectFiltersType {

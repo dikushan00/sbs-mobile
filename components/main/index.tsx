@@ -6,9 +6,6 @@ import { useDispatch } from "react-redux";
 import { CustomButton } from "../common/CustomButton";
 import { MainPageFilters } from "./Filters";
 import { ProjectPage } from "../pages/project";
-import {
-  getIsProjectSBS,
-} from "./services";
 import { COLORS } from "@/constants";
 import { SelectedDataType } from "./types";
 import { setPageSettings } from "@/services/redux/reducers/app";
@@ -16,7 +13,6 @@ import { setPageSettings } from "@/services/redux/reducers/app";
 export const MainPage = () => {
   const dispatch = useDispatch();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [, setIsSbs] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null);
   const [selectedData, setSelectedData] = useState<Partial<SelectedDataType> | null>(null);
   const [filters, setFilters] = useState({
@@ -34,12 +30,6 @@ export const MainPage = () => {
       })
     );
   }, [])
-
-  const getIsSBS = async (projectId: number) => {
-    if (!projectId) return;
-    const res = await getIsProjectSBS(projectId);
-    setIsSbs(!!res?.is_sbs);
-  };
 
   const onFiltersChange = (key: string, value: any, row: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -65,7 +55,6 @@ export const MainPage = () => {
     }
     if (key === "project_entrance_id") {
       setProjectId(row?.project_id);
-      getIsSBS(row?.project_id);
     }
   };
 
