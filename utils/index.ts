@@ -34,6 +34,10 @@ const saveOnAndroidDevice = async (
 };
 
 export const downloadFile = async (response: any, fileName: string) => {
+  if (!response) {
+    Alert.alert('Ошибка', 'Не удалось получить документ');
+    return;
+  }
   try {
     const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 

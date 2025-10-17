@@ -117,7 +117,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack }) =
             labelKey="floor_map_document_type_name"
             onChange={(value) => setLocalFilters(prev => ({ ...prev, floor_map_document_type_id: value }))}
             value={localFilters.floor_map_document_type_id}
-            placeholder="Тип документа" alt
+            placeholder="Тип" alt
           />
         </View>
       </View>

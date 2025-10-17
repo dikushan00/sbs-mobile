@@ -19,7 +19,6 @@ export const residentialSettingsAPI = {
     return await instance()
       .post(`/project/agreement/sign/download/`, body, {responseType: 'arraybuffer'})
       .then((res) => res);
-      // .then((res) => res ? arrayBufferToBase64(res) : null);
   },
   async getResidentials(): Promise<ReqResponse<ResidentType[]>> {
     return await instance()

@@ -129,8 +129,18 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack }) =
     );
   }
 
+  const calculateTotalSum = () => {
+    return materialsData?.reduce((sum, item) => sum + item.material_sum, 0) || 0;
+  };
+
   return (
     <View style={styles.container}>
+      <View style={styles.summaryContainer}>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>Общая сумма</Text>
+          <Text style={styles.summaryValue}>{numberWithCommas(calculateTotalSum())} ₸</Text>
+        </View>
+      </View>
       <ScrollView 
         style={styles.scrollContainer} 
         contentContainerStyle={styles.scrollContent}
@@ -139,16 +149,17 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack }) =
         <View style={styles.accordionContainer}>
           {materialsData?.map((item) => {
             const isExpanded = expandedItems.has(item.provider_request_item_id);
+            const showMoreActions = item.provider_request_status_code === 'CREATE' || item.provider_request_status_code === 'BRING_TO_CONTRACTOR';
             return (
               <View key={item.provider_request_item_id} style={styles.materialContainer}>
                 <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
                   <Text style={styles.materialName}>{item.material_name}</Text>
-                  <TouchableOpacity 
+                  {showMoreActions && <TouchableOpacity 
                     style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
                     onPress={() => handleMoreActions(item)}
                   >
                     <Icon name='more' width={16} height={16} />
-                  </TouchableOpacity>
+                  </TouchableOpacity>}
                 </View>
                 <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.provider_request_status_code)}}>
                   <Text style={{color: COLORS.white}}>{item.provider_request_status_name}</Text>
@@ -288,5 +299,32 @@ const styles = StyleSheet.create({
     color: COLORS.black,
     lineHeight: 20,
     flexWrap: 'wrap',
+  },
+  summaryContainer: {
+    flexDirection: 'row',
+    gap: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.grayLight,
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: COLORS.background,
+    borderRadius: 8,
+  },
+  summaryLabel: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: COLORS.gray,
+    marginBottom: 5,
+  },
+  summaryValue: {
+    fontSize: SIZES.medium,
+    fontFamily: FONT.medium,
+    color: COLORS.black,
   },
 });

@@ -15,13 +15,6 @@ interface PaymentActionsProps {
 
 export const PaymentActions: React.FC<PaymentActionsProps> = ({ data, handleClose }) => {
   const handleDownload = async () => {
-    try {
-      // TODO: Implement file download logic
-      Alert.alert('Скачивание', 'Файл будет скачан');
-      handleClose();
-    } catch (error) {
-      Alert.alert('Ошибка', 'Не удалось скачать файл');
-    }
   };
 
   return (

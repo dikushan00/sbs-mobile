@@ -4,14 +4,16 @@ import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ProjectMainDocumentType, ProjectFiltersType } from '@/components/main/types';
-import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { CustomDatePicker } from '@/components/common/CustomDatePicker';
 import { BOTTOM_DRAWER_KEYS } from '../services';
-import { showBottomDrawer, showSecondBottomDrawer } from '@/services/redux/reducers/app';
+import { showSecondBottomDrawer } from '@/services/redux/reducers/app';
 import { useDispatch } from 'react-redux';
 import { changeDateEntranceDocument } from '@/components/main/services';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
 import { BottomDrawerHeader } from '../BottomDrawerHeader';
+import { downloadFile } from '@/utils';
+import { instance } from '@/services/api';
+import { CustomLoader } from '@/components/common/CustomLoader';
 
 interface DocumentActionsProps {
   data: {
@@ -29,6 +31,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
   const [showDateChange, setShowDateChange] = useState(false);
   const { document, params, floor_map_document_id, onSubmit } = data;
   const [processing, setProcessing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [selectedDates, setSelectedDates] = useState({
     date_begin: document.date_begin,
     date_end: document.date_end
@@ -36,17 +39,17 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
   const [changeDateLoading, setChangeDateLoading] = useState(false);
 
   const handleDownload = async () => {
-    if (!document.master_url) {
-      Alert.alert('Ошибка', 'Файл для скачивания недоступен');
-      return;
-    }
-    
+    if(downloading) return;
+    setDownloading(true);
     try {
-      // TODO: Implement file download logic
-      Alert.alert('Скачивание', 'Документ будет скачан');
+      const res = await instance().get(document.master_url, { responseType: 'arraybuffer' })
+      
+      await downloadFile(res, document.floor_map_document_type_name + '.pdf')
       handleClose();
     } catch (error) {
       Alert.alert('Ошибка', 'Не удалось скачать документ');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -127,6 +130,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
     <View style={styles.container}>
       <BottomDrawerHeader title='Действия' handleClose={handleClose} />
       
+      {(downloading || processing) && <CustomLoader />}
       <View style={styles.actionsList}>
         <TouchableOpacity style={styles.actionItem} onPress={handleChangeDates}>
           <View style={styles.actionIcon}>

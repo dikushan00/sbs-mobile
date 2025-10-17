@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
 import { CustomButton } from '@/components/common/CustomButton';
@@ -22,21 +22,6 @@ export const MaterialActions: React.FC<MaterialActionsProps> = ({ data, handleCl
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { material, params, provider_request_item_id, onSubmit } = data;
   const [deleting, setDeleting] = useState(false)
-
-  const handleDownload = async () => {
-    if (!material.expeditor_file_url) {
-      Alert.alert('Ошибка', 'Файл для скачивания недоступен');
-      return;
-    }
-    
-    try {
-      // TODO: Implement file download logic
-      Alert.alert('Скачивание', 'Файл будет скачан');
-      handleClose();
-    } catch (error) {
-      Alert.alert('Ошибка', 'Не удалось скачать файл');
-    }
-  };
 
   const handleDelete = () => {
     setShowDeleteConfirm(true);
@@ -72,6 +57,7 @@ export const MaterialActions: React.FC<MaterialActionsProps> = ({ data, handleCl
         <View style={styles.buttonContainer}>
           <CustomButton
             disabled={deleting}
+            loading={deleting}
             title="Удалить" 
             onClick={confirmDelete} 
             type="contained"
@@ -88,14 +74,8 @@ export const MaterialActions: React.FC<MaterialActionsProps> = ({ data, handleCl
       <View style={styles.header}>
         <Text style={styles.title}>Действия</Text>
       </View>
-      
+
       <View style={styles.actionsList}>
-        {!!material.expeditor_file_url &&<TouchableOpacity style={styles.actionItem} onPress={handleDownload}>
-          <View style={styles.actionIcon}>
-            <Icon name="downloadAlt" width={20} height={20} fill={COLORS.primary} />
-          </View>
-          <Text style={styles.actionText}>Скачать</Text>
-        </TouchableOpacity>}
         
         {material.provider_request_status_code === 'CREATE' || material.provider_request_status_code === 'BRING_TO_CONTRACTOR' && <TouchableOpacity style={styles.actionItem} onPress={handleDelete}>
           <View style={styles.actionIcon}>

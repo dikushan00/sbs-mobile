@@ -36,10 +36,6 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
       const response = await residentialSettingsAPI.downloadDocumentPDF({
         project_agreement_id: agreement.project_agreement_id
       });
-      if (!response) {
-        Alert.alert('Ошибка', 'Не удалось получить документ');
-        return;
-      }
       const fileName = `${agreement.doc_name?.replaceAll('/', '_')}.pdf`;
       await downloadFile(response, fileName)
     } catch (error) {
