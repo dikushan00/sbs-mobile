@@ -88,12 +88,15 @@ export const getEntranceWorkSets = async (params: ProjectFiltersType): Promise<P
   } catch (e) {}
 };
 export const getFloorTabs = async (): Promise<Tabulation[] | undefined> => {
+  let tabs: Tabulation[] = [];
   try {
     const res = await residentialSettingsAPI.getFloorTabs();
-    const tabs =  res?.tabulations;
+    tabs = res?.tabulations || [];
     if(!tabs?.length) return []
-    return [tabs[0], { grant_id: 0, grant_code: 'EntranceSchema', grant_name: 'Схема этажа', blocks: [] }, ...tabs.slice(1)] || []
-  } catch (e) {}
+    return [tabs[0], { grant_id: 0, grant_code: 'EntranceSchema', grant_name: 'Схема этажа', blocks: [] }, ...tabs.slice(1)]
+  } catch (e) {
+    return tabs
+  }
 };
 export const getProjectInfo = async (projectId: number, params = {}): Promise<ProjectInfoResponseType | undefined> => {
   try {
@@ -206,12 +209,6 @@ export const callOKK = async (floor_map_id: number, body: {placement_type_id: nu
     return res;
   } catch (e) {}
 };
-export const updateFloorParam = async (body, params) => {
-  try {
-    const res = await residentialSettingsAPI.updateFloorParam(body, params);
-    return floorSchemaDataRefactor(res);
-  } catch (e) {}
-};
 
 export const getEntranceMaterials = async (params: ProjectFiltersType): Promise<MaterialType[] | undefined> => {
   try {
@@ -298,7 +295,7 @@ export const signEntranceDocument = async (body: {floor_map_document_id: number}
     return res?.data;
   } catch (e) {}
 };
-export const getFloorMapPoints = async (floor_map_id: number, params) => {
+export const getFloorMapPoints = async (floor_map_id: number, params: ProjectFiltersType) => {
   try {
     const res = await residentialSettingsAPI.getFloorMapPoints(
       floor_map_id,

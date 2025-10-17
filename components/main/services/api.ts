@@ -94,11 +94,6 @@ export const residentialSettingsAPI = {
       .get("/floor_map/floor_params/param_types/all/read/")
       .then((res) => res?.data);
   },
-  async updateFloorParam(body = {}, params = {}) {
-    return await instance()
-      .put("/floor_map/floor_params/update/", body, { params })
-      .then((res) => res?.data);
-  },
   async getFloorWorkSets(floor_map_id: number, params = {}) {
     return await instance()
       .get(`/project/floor_map/${floor_map_id}/work_set/read/`, { params })
