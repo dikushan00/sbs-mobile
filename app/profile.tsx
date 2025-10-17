@@ -34,9 +34,6 @@ export default function ProfilePage() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Профиль</Text>
-        
-        {/* Аватар и основная информация */}
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
             {userData?.image_url ? (
@@ -56,7 +53,6 @@ export default function ProfilePage() {
           </View>
         </View>
 
-        {/* Детальная информация */}
         <View style={styles.detailsSection}>
           <View style={styles.detailItem}>
             <Icon name="work" width={20} height={20} />
@@ -126,7 +122,6 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   
-  // Профиль пользователя
   profileHeader: {
     backgroundColor: "#FFF",
     borderRadius: 12,
@@ -177,7 +172,6 @@ const styles = StyleSheet.create({
     color: "#666",
   },
 
-  // Детальная информация
   detailsSection: {
     backgroundColor: "#FFF",
     borderRadius: 12,
@@ -214,7 +208,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Кнопка выхода
   logoutButton: {
     flexDirection: "row",
     alignItems: "center",
