@@ -22,7 +22,7 @@ import Animated, {
   useDerivedValue,
   useSharedValue,
 } from "react-native-reanimated";
-import Svg, { Circle, Line } from "react-native-svg";
+import Svg, { Circle, Line, Text as SvgText } from "react-native-svg";
 import { FloorSchemaResRefactorType, FlatType, WorkSetFloorParamType } from "@/components/main/types";
 import { downloadSchemaImage, getImageSize } from "../okk/services";
 import { SchemaZoomControl } from "../okk/SchemaZoomControl";
@@ -53,6 +53,8 @@ export const FloorSchema = ({
   const baseScale = useSharedValue(1);
   const pinchScale = useSharedValue(1);
   const isPinching = useSharedValue(false);
+
+  console.log(data)
 
   const [imageSize, setImageSize] = useState<{
     width: number;
@@ -183,17 +185,32 @@ export const FloorSchema = ({
     return new Set(workSetParams.map(param => param.floor_param_id));
   }, [workSetParams]);
 
-  // Фильтруем линии по выбранной квартире
   const filteredLines = useMemo(() => {
     let lines = data?.lines || [];
     
-    // Если выбрана квартира, фильтруем по ней
     if (selectedFlat) {
       lines = lines.filter(line => line.floor_flat_id === selectedFlat.floor_flat_id);
     }
-    
     return lines;
   }, [data?.lines, selectedFlat]);
+
+  const filteredCircles = useMemo(() => {
+    let circles = data?.circles || [];
+    
+    if (selectedFlat) {
+      circles = circles.filter(circle => circle.floor_flat_id === selectedFlat.floor_flat_id);
+    }
+    return circles;
+  }, [data?.circles, selectedFlat]);
+
+  const filteredTexts = useMemo(() => {
+    let texts = data?.texts || [];
+    
+    if (selectedFlat) {
+      texts = texts.filter(text => text.floor_flat_id === selectedFlat.floor_flat_id);
+    }
+    return texts;
+  }, [data?.texts, selectedFlat]);
 
   const handleSchemaClick = (e: any) => {
     if (!displayedSize || !imageSize) return;
@@ -277,19 +294,50 @@ export const FloorSchema = ({
                     height={schemaHeight}
                     style={[StyleSheet.absoluteFill, { zIndex: 10 }]}
                   >
-                    {displayedSize &&
-                      filteredLines?.map((pt) => {
-                        const isWorkSetParam = workSetParamIds.has(pt.floor_param_id);
-                        return pt.coord_type === 'LINESTRING' && <Line
-                          key={String(pt.floor_param_id)}
-                          x1={pt.points[0][0] * displayedSize.scale + displayedSize.offsetX}
-                          y1={pt.points[0][1] * displayedSize.scale + displayedSize.offsetY}
-                          x2={pt.points[1][0] * displayedSize.scale + displayedSize.offsetX}
-                          y2={pt.points[1][1] * displayedSize.scale + displayedSize.offsetY}
-                          stroke={!!workSetParams?.length ? isWorkSetParam ? 'red' : "#000000" : pt.floor_param_type_color || "#333"}
-                          strokeWidth={1.5}
-                        />
-                      })}
+                    {displayedSize && (
+                      <>
+                        {/* Отрисовка линий */}
+                        {filteredLines?.map((pt) => {
+                          const isWorkSetParam = workSetParamIds.has(pt.floor_param_id);
+                          return pt.coord_type === 'LINESTRING' && <Line
+                            key={String(pt.floor_param_id)}
+                            x1={pt.points[0][0] * displayedSize.scale + displayedSize.offsetX}
+                            y1={pt.points[0][1] * displayedSize.scale + displayedSize.offsetY}
+                            x2={pt.points[1][0] * displayedSize.scale + displayedSize.offsetX}
+                            y2={pt.points[1][1] * displayedSize.scale + displayedSize.offsetY}
+                            stroke={!!workSetParams?.length ? isWorkSetParam ? 'red' : "#000000" : pt.floor_param_type_color || "#333"}
+                            strokeWidth={1.5} strokeDasharray={pt.floor_param_type_id_relative ? '2 2' : ''}
+                          />
+                        })}
+                        
+                        {/* Отрисовка кругов */}
+                        {filteredCircles?.map((circle) => (
+                          <Circle
+                            key={String(circle.floor_param_id)}
+                            cx={circle.center_point[0] * displayedSize.scale + displayedSize.offsetX}
+                            cy={circle.center_point[1] * displayedSize.scale + displayedSize.offsetY}
+                            r={1.7}
+                            fill="transparent"
+                            stroke={circle.floor_param_type_color || "#333"}
+                            strokeWidth={1}
+                          />
+                        ))}
+                        
+                        {/* Отрисовка текстов */}
+                        {filteredTexts?.map((text) => (
+                          <SvgText
+                            key={String(text.floor_param_id)}
+                            x={text.center_point[0] * displayedSize.scale + displayedSize.offsetX}
+                            y={text.center_point[1] * displayedSize.scale + displayedSize.offsetY}
+                            fontSize="3"
+                            fill={"#000"}
+                            textAnchor="middle"
+                          >
+                            {text.frame_name}
+                          </SvgText>
+                        ))}
+                      </>
+                    )}
                   </Svg>
                 </View>
               </Pressable>

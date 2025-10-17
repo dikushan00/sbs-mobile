@@ -15,7 +15,6 @@ export const STORE_KEYS = {
   auth: "auth",
 };
 
-
 const DEV_API_URL = "https://devmaster-back.smart-remont.kz";
 const PROD_API_URL = "https://master-api.smartremont.kz";
 export const apiUrl = __DEV__ ? DEV_API_URL : PROD_API_URL;
