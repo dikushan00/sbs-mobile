@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 export const MenuSidebar = ({ navigation }: { navigation: any }) => {
   const dispatch = useDispatch<AppDispatch>();
   const insets = useSafeAreaInsets();
-  const { menu, userData, logoutLoading } = useSelector(userAppState);
+  const { menu, userData, logoutLoading, isOkk } = useSelector(userAppState);
   const { newVersionBannerShowed } = useSelector(appState);
 
   const handleMenuClick = (menuItem: MenuItem) => {
@@ -35,6 +35,9 @@ export const MenuSidebar = ({ navigation }: { navigation: any }) => {
     navigation.closeDrawer();
     dispatch(logout());
   };
+
+  if(!isOkk)
+    return null
 
   return (
     <View

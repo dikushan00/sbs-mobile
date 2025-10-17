@@ -16,14 +16,12 @@ import {
   StagesTab 
 } from './tabs';
 import { FloorSchemaTab } from './tabs/FloorSchemaTab';
-import { getProjectInfo } from '@/components/main/services';
+import { getFloorTabs, getProjectInfo } from '@/components/main/services';
 import { CustomLoader } from '@/components/common/CustomLoader';
 
 interface ProjectPageProps {
-  tabulations: Tabulation[];
   projectId: number | null,
   selectedData?: any;
-  onTabPress: (tab: Tabulation) => void;
   onBack?: () => void;
   filters: ProjectFiltersType
 }
@@ -42,15 +40,28 @@ const getIconForGrantCode = (grantCode: string) => {
 };
 
 export const ProjectPage: React.FC<ProjectPageProps> = ({
-  tabulations,
   projectId, selectedData,
-  onTabPress,
   onBack, filters
 }) => {
   const dispatch = useDispatch();
   const [isFetching, setIsFetching] = useState(false);
+  const [tabsFetching, setTabsFetching] = useState(false);
+  const [tabulations, setTabulations] = useState<Tabulation[]>([]);
   const [currentTab, setCurrentTab] = useState<Tabulation | null>(null);
   const [projectInfo, setProjectInfo] = useState<ProjectInfoResponseType | null>(null);
+
+  const getTabs = async () => {
+    if (tabulations?.length) return;
+    setTabsFetching(true)
+    const res = await getFloorTabs();
+    setTabsFetching(false)
+    if (!res?.length) return;
+    setTabulations(res || []);
+  };
+
+  useEffect(() => {
+    getTabs()
+  }, [])
 
   const handleTabPress = (tab: Tabulation) => {
     setCurrentTab(tab);
@@ -58,7 +69,6 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       title: tab.grant_name,
       desc: "",
     }));
-    onTabPress(tab);
   };
 
   useEffect(() => {
@@ -115,7 +125,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       case 'EntranceSchema':
         return <FloorSchemaTab filters={filters} onBack={backToProject} selectedData={selectedData} />;
       case 'M__ProjectFormWorkTab':
-        return <WorkTab />;
+        return <WorkTab filters={filters} selectedData={selectedData} />;
       case 'M__ProjectFormMaterialTab':
         return <MaterialsTab filters={filters} onBack={backToProject} />;
       case 'M__ProjectFormRemontCostTab':
@@ -206,7 +216,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     return renderTabContent();
   }
 
-  if(isFetching)
+  if(isFetching || tabsFetching)
     return <CustomLoader />
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>

@@ -1,8 +1,9 @@
 import { instance } from "@/services/api";
 import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType, SimpleFloorType, PlacementType, DocumentTypeType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectCheckType, ProjectStagesChecksParamsType } from "../types";
 import { ReqResponse } from "@/services/types";
-import { ProjectStageType } from "../types";
+import { ProjectStageType, ProjectWorkSetType } from "../types";
 import { ProjectStagesFiltersType } from "../types";
+import { arrayBufferToBase64 } from "@/services";
 export const residentialSettingsAPI = {
   async getDocuments(project_id: number): Promise<ReqResponse<ProjectDocumentType[] | undefined>> {
     return await instance()
@@ -16,8 +17,9 @@ export const residentialSettingsAPI = {
   },
   async downloadDocumentPDF(body = {}) {
     return await instance()
-      .post(`/project/agreement/sign/download/`, body)
+      .post(`/project/agreement/sign/download/`, body, {responseType: 'arraybuffer'})
       .then((res) => res);
+      // .then((res) => res ? arrayBufferToBase64(res) : null);
   },
   async getResidentials(): Promise<ReqResponse<ResidentType[]>> {
     return await instance()
@@ -39,7 +41,7 @@ export const residentialSettingsAPI = {
       .get(`/project/flats/read/`, { params })
       .then((res) => res?.data);
   },
-  async getEntranceWorkSets(params) {
+  async getEntranceWorkSets(params: ProjectFiltersType): Promise<ReqResponse<ProjectWorkSetType[] | undefined>> {
     return await instance()
       .get(`/project/work_sets/read/`, { params })
       .then((res) => res?.data);

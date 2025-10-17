@@ -33,6 +33,53 @@ const saveOnAndroidDevice = async (
     .catch(() => {});
 };
 
+export const downloadFile = async (response: any, fileName: string) => {
+  try {
+    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+    // const response = arrayBufferToBase64(res)
+
+    // Обрабатываем разные типы ответов от API
+    let pdfData;
+    if (typeof response === 'string') {
+      // Если ответ уже строка (base64)
+      pdfData = response;
+    } else if (response.data) {
+      // Если ответ содержит поле data
+      if (response.data instanceof ArrayBuffer) {
+        // Конвертируем ArrayBuffer в base64
+        const uint8Array = new Uint8Array(response.data);
+        const binaryString = Array.from(uint8Array, byte => String.fromCharCode(byte)).join('');
+        pdfData = btoa(binaryString);
+      } else {
+        pdfData = response.data;
+      }
+    } else if (response.file || response.content) {
+      // Если ответ содержит file или content
+      pdfData = response.file || response.content;
+    } else {
+      // Пробуем конвертировать в base64
+      pdfData = btoa(JSON.stringify(response));
+    }
+
+    // Сохраняем файл
+    await FileSystem.writeAsStringAsync(fileUri, pdfData, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    // Проверяем, доступно ли sharing
+    const isAvailable = await Sharing.isAvailableAsync();
+
+    if (isAvailable) {
+      saveFile(fileUri, fileName, 'application/pdf')
+    } else {
+      Alert.alert('Успех', 'Документ сохранен в папку приложения');
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export const saveFile = async (
   uri: string,
   fileName: string,

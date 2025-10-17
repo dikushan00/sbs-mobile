@@ -9,11 +9,14 @@ import { CustomLoader } from '@/components/common/CustomLoader';
 import { residentialSettingsAPI } from '@/components/main/services/api';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { arrayBufferToBase64 } from '@/services';
+import { downloadFile, saveFile } from '@/utils';
 
 export const Contracts = ({project_id}: {project_id: number | null}) => {
   const [agreements, setAgreements] = useState<ProjectDocumentType[]>([]);
   const [isFetching, setIsFetching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const getData = useCallback((refresh: boolean = false) => {
     if(project_id) {
@@ -27,56 +30,21 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
   }, [project_id]);
 
   const downloadPDF = useCallback(async (agreement: ProjectDocumentType) => {
+    if(downloading) return
+    setDownloading(true)
     try {
-      // Получаем PDF данные через API
       const response = await residentialSettingsAPI.downloadDocumentPDF({
         project_agreement_id: agreement.project_agreement_id
       });
-
       if (!response) {
         Alert.alert('Ошибка', 'Не удалось получить документ');
         return;
       }
-
-      // Создаем имя файла
-      const fileName = `agreement_${agreement.project_agreement_id}.pdf`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-
-      // Обрабатываем разные типы ответов от API
-      let pdfData;
-      if (typeof response === 'string') {
-        // Если ответ уже строка (base64)
-        pdfData = response;
-      } else if (response.data) {
-        // Если ответ содержит поле data
-        pdfData = response.data;
-      } else if (response.file || response.content) {
-        // Если ответ содержит file или content
-        pdfData = response.file || response.content;
-      } else {
-        // Пробуем конвертировать в base64
-        pdfData = btoa(JSON.stringify(response));
-      }
-
-      // Сохраняем файл
-      await FileSystem.writeAsStringAsync(fileUri, pdfData, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-
-      // Проверяем, доступно ли sharing
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (isAvailable) {
-        await Sharing.shareAsync(fileUri, {
-          mimeType: 'application/pdf',
-          dialogTitle: 'Скачать документ',
-        });
-      } else {
-        Alert.alert('Успех', 'Документ сохранен в папку приложения');
-      }
+      const fileName = `${agreement.doc_name?.replaceAll('/', '_')}.pdf`;
+      await downloadFile(response, fileName)
     } catch (error) {
-      console.error('Ошибка при скачивании PDF:', error);
-      Alert.alert('Ошибка', 'Не удалось скачать документ');
     }
+    setDownloading(false)
   }, []);
   
   useEffect(() => {
@@ -104,7 +72,7 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
       />
     }>
       <BlockContainer>
-        {isFetching && <CustomLoader />}
+        {(isFetching || downloading) && <CustomLoader />}
         {agreements.map((agreement) => {
           const contractorStatus = getStatusInfo(agreement.contractor_is_sign, agreement.contractor_can_sign);
           const customerStatus = getStatusInfo(agreement.project_head_is_sign, agreement.project_head_can_sign);
@@ -119,7 +87,6 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
               </View>
               
               <View style={styles.partiesContainer}>
-                {/* Заказчик */}
                 <View style={styles.partyBlock}>
                   <View style={styles.partyHeader}>
                     <Text style={styles.partyLabel}>Заказчик</Text>
@@ -135,7 +102,6 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
                   </Text>
                 </View>
                 
-                {/* Подрядчик */}
                 <View style={styles.partyBlock}>
                   <View style={styles.partyHeader}>
                     <Text style={styles.partyLabel}>Подрядчик</Text>
@@ -154,7 +120,7 @@ export const Contracts = ({project_id}: {project_id: number | null}) => {
               
               <TouchableOpacity 
                 style={styles.downloadButton}
-                onPress={() => downloadPDF(agreement)}
+                onPress={() => downloadPDF(agreement)} disabled={downloading}
               >
                 <Text style={styles.downloadText}>Скачать документ</Text>
                 <Icon name="downloadAlt" width={16} height={16} fill={COLORS.primaryLight} />

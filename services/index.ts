@@ -226,3 +226,18 @@ export const doOfflineActions = async (dispatch: AppDispatch) => {
   if (successRes) dispatch(setShouldPageDataReload(true));
   dispatch(closeModal());
 };
+
+export const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+  try {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode.apply(null, chunk);
+    }
+    return btoa(binary);
+  } catch(e) {
+    console.error(e)
+  }
+};

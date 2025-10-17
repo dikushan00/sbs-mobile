@@ -33,6 +33,15 @@ export const MainPageFilters = ({ onChange, filters }: PropsType) => {
     getResidentialEntrances(filters).then((res) => setEntrances(res || []));
   };
 
+  useEffect(() => {
+    if(filters?.resident_id) {
+      getProjectTypesData(filters.resident_id)
+    }
+    if(filters.project_entrance_id) {
+      getEntrances(filters)
+    }
+  }, [])
+
   const onFiltersChange = (key: string, value: any, row: any) => {
     if (key === "resident_id") {
       if (!!value) getProjectTypesData(value);

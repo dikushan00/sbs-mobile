@@ -115,7 +115,7 @@ export interface ProjectFloorFlatType {
 export interface ProjectFloorType {
 	colour_id: number
 	flat: ProjectFloorFlatType[]
-	floor: string
+	floor: string | number
 	floor_map_id: number
 	floor_payment_status: ProjectPaymentStatusType[]
 	floor_work_status: ProjectWorkStatusType[]
@@ -486,5 +486,23 @@ export interface ProjectCheckType {
 	call_date: string;
 	call_employee_fio: string;
 	check_employee_fio: string;
+}
+
+export interface ProjectWorkSetCheckGroupType {
+	work_set_check_group_id: number;
+	work_set_check_group_name: string;
+	work_set_check_group_percent: number;
+	percent: number;
+	label: string;
+	prev_work_set_check_group_ids: (number | null)[];
+}
+
+export interface ProjectWorkSetType {
+	placement_type_id: number;
+	placement_type_name: string;
+	label: string;
+	placement_percent: number;
+	percent: number;
+	work_set_check_groups: ProjectWorkSetCheckGroupType[];
 }
 

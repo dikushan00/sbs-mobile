@@ -4,26 +4,21 @@ import React, { useEffect, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useDispatch } from "react-redux";
 import { CustomButton } from "../common/CustomButton";
-import { CustomLoader } from "../common/CustomLoader";
 import { MainPageFilters } from "./Filters";
 import { ProjectPage } from "../pages/project";
 import {
-  getEntranceApartments,
-  getFloorTabs,
   getIsProjectSBS,
 } from "./services";
 import { COLORS } from "@/constants";
-import { ProjectFloorType, Tabulation, SelectedDataType } from "./types";
+import { SelectedDataType } from "./types";
 import { setPageSettings } from "@/services/redux/reducers/app";
 
 export const MainPage = () => {
   const dispatch = useDispatch();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isSbs, setIsSbs] = useState(false);
+  const [, setIsSbs] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null);
   const [selectedData, setSelectedData] = useState<Partial<SelectedDataType> | null>(null);
-  const [tabs, setTabs] = useState<Tabulation[] | null>(null);
-  const [tab, setTab] = useState<string>("");
   const [filters, setFilters] = useState({
     resident_id: null,
     project_type_id: null,
@@ -39,22 +34,6 @@ export const MainPage = () => {
       })
     );
   }, [])
-
-  const getData = async (
-    isRefreshing = false,
-    controller?: AbortController
-  ) => {};
-
-  const getTabs = async () => {
-    if (tabs?.length) return;
-    const res = await getFloorTabs();
-    if (!res?.length) return;
-    setTabs(res || []);
-
-    if (!tab) {
-      setTab(res[0].grant_code);
-    }
-  };
 
   const getIsSBS = async (projectId: number) => {
     if (!projectId) return;
@@ -87,7 +66,6 @@ export const MainPage = () => {
     if (key === "project_entrance_id") {
       setProjectId(row?.project_id);
       getIsSBS(row?.project_id);
-      getTabs();
     }
   };
 
@@ -107,10 +85,6 @@ export const MainPage = () => {
     );
   };
 
-  const handleTabPress = (tab: Tabulation) => {
-    // Here you can implement navigation to specific tab content
-  };
-
   const handleBackToFilters = () => {
     setShowProjectPage(false);
     dispatch(setHideFooterNav(false));
@@ -123,14 +97,11 @@ export const MainPage = () => {
     dispatch(setPageSettings({ backBtn: false, goBack: null }));
   };
 
-  if (showProjectPage && tabs && selectedData) {
-
+  if (showProjectPage && selectedData) {
     return (
       <ProjectPage
-        tabulations={tabs}
         selectedData={selectedData}
         projectId={projectId}
-        onTabPress={handleTabPress}
         onBack={handleBackToFilters}
         filters={filters}
       />
@@ -143,7 +114,7 @@ export const MainPage = () => {
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={() => getData(true)}
+            onRefresh={() => {}}
           />
         }
         contentContainerStyle={{ paddingBottom: 100 }}

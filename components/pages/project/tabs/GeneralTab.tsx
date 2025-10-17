@@ -86,7 +86,7 @@ export const GeneralTab = ({projectInfo, onBackToProject, projectId}: GeneralTab
         <BlockItem
           key={block.id}
           title={block.title}
-          icon={block.icon}
+          icon={block.icon} iconColor={COLORS.primaryLight}
           onPress={() => handleBlockPress(block)}
         />
       ))}

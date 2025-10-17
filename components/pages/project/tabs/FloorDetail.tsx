@@ -14,7 +14,7 @@ import { FloorSchema } from '../FloorSchema';
 import { MaterialsFloorTab } from './MaterialsFloorTab';
 
 interface FloorDetailProps {
-  floor: ProjectFloorType;
+  floor: {floor_map_id: number, floor: number | string};
   onBack: () => void;
   selectedData: SelectedDataType;
 }

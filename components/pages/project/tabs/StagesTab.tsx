@@ -26,7 +26,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
   const dispatch = useDispatch();
   const [stagesData, setStagesData] = useState<ProjectStageType[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [placementTypes, setPlacementTypes] = useState<PlacementType[]>([]);
   const [floors, setFloors] = useState<SimpleFloorType[]>([]);
   const [localFilters, setLocalFilters] = useState({
@@ -85,7 +85,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     }
   }
 
-  const toggleExpanded = (itemId: number) => {
+  const toggleExpanded = (itemId: string) => {
     const newExpanded = new Set(expandedItems);
     if (newExpanded.has(itemId)) {
       newExpanded.delete(itemId);
@@ -121,6 +121,9 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     setSelectedStage(null);
   };
 
+  const getUniqId = (item: ProjectStageType) => {
+    return item.call_date + '_' + item.floor + '_' + item.work_set_check_group_id;
+  }
 
   // Render comments view
   if (viewMode === 'comments') {
@@ -187,7 +190,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
         {loading && <CustomLoader />}
         <View style={styles.accordionContainer}>
           {stagesData?.map((item, i) => {
-            const isExpanded = expandedItems.has(item.floor_map_id);
+            const isExpanded = expandedItems.has(getUniqId(item));
             return (
               <View key={item.floor_map_id + '-' + i} style={styles.materialContainer}>
                 <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
@@ -208,7 +211,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
                     <ValueDisplay label='Тип' value={item.placement_type_name} />
                     {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
                       style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
-                      onPress={() => toggleExpanded(item.floor_map_id)}
+                      onPress={() => toggleExpanded(getUniqId(item))}
                     >
                       <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
                       <Icon 
@@ -237,7 +240,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
                       <View style={{flex: 1}}></View>
                       <TouchableOpacity 
                         style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                        onPress={() => toggleExpanded(item.floor_map_id)}
+                        onPress={() => toggleExpanded(getUniqId(item))}
                       >
                         <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
                         <Icon 
