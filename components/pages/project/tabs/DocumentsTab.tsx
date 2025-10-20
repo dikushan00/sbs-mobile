@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl } from 'react-native';
 import { useDispatch } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes } from '@/components/main/services';
 import { DocumentTypeType, ProjectFiltersType, ProjectMainDocumentType, SimpleFloorType } from '@/components/main/types';
@@ -10,6 +11,7 @@ import { Icon } from '@/components/Icon';
 import { showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
 import { CustomSelect } from '@/components/common/CustomSelect';
+import { NotFound } from '@/components/common/NotFound';
 
 interface DocumentsTabProps {
   filters: ProjectFiltersType;
@@ -29,33 +31,55 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     floor_map_document_type_id: null as any
   });
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      const [floors, documentTypes] = await Promise.all([
-        getEntranceDocumentFloors(filters),
-        getEntranceDocumentTypes()
-      ]);
-      if (floors) {
-        setFloorsData(floors);
-      }
-      if (documentTypes) {
-        setDocumentTypesData(documentTypes);
-      }
-    };
-    fetchInitialData();
-  }, []);
+  const fetchInitialData = useCallback(async () => {
+    const [floors, documentTypes] = await Promise.all([
+      getEntranceDocumentFloors(filters),
+      getEntranceDocumentTypes()
+    ]);
+    if (floors) {
+      setFloorsData(floors);
+    }
+    if (documentTypes) {
+      setDocumentTypesData(documentTypes);
+    }
+  }, [filters]);
+
+  const fetchDocuments = useCallback(async () => {
+    setLoading(true);
+    const documents = await getEntranceDocuments({...filters, ...localFilters});
+    setLoading(false);
+    if (documents) {
+      setDocumentsData(documents);
+    }
+  }, [filters, localFilters]);
 
   useEffect(() => {
-    const fetchDocuments = async () => {
-      setLoading(true);
-      const documents = await getEntranceDocuments({...filters, ...localFilters});
-      setLoading(false);
-      if (documents) {
-        setDocumentsData(documents);
-      }
-    };
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  useEffect(() => {
     fetchDocuments();
-  }, [localFilters, filters]);
+  }, [fetchDocuments]);
+
+  // Обновляем данные при возвращении в приложение
+  useFocusEffect(
+    useCallback(() => {
+      fetchDocuments();
+    }, [fetchDocuments])
+  );
+
+  // Обновляем данные при возврате приложения в активное состояние (foreground)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        fetchDocuments();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [fetchDocuments]);
 
   const getStatusColour = (isSigned: boolean) => {
     if(isSigned) {
@@ -122,13 +146,16 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
           />
         </View>
       </View>
+      {loading && <CustomLoader />}
       <ScrollView 
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchDocuments} />}
         style={styles.scrollContainer} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {loading && <CustomLoader />}
-        <View style={styles.accordionContainer}>
+        {
+          documentsData?.length 
+            ? <View style={styles.accordionContainer}>
             {documentsData?.map((item) => {
             const isExpanded = expandedItems.has(item.floor_map_document_id);
             const show1cInfo = isSBS && item.is_avr_sent_bi && (item.guid || item.esf_status || item.avr_code || item.error)
@@ -255,6 +282,8 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
             );
           })}
         </View>
+            : !loading && <NotFound title='Не найдено документов' />
+        }
       </ScrollView>
     </View>
   );

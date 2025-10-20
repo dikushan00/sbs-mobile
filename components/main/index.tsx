@@ -21,6 +21,7 @@ export const MainPage = () => {
     project_entrance_id: null,
   });
   const [showProjectPage, setShowProjectPage] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     dispatch(
@@ -56,6 +57,12 @@ export const MainPage = () => {
     if (key === "project_entrance_id") {
       setProjectId(row?.project_id);
     }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    setRefreshTrigger(prev => prev + 1);
+    setIsRefreshing(false);
   };
 
   const isAllFiltersFilled = () => {
@@ -103,13 +110,17 @@ export const MainPage = () => {
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={() => {}}
+            onRefresh={handleRefresh}
           />
         }
         contentContainerStyle={{ paddingBottom: 100 }}
         style={styles.container}
       >
-        <MainPageFilters filters={filters} onChange={onFiltersChange} />
+        <MainPageFilters 
+          filters={filters} 
+          onChange={onFiltersChange} 
+          onRefresh={refreshTrigger}
+        />
       </ScrollView>
       
       <View style={styles.buttonContainer}>

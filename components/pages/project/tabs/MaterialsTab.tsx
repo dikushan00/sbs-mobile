@@ -12,6 +12,7 @@ import { numberWithCommas } from '@/utils';
 import { Icon } from '@/components/Icon';
 import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
+import { NotFound } from '@/components/common/NotFound';
 
 interface MaterialsTabProps {
   filters: ProjectFiltersType;
@@ -135,81 +136,85 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack }) =
 
   return (
     <View style={styles.container}>
-      <View style={styles.summaryContainer}>
+      {!!materialsData?.length && <View style={styles.summaryContainer}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Общая сумма</Text>
           <Text style={styles.summaryValue}>{numberWithCommas(calculateTotalSum())} ₸</Text>
         </View>
-      </View>
+      </View>}
       <ScrollView 
         style={styles.scrollContainer} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.accordionContainer}>
-          {materialsData?.map((item) => {
-            const isExpanded = expandedItems.has(item.provider_request_item_id);
-            const showMoreActions = item.provider_request_status_code === 'CREATE' || item.provider_request_status_code === 'BRING_TO_CONTRACTOR';
-            return (
-              <View key={item.provider_request_item_id} style={styles.materialContainer}>
-                <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
-                  <Text style={styles.materialName}>{item.material_name}</Text>
-                  {showMoreActions && <TouchableOpacity 
-                    style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
-                    onPress={() => handleMoreActions(item)}
-                  >
-                    <Icon name='more' width={16} height={16} />
-                  </TouchableOpacity>}
-                </View>
-                <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.provider_request_status_code)}}>
-                  <Text style={{color: COLORS.white}}>{item.provider_request_status_name}</Text>
-                </View>
-                <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                  <ValueDisplay label='Дата отгрузки' value={item.date_shipping} />
-                  <ValueDisplay label='Сумма' value={numberWithCommas(item.material_sum)} />
-                  {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
-                    style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                    onPress={() => toggleExpanded(item.provider_request_item_id)}
-                  >
-                    <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
-                    <Icon 
-                      name={"arrowDownColor"} 
-                      width={13} 
-                      height={13} 
-                      fill={COLORS.primaryLight}
-                    />
-                  </TouchableOpacity>}
-                </View>
-                {isExpanded && (
-                  <View style={styles.expandedContent}>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                      <ValueDisplay label='Дата заказа' value={item.date_create} />
-                      <ValueDisplay label='Цена' value={numberWithCommas(item.price)} />
-                      <View style={{width: 85}}></View>
+        {
+          materialsData?.length
+            ? <View style={styles.accordionContainer}>
+              {materialsData?.map((item) => {
+                const isExpanded = expandedItems.has(item.provider_request_item_id);
+                const showMoreActions = item.provider_request_status_code === 'CREATE' || item.provider_request_status_code === 'BRING_TO_CONTRACTOR';
+                return (
+                  <View key={item.provider_request_item_id} style={styles.materialContainer}>
+                    <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
+                      <Text style={styles.materialName}>{item.material_name}</Text>
+                      {showMoreActions && <TouchableOpacity 
+                        style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
+                        onPress={() => handleMoreActions(item)}
+                      >
+                        <Icon name='more' width={16} height={16} />
+                      </TouchableOpacity>}
+                    </View>
+                    <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.provider_request_status_code)}}>
+                      <Text style={{color: COLORS.white}}>{item.provider_request_status_name}</Text>
                     </View>
                     <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                      <ValueDisplay label='Мин. кол-во' value={`${item.qty_atom} ${item.atom_unit_name}`} />
-                      <ValueDisplay label='Кол-во в ед. продаж' value={`${item.material_cnt} ${item.sell_unit_name}`} />
-                        <TouchableOpacity 
-                          style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                          onPress={() => toggleExpanded(item.provider_request_item_id)}
-                        >
-                          <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
-                          <Icon 
-                            name={"arrowDownColor"} 
-                            width={13} 
-                            height={13} 
-                            fill={COLORS.primaryLight}
-                            style={{ transform: [{ rotate: '180deg' }] }}
-                          />
-                        </TouchableOpacity>
+                      <ValueDisplay label='Дата отгрузки' value={item.date_shipping} />
+                      <ValueDisplay label='Сумма' value={numberWithCommas(item.material_sum)} />
+                      {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
+                        style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
+                        onPress={() => toggleExpanded(item.provider_request_item_id)}
+                      >
+                        <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
+                        <Icon 
+                          name={"arrowDownColor"} 
+                          width={13} 
+                          height={13} 
+                          fill={COLORS.primaryLight}
+                        />
+                      </TouchableOpacity>}
                     </View>
+                    {isExpanded && (
+                      <View style={styles.expandedContent}>
+                        <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
+                          <ValueDisplay label='Дата заказа' value={item.date_create} />
+                          <ValueDisplay label='Цена' value={numberWithCommas(item.price)} />
+                          <View style={{width: 85}}></View>
+                        </View>
+                        <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
+                          <ValueDisplay label='Мин. кол-во' value={`${item.qty_atom} ${item.atom_unit_name}`} />
+                          <ValueDisplay label='Кол-во в ед. продаж' value={`${item.material_cnt} ${item.sell_unit_name}`} />
+                            <TouchableOpacity 
+                              style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
+                              onPress={() => toggleExpanded(item.provider_request_item_id)}
+                            >
+                              <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
+                              <Icon 
+                                name={"arrowDownColor"} 
+                                width={13} 
+                                height={13} 
+                                fill={COLORS.primaryLight}
+                                style={{ transform: [{ rotate: '180deg' }] }}
+                              />
+                            </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
+                );
+              })}
+            </View>
+            : !loading && <NotFound title='Данные не найдены' />
+        }
       </ScrollView>
       <View style={styles.fixedButtonContainer}>
         <CustomButton

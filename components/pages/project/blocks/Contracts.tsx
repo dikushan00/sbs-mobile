@@ -124,6 +124,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
 
   return (
     <View style={styles.container}>
+      {(isFetching || downloading || signing) && <CustomLoader />}
       <ScrollView 
         style={styles.scrollView}
         refreshControl={
@@ -134,7 +135,6 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
         }
       >
         <BlockContainer>
-          {(isFetching || downloading || signing) && <CustomLoader />}
         {agreements.map((agreement) => {
           const contractorStatus = getStatusInfo(agreement.contractor_is_sign, agreement.contractor_can_sign);
           const customerStatus = getStatusInfo(agreement.project_head_is_sign, agreement.project_head_can_sign);

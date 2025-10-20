@@ -78,10 +78,14 @@ export const CustomSelect = (props: CustomSelectProps) => {
           ...styles
         }}
       >
-        <Text style={{ 
-          color: isPlaceholder ? COLORS.darkGray : "#000",
-          fontSize: 16 
-        }}>
+        <Text 
+          style={{ 
+            color: isPlaceholder ? COLORS.darkGray : "#000",
+            fontSize: 16 
+          }}
+          numberOfLines={1}
+          ellipsizeMode="middle"
+        >
           {displayText}
         </Text>
         {

@@ -11,6 +11,7 @@ import { showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { numberWithCommas } from '@/utils';
+import { NotFound } from '@/components/common/NotFound';
 
 interface PaymentsTabProps {
   filters: ProjectFiltersType;
@@ -141,7 +142,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
         </View>
       </View>
       
-      <View style={styles.summaryContainer}>
+      {!!paymentsData?.length && <View style={styles.summaryContainer}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Общая сумма работ</Text>
           <Text style={styles.summaryValue}>{numberWithCommas(totalColSum)} ₸</Text>
@@ -150,16 +151,18 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
           <Text style={styles.summaryLabel}>Общая сумма платежей</Text>
           <Text style={styles.summaryValue}>{numberWithCommas(totalPaymentAmount)} ₸</Text>
         </View>
-      </View>
+      </View>}
       
+      {loading && <CustomLoader />}
       <ScrollView 
         style={styles.scrollContainer} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {loading && <CustomLoader />}
-        <View style={styles.accordionContainer}>
-          
+        {
+          paymentsData?.length 
+            ? <View style={styles.accordionContainer}>
+            
             {paymentsData?.map((item, i) => {
             const isExpanded = expandedItems.has(item.remont_costs_id);
             return (
@@ -233,6 +236,8 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
             );
           })}
         </View>
+          : !loading && <NotFound title='Не найдено платежей' />
+        }
       </ScrollView>
     </View>
   );

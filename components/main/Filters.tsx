@@ -11,8 +11,9 @@ import { ProjectEntranceAllInfoType, ProjectFiltersType, ProjectTypeType, Reside
 type PropsType = {
   onChange: (key: string, value: any, row: any) => void;
   filters: ProjectFiltersType;
+  onRefresh?: number;
 };
-export const MainPageFilters = ({ onChange, filters }: PropsType) => {
+export const MainPageFilters = ({ onChange, filters, onRefresh }: PropsType) => {
   const [residents, setResidents] = useState<ResidentType[]>([]);
   const [projectTypes, setProjectTypes] = useState<ProjectTypeType[]>([]);
   const [entrances, setEntrances] = useState<ProjectEntranceAllInfoType[]>([]);
@@ -33,6 +34,21 @@ export const MainPageFilters = ({ onChange, filters }: PropsType) => {
     getResidentialEntrances(filters).then((res) => setEntrances(res || []));
   };
 
+  const refreshAllLists = useCallback(async () => {
+    // Обновляем список жителей
+    await getResidents();
+    
+    // Если выбран житель, обновляем типы проектов
+    if (filters?.resident_id) {
+      await getProjectTypesData(filters.resident_id);
+    }
+    
+    // Если выбраны житель и тип проекта, обновляем подъезды
+    if (filters?.resident_id && filters?.project_type_id) {
+      await getEntrances(filters);
+    }
+  }, [filters, getResidents]);
+
   useEffect(() => {
     if(filters?.resident_id) {
       getProjectTypesData(filters.resident_id)
@@ -41,6 +57,13 @@ export const MainPageFilters = ({ onChange, filters }: PropsType) => {
       getEntrances(filters)
     }
   }, [])
+
+  // Эффект для обновления списков при свайпе
+  useEffect(() => {
+    if (onRefresh && onRefresh > 0) {
+      refreshAllLists();
+    }
+  }, [onRefresh, refreshAllLists]);
 
   const onFiltersChange = (key: string, value: any, row: any) => {
     if (key === "resident_id") {

@@ -4,13 +4,13 @@
     "slug": "smart-build-system",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon-sbs.png",
     "scheme": "sbs",
     "newArchEnabled": true,
     "userInterfaceStyle": "automatic",
     "platforms": ["ios", "android"],
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/splash-sbs.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -47,7 +47,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon-sbs.png",
         "backgroundColor": "#ffffff"
       },
       "package": "kz.smartremont.sbs",
@@ -60,7 +60,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon-sbs.png"
     },
     "plugins": [
       "expo-router",

@@ -14,6 +14,7 @@ import { CustomSelect } from '@/components/common/CustomSelect';
 import { CommentsView } from './CommentsView';
 import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 import { FloorDetail } from './FloorDetail';
+import { NotFound } from '@/components/common/NotFound';
 
 interface StagesTabProps {
   filters: ProjectFiltersType;
@@ -125,7 +126,6 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     return item.call_date + '_' + item.floor + '_' + item.work_set_check_group_id;
   }
 
-  // Render comments view
   if (viewMode === 'comments') {
     return (
       <CommentsView
@@ -138,7 +138,6 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     );
   }
 
-  // Render schema view
   if (viewMode === 'schema' && selectedStage?.floor) {
     return (
       <FloorDetail
@@ -188,76 +187,80 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
         showsVerticalScrollIndicator={false}
       >
         {loading && <CustomLoader />}
-        <View style={styles.accordionContainer}>
-          {stagesData?.map((item, i) => {
-            const isExpanded = expandedItems.has(getUniqId(item));
-            return (
-              <View key={item.floor_map_id + '-' + i} style={styles.materialContainer}>
-                <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
-                  <Text style={styles.materialName}>{item.work_set_check_group_name}</Text>
-                  <TouchableOpacity 
-                    style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
-                    onPress={() => handleMoreActions(item)}
-                  >
-                    <Icon name='more' width={16} height={16} />
-                  </TouchableOpacity>
-                </View>
-                <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.check_status_code)}}>
-                  <Text style={{color: COLORS.white}}>{item.check_status}</Text>
-                </View>
-                <View style={{marginTop: 15}}>
-                  <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
-                    <ValueDisplay label='Вызвал(а)' value={item.call_employee_fio} />
-                    <ValueDisplay label='Тип' value={item.placement_type_name} />
-                    {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
-                      style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
-                      onPress={() => toggleExpanded(getUniqId(item))}
+        {
+          stagesData?.length 
+            ? <View style={styles.accordionContainer}>
+            {stagesData?.map((item, i) => {
+              const isExpanded = expandedItems.has(getUniqId(item));
+              return (
+                <View key={item.floor_map_id + '-' + i} style={styles.materialContainer}>
+                  <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
+                    <Text style={styles.materialName}>{item.work_set_check_group_name}</Text>
+                    <TouchableOpacity 
+                      style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
+                      onPress={() => handleMoreActions(item)}
                     >
-                      <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
-                      <Icon 
-                        name={"arrowDownColor"} 
-                        width={13} 
-                        height={13} 
-                        fill={COLORS.primaryLight}
-                      />
-                    </TouchableOpacity>}
+                      <Icon name='more' width={16} height={16} />
+                    </TouchableOpacity>
                   </View>
-                </View>
-                {isExpanded && (
-                  <View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
-                      <ValueDisplay label='Блок' value={`№${item.block_name}`} />
-                      <ValueDisplay label='Этаж' value={`${item.floor}`} />
-                      <View style={{width: 85}}></View>
-                    </View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
-                      <ValueDisplay label='Дата вызова' value={item.call_date} />
-                      <ValueDisplay label='Дата принятия' value={item.check_date} />
-                      <View style={{width: 85}}></View>
-                    </View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                      <ValueDisplay label='Принял(а)' value={item.check_employee_fio} />
-                      <View style={{flex: 1}}></View>
-                      <TouchableOpacity 
-                        style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
+                  <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.check_status_code)}}>
+                    <Text style={{color: COLORS.white}}>{item.check_status}</Text>
+                  </View>
+                  <View style={{marginTop: 15}}>
+                    <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
+                      <ValueDisplay label='Вызвал(а)' value={item.call_employee_fio} />
+                      <ValueDisplay label='Тип' value={item.placement_type_name} />
+                      {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
+                        style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
                         onPress={() => toggleExpanded(getUniqId(item))}
                       >
-                        <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
+                        <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
                         <Icon 
                           name={"arrowDownColor"} 
                           width={13} 
                           height={13} 
                           fill={COLORS.primaryLight}
-                          style={{ transform: [{ rotate: '180deg' }] }}
                         />
-                      </TouchableOpacity>
+                      </TouchableOpacity>}
                     </View>
                   </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
+                  {isExpanded && (
+                    <View>
+                      <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
+                        <ValueDisplay label='Блок' value={`№${item.block_name}`} />
+                        <ValueDisplay label='Этаж' value={`${item.floor}`} />
+                        <View style={{width: 85}}></View>
+                      </View>
+                      <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
+                        <ValueDisplay label='Дата вызова' value={item.call_date} />
+                        <ValueDisplay label='Дата принятия' value={item.check_date} />
+                        <View style={{width: 85}}></View>
+                      </View>
+                      <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
+                        <ValueDisplay label='Принял(а)' value={item.check_employee_fio} />
+                        <View style={{flex: 1}}></View>
+                        <TouchableOpacity 
+                          style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
+                          onPress={() => toggleExpanded(getUniqId(item))}
+                        >
+                          <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
+                          <Icon 
+                            name={"arrowDownColor"} 
+                            width={13} 
+                            height={13} 
+                            fill={COLORS.primaryLight}
+                            style={{ transform: [{ rotate: '180deg' }] }}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+            : !loading && <NotFound title='Не найдено этапов' />
+        }
       </ScrollView>
     </View>
   );

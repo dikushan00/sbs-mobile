@@ -29,7 +29,10 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
         {
           text: "Подписать",
           style: "default",
-          onPress: onSign
+          onPress: () => {
+            handleClose()
+            onSign && onSign()
+          }
         },
       ]
     );

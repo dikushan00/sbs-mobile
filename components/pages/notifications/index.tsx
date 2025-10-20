@@ -36,48 +36,50 @@ export const Notifications = ({ data, getData, isFetching }: PropsType) => {
   }, [scrollViewRef.current, data]);
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 25 }}
-      refreshControl={
-        <RefreshControl refreshing={isFetching} onRefresh={() => getData()} />
-      }
-      ref={scrollViewRef}
-      onContentSizeChange={() => {
-        // Scroll to bottom whenever the content size changes
-        //@ts-ignore
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }}
-    >
+    <>
       {isFetching && <CustomLoader />}
-      <View style={styles.notificationsWrapper}>
-        {data?.length
-          ? data.map((item) => {
-              return (
-                <View key={item.day_date}>
-                  <View style={styles.date}>
-                    <View style={styles.dateTextWrapper}>
-                      <Text style={styles.dateText}>
-                        {getNotifyDate(item.day_date)}
-                      </Text>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 25 }}
+        refreshControl={
+          <RefreshControl refreshing={isFetching} onRefresh={() => getData()} />
+        }
+        ref={scrollViewRef}
+        onContentSizeChange={() => {
+          // Scroll to bottom whenever the content size changes
+          //@ts-ignore
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }}
+      >
+        <View style={styles.notificationsWrapper}>
+          {data?.length
+            ? data.map((item) => {
+                return (
+                  <View key={item.day_date}>
+                    <View style={styles.date}>
+                      <View style={styles.dateTextWrapper}>
+                        <Text style={styles.dateText}>
+                          {getNotifyDate(item.day_date)}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.notifications}>
+                      {item.notify_list?.map((notify) => {
+                        return (
+                          <Notification
+                            key={String(notify.mobile_notify_id)}
+                            data={notify}
+                          />
+                        );
+                      })}
                     </View>
                   </View>
-                  <View style={styles.notifications}>
-                    {item.notify_list?.map((notify) => {
-                      return (
-                        <Notification
-                          key={String(notify.mobile_notify_id)}
-                          data={notify}
-                        />
-                      );
-                    })}
-                  </View>
-                </View>
-              );
-            })
-          : !isFetching && <NotFound />}
-      </View>
-    </ScrollView>
+                );
+              })
+            : !isFetching && <NotFound />}
+        </View>
+      </ScrollView>
+    </>
   );
 };
 

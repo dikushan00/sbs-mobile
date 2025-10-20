@@ -31,6 +31,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
   const [showDateChange, setShowDateChange] = useState(false);
   const { document, params, floor_map_document_id, onSubmit } = data;
   const [processing, setProcessing] = useState(false);
+  const [singningDisabled, setSingningDisabled] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [sendingTo1C, setSendingTo1C] = useState(false);
   const [selectedDates, setSelectedDates] = useState({
@@ -110,6 +111,9 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
     };
 
     const res = await signEntranceDocument(body, params);
+    setProcessing(false);
+    setSingningDisabled(true);
+    handleClose()
     if(!res) return;
     try {
       if (res?.redirect_url) {
@@ -175,7 +179,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
         </TouchableOpacity>
         
         {!document.is_signed && (
-          <TouchableOpacity style={styles.actionItem} onPress={handleSign}>
+          <TouchableOpacity style={[styles.actionItem, {opacity: singningDisabled ? 0.5 : 1}]} onPress={handleSign} disabled={singningDisabled}>
             <View style={styles.actionIcon}>
               <Icon name="people" width={20} height={20} fill={COLORS.primary} />
             </View>
