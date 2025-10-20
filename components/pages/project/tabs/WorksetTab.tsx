@@ -7,12 +7,16 @@ import { BlockItem } from '@/components/common/BlockItem';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { WorkSetAccordion } from './WorksetAccordion';
 import { Icon } from '@/components/Icon';
+import { useDispatch } from 'react-redux';
+import { setPageSettings } from '@/services/redux/reducers/app';
 
 interface MaterialsTabProps {
   floor_map_id: number;
+  onBack: () => void
 }
 
-export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
+export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id, onBack }) => {
+  const dispatch = useDispatch()
   const [loading, setLoading] = useState(true);
 
   const [workSets, setWorkSets] = useState<FloorMapWorkSetsResponseType | null>(null);
@@ -27,6 +31,14 @@ export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id }) => {
     };
     getFloorWorkSetsData();
   }, [floor_map_id]);
+
+  useEffect(() => {
+    if(selectedPlacement) {
+      dispatch(setPageSettings({goBack: () => setSelectedPlacement(null)}))
+    } else {
+      dispatch(setPageSettings({goBack: onBack}))
+    }
+  }, [selectedPlacement]);
 
   const handlePlacementSelect = (placement: FloorMapWorkSetType) => {
     setSelectedPlacement(placement);

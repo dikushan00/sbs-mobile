@@ -32,6 +32,10 @@ export const FloorSchemaTab = ({filters, onBack, selectedData}: {filters: Projec
     }));
   };
 
+  const handleBackToFloorsSchema = () => {
+    setSelectedFloorForOkk(null);
+  };
+
   const handleFloorSelectForOkk = (floor: ProjectFloorType) => {
     setSelectedFloorForOkk(floor);
     dispatch(setUserPageHeaderData({
@@ -72,6 +76,7 @@ export const FloorSchemaTab = ({filters, onBack, selectedData}: {filters: Projec
             <ScrollView style={{padding: 16}}>
               <WorksetTab 
                 floor_map_id={selectedFloorForOkk.floor_map_id}
+                onBack={handleBackToFloorsSchema}
               />
             </ScrollView>
           );
@@ -113,7 +118,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: COLORS.backgroundWhite,
+    backgroundColor: COLORS.backgroundSecondary,
     gap: 5,
   },
   placeholder: {

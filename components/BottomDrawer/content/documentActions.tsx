@@ -64,7 +64,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
       [
         {
           text: "Отмена",
-          style: "cancel",
+          style: "destructive",
         },
         {
           text: "Отправить",

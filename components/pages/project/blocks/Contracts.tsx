@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Platform, Linking, AppState } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { ProjectDocumentType, ProjectFiltersType } from '@/components/main/types';
 import { getDocuments, sendAgreementTo1C, signDocument } from '@/components/main/services';
@@ -9,6 +9,8 @@ import { CustomLoader } from '@/components/common/CustomLoader';
 import { residentialSettingsAPI } from '@/components/main/services/api';
 import { downloadFile } from '@/utils';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
+import { useFocusEffect } from '@react-navigation/native';
+import { NotFound } from '@/components/common/NotFound';
 
 export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS: boolean }) => {
   const {showSuccessSnackbar} = useSnackbar()
@@ -29,6 +31,24 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
       setIsRefreshing(false);
     }
   }, [project_id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      getData();
+    }, [getData])
+  );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        getData();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [getData]);
 
   const downloadPDF = useCallback(async (agreement: ProjectDocumentType) => {
     if(downloading) return
@@ -53,7 +73,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
       [
         {
           text: "Отмена",
-          style: "cancel",
+          style: "destructive",
         },
         {
           text: "Отправить",
@@ -80,7 +100,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
       [
         {
           text: "Отмена",
-          style: "cancel",
+          style: "destructive",
         },
         {
           text: "Подписать",
@@ -107,10 +127,6 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
       ]
     );
   }, [signing, agreements]);
-  
-  useEffect(() => {
-    getData();
-  }, [project_id]);
 
   const getStatusInfo = (contractor_is_sign: boolean, contractor_can_sign: boolean) => {
     if (contractor_is_sign) {
@@ -134,101 +150,104 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
           />
         }
       >
-        <BlockContainer>
-        {agreements.map((agreement) => {
-          const contractorStatus = getStatusInfo(agreement.contractor_is_sign, agreement.contractor_can_sign);
-          const customerStatus = getStatusInfo(agreement.project_head_is_sign, agreement.project_head_can_sign);
-          
-          return (
-            <Block key={agreement.project_agreement_id}>
-              <View style={styles.agreementHeader}>
-                <View style={styles.agreementInfo}>
-                  <Text style={styles.agreementId}><Text style={{color: COLORS.darkGray}}>ID:</Text> {agreement.project_agreement_id}</Text>
-                  <Text style={styles.agreementName}><Text style={{color: COLORS.darkGray}}>Наименование:</Text> {agreement.doc_name}</Text>
-                </View>
-              </View>
+        {
+          agreements?.length
+            ? <BlockContainer>
+            {agreements.map((agreement) => {
+              const contractorStatus = getStatusInfo(agreement.contractor_is_sign, agreement.contractor_can_sign);
+              const customerStatus = getStatusInfo(agreement.project_head_is_sign, agreement.project_head_can_sign);
               
-              <View style={styles.partiesContainer}>
-                <View style={styles.partyBlock}>
-                  <View style={styles.partyHeader}>
-                    <Text style={styles.partyLabel}>Заказчик</Text>
-                    <View style={styles.statusContainer}>
-                      {customerStatus && <Text style={[styles.statusText, { color: customerStatus.color }]}>
-                          {customerStatus.text}
-                      </Text>}
-                     {agreement.project_head_date && <Text>{agreement.project_head_date}</Text>}
+              return (
+                <Block key={agreement.project_agreement_id}>
+                  <View style={styles.agreementHeader}>
+                    <View style={styles.agreementInfo}>
+                      <Text style={styles.agreementId}><Text style={{color: COLORS.darkGray}}>ID:</Text> {agreement.project_agreement_id}</Text>
+                      <Text style={styles.agreementName}><Text style={{color: COLORS.darkGray}}>Наименование:</Text> {agreement.doc_name}</Text>
                     </View>
                   </View>
-                  <Text style={styles.partyName}>
-                    {agreement.project_head_name} {agreement.project_head_fio}
-                  </Text>
-                </View>
-                
-                <View style={styles.partyBlock}>
-                  <View style={styles.partyHeader}>
-                    <Text style={styles.partyLabel}>Подрядчик</Text>
-                    <View style={styles.statusContainer}>
-                      {contractorStatus && <Text style={[styles.statusText, { color: contractorStatus.color }]}>
-                          {contractorStatus.text}
-                      </Text>}
-                      {agreement.contractor_date && <Text>{agreement.contractor_date}</Text>}
+                  
+                  <View style={styles.partiesContainer}>
+                    <View style={styles.partyBlock}>
+                      <View style={styles.partyHeader}>
+                        <Text style={styles.partyLabel}>Заказчик</Text>
+                        <View style={styles.statusContainer}>
+                          {customerStatus && <Text style={[styles.statusText, { color: customerStatus.color }]}>
+                              {customerStatus.text}
+                          </Text>}
+                         {agreement.project_head_date && <Text>{agreement.project_head_date}</Text>}
+                        </View>
+                      </View>
+                      <Text style={styles.partyName}>
+                        {agreement.project_head_name} {agreement.project_head_fio}
+                      </Text>
+                    </View>
+                    
+                    <View style={styles.partyBlock}>
+                      <View style={styles.partyHeader}>
+                        <Text style={styles.partyLabel}>Подрядчик</Text>
+                        <View style={styles.statusContainer}>
+                          {contractorStatus && <Text style={[styles.statusText, { color: contractorStatus.color }]}>
+                              {contractorStatus.text}
+                          </Text>}
+                          {agreement.contractor_date && <Text>{agreement.contractor_date}</Text>}
+                        </View>
+                      </View>
+                      <Text style={styles.partyName}>
+                        {agreement.contractor_name} {agreement.contractor_fio}
+                      </Text>
                     </View>
                   </View>
-                  <Text style={styles.partyName}>
-                    {agreement.contractor_name} {agreement.contractor_fio}
-                  </Text>
-                </View>
-              </View>
-              
-              {/* Информация о статусе отправки в 1С */}
-              {isSBS && (
-                <View style={styles.sbsInfoContainer}>
-                  {agreement.is_sent_to_1c ? (
-                    <View style={styles.sentTo1CContainer}>
-                      <Icon name="checkCircle" width={16} height={16} fill={COLORS.green} />
-                      <Text style={styles.sentTo1CText}>Отправлено в 1С</Text>
-                    </View>
-                  ) : (
-                    <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-                      <TouchableOpacity 
-                        style={styles.sendTo1CButton}
-                        onPress={sendTo1C} 
-                        disabled={sending}
-                      >
-                        <Text style={styles.sendTo1CButtonText}>
-                          {sending ? 'Отправка...' : 'Отправить в 1С'}
-                        </Text>
-                      </TouchableOpacity>
+                  
+                  {isSBS && (
+                    <View style={styles.sbsInfoContainer}>
+                      {agreement.is_sent_to_1c ? (
+                        <View style={styles.sentTo1CContainer}>
+                          <Icon name="checkCircle" width={16} height={16} fill={COLORS.green} />
+                          <Text style={styles.sentTo1CText}>Отправлено в 1С</Text>
+                        </View>
+                      ) : (
+                        <View style={{flexDirection: 'row', justifyContent: 'center'}}>
+                          <TouchableOpacity 
+                            style={styles.sendTo1CButton}
+                            onPress={sendTo1C} 
+                            disabled={sending}
+                          >
+                            <Text style={styles.sendTo1CButtonText}>
+                              {sending ? 'Отправка...' : 'Отправить в 1С'}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                      
+                      {agreement.guid && (
+                        <Text style={styles.guidText}>GUID: {agreement.guid}</Text>
+                      )}
+                      
+                      {agreement.error && (
+                        <TouchableOpacity 
+                          style={styles.errorContainer}
+                          onPress={() => Alert.alert('Ошибка', agreement.error)}
+                        >
+                          <Text style={styles.errorText}>Ошибка</Text>
+                          <Icon name="info" width={16} height={16} fill={COLORS.red} />
+                        </TouchableOpacity>
+                      )}
                     </View>
                   )}
                   
-                  {agreement.guid && (
-                    <Text style={styles.guidText}>GUID: {agreement.guid}</Text>
-                  )}
-                  
-                  {agreement.error && (
-                    <TouchableOpacity 
-                      style={styles.errorContainer}
-                      onPress={() => Alert.alert('Ошибка', agreement.error)}
-                    >
-                      <Text style={styles.errorText}>Ошибка</Text>
-                      <Icon name="info" width={16} height={16} fill={COLORS.red} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-              
-              <TouchableOpacity 
-                style={styles.downloadButton}
-                onPress={() => downloadPDF(agreement)} disabled={downloading}
-              >
-                <Text style={styles.downloadText}>Скачать документ</Text>
-                <Icon name="downloadAlt" width={16} height={16} fill={COLORS.primaryLight} />
-              </TouchableOpacity>
-            </Block>
-          );
-        })}
-      </BlockContainer>
+                  <TouchableOpacity 
+                    style={styles.downloadButton}
+                    onPress={() => downloadPDF(agreement)} disabled={downloading}
+                  >
+                    <Text style={styles.downloadText}>Скачать документ</Text>
+                    <Icon name="downloadAlt" width={16} height={16} fill={COLORS.primaryLight} />
+                  </TouchableOpacity>
+                </Block>
+              );
+            })}
+          </BlockContainer>
+            : <NotFound title='Договоров не найдено' />
+        }
       </ScrollView>
       
       {agreements.length > 0 && (

@@ -1,5 +1,5 @@
 import LogoBlue from "@/assets/images/logo_blue.svg";
-import { PAGE_NAMES, STORE_KEYS } from "@/constants";
+import { COLORS, PAGE_NAMES, STORE_KEYS } from "@/constants";
 import { getUserCredentials } from "@/services";
 import { AppDispatch } from "@/services/redux";
 import {
@@ -13,7 +13,7 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
-import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useDispatch } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
 import { useSnackbar } from "../snackbar/SnackbarContext";
@@ -230,7 +230,14 @@ export const LoginForm = ({ disabled = false }) => {
             style={styles.button}
             onPress={() => onSubmit()}
           >
-            <Text style={styles.buttonText}>Войти</Text>
+            {
+              loading 
+              ? <ActivityIndicator
+                  size="small" 
+                  color={COLORS.white} 
+                /> 
+              : <Text style={styles.buttonText}>Войти</Text>
+            }
           </TouchableOpacity>
           {biometricData && isBiometricSupportedAndAllowed && (
             <TouchableOpacity

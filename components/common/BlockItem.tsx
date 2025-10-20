@@ -47,7 +47,8 @@ export const BlockItem: React.FC<BlockItemProps> = ({
 
 const styles = StyleSheet.create({
   block: {
-    paddingVertical: 16
+    paddingVertical: 16,
+    backgroundColor: COLORS.white,
   },
   blockContent: {
     flexDirection: 'row',

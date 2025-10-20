@@ -35,10 +35,6 @@ export const AssignedPersons = ({ data }: AssignedPersonsProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.backgroundWhite,
-  },
   contentContainer: {
     padding: 16,
     gap: 12,

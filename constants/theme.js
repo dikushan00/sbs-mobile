@@ -7,6 +7,7 @@ const COLORS = {
   primaryBorder: "rgba(19, 116, 207, 0.5)",
   backgroundWhite: "#fff",
   background: "#F2F5F8",
+  backgroundSecondary: "#f6f6f6",
   primaryBackground: "#EAF5FF",
   primaryBackgroundHard: "#a1c0dd",
   secondary: "#444262",

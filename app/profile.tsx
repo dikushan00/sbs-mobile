@@ -77,17 +77,6 @@ export default function ProfilePage() {
               <Text style={styles.detailValue}>{userData?.email || 'Не указано'}</Text>
             </View>
           </View>
-
-          {userData?.group_names && (
-            <View style={styles.detailItem}>
-              <Icon name="flag" width={20} height={20} />
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Роли</Text>
-                <Text style={styles.detailValue}>{userData.group_names}</Text>
-              </View>
-            </View>
-          )}
-
           <View style={styles.detailItem}>
             <Icon name="info" width={20} height={20} fill={COLORS.primaryLight} />
             <View style={styles.detailContent}>
@@ -141,8 +130,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   avatar: {
-    width: 80,
-    height: 80,
+    width: 70,
+    height: 70,
     borderRadius: 40,
   },
   avatarPlaceholder: {
@@ -176,7 +165,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderRadius: 12,
     padding: 20,
-    marginBottom: 20,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -207,7 +195,6 @@ const styles = StyleSheet.create({
     color: "#333",
     fontWeight: "500",
   },
-
   logoutButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -215,6 +202,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 15,
     margin: 20,
+    marginTop: 0,
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: {

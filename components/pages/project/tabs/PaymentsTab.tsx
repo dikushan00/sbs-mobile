@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, getPlacementTypes, getResidentialEntrances, getEntrancePayments } from '@/components/main/services';
-import { DocumentTypeType, PlacementType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectMainDocumentType, ProjectPaymentType, SimpleFloorType } from '@/components/main/types';
+import { getEntranceDocumentFloors, getPlacementTypes, getResidentialEntrances, getEntrancePayments } from '@/components/main/services';
+import { PlacementType, ProjectFiltersType, ProjectPaymentType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
@@ -25,12 +25,12 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [placementTypes, setPlacementTypes] = useState<PlacementType[]>([]);
-  const [entrances, setEntrances] = useState<ProjectEntranceAllInfoType[]>([]);
+  const [entrances, setEntrances] = useState<{project_entrance_id: number | string | null, entrance_name: string}[]>([]);
   const [floors, setFloors] = useState<SimpleFloorType[]>([]);
   const [localFilters, setLocalFilters] = useState({
     placement_type_id: null as number | null,
     floor: null as number | null,
-    project_entrance_id: 'ALL' as number | 'ALL',
+    project_entrance_id: 'ALL' as number | string | null,
   });
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
         getEntranceDocumentFloors(filters),
       ]);
       if (entrancesData) {
-        setEntrances([{project_entrance_id: 'ALL', entrance_name: 'Все'}, ...entrancesData]);
+        setEntrances([{project_entrance_id: 'ALL', entrance_name: 'Все' }, ...entrancesData]);
       }
       setPlacementTypes(placementTypesData || []);
       setFloors(floorsData || []);

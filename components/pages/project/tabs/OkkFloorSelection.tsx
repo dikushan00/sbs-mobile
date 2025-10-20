@@ -105,6 +105,7 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
   const renderFloorsGrid = () => {
     if (!floorsPlan || floorsPlan.length === 0) return null;
 
+    //@ts-ignore
     const sortedFloors = [...floorsPlan].sort((a, b) => parseInt(a.floor) - parseInt(b.floor));
     
     const halfLength = Math.ceil(sortedFloors.length / 2);
@@ -153,7 +154,7 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundWhite,
+    backgroundColor: COLORS.backgroundSecondary,
   },
   header: {
     flexDirection: 'row',
@@ -192,6 +193,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 12,
     padding: 16,
+    paddingHorizontal: 10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

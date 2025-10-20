@@ -149,12 +149,13 @@ export interface ProjectDocumentType {
 export interface ProjectFiltersType {
 	resident_id: number | null,
 	project_type_id: number | null,
-	project_entrance_id: number | null,
+	project_entrance_id: number | string | null,
 }
 
 export interface ProjectPaymentsFiltersType extends ProjectFiltersType {
 	floor: number | null,
 	placement_type_id: number | null,
+  project_id?: number | null
 }
 
 export interface ProjectStagesFiltersType extends ProjectFiltersType {
@@ -184,7 +185,7 @@ export interface ProjectEntranceType {
 	entrance_percent: number,
 	block_name: string,
 	contractor_name: string,
-	project_entrance_id: number
+	project_entrance_id: number | string
 }
 
 export interface ProjectEntranceAllInfoType extends ProjectEntranceType {

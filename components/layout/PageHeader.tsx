@@ -12,6 +12,7 @@ import { HeaderTitle } from "./HeaderTitle";
 import { Icon } from "../Icon";
 import { useSelector } from "react-redux";
 import { appState } from "@/services/redux/reducers/app";
+import { userAppState } from "@/services/redux/reducers/userApp";
 
 export const PageHeader = ({
   navigation,
@@ -21,6 +22,7 @@ export const PageHeader = ({
   params: any;
 }) => {
   const { pageSettings, newVersionBannerShowed } = useSelector(appState);
+  const { isOkk } = useSelector(userAppState);
   const route: { params?: { withoutLayout?: boolean; backBtn?: boolean } } =
     useRoute();
   const insets = useSafeAreaInsets();
@@ -43,15 +45,16 @@ export const PageHeader = ({
       {route?.params?.withoutLayout ? (
         <View />
       ) : (
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+        <TouchableOpacity onPress={() => isOkk && navigation.openDrawer()}>
           {(navigation.canGoBack() && route?.params?.backBtn !== false) ||
           pageSettings.backBtn ? (
             <TouchableOpacity onPress={handleBack} style={{ padding: 10 }}>
               <Icon name="back" />
             </TouchableOpacity>
           ) : (
-            <View style={{ width: 30, height: 32 }}></View>
-            // <Text style={styles.headerText}>☰</Text>
+            isOkk 
+              ? <Text style={styles.headerText}>☰</Text> 
+              : <View style={{ width: 30, height: 32 }}></View> 
           )}
         </TouchableOpacity>
       )}

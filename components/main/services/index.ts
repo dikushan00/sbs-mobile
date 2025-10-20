@@ -21,11 +21,12 @@ export const getDocuments = async (project_id: number): Promise<ProjectDocumentT
     return res?.data || [];
   } catch (e) {}
 };
-export const signDocument = async (body: {project_agreement_id: number}) => {
+export const signDocument = async (body: {project_agreement_id: number}):Promise<{redirect_url: string} | undefined> => {
   try {
     const res = await residentialSettingsAPI.signDocument(body);
     return res?.data
-  } catch (e) {}
+  } catch (e) {
+  }
 };
 export const getResidentList = async (): Promise<ResidentType[] | undefined> => {
   try {
@@ -219,6 +220,17 @@ export const getEntranceMaterials = async (params: ProjectFiltersType): Promise<
 export const getEntranceMaterialRequests = async (params: ProjectFiltersType): Promise<MaterialRequestType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getEntranceMaterialRequests(
+      params
+    );
+    return res?.data;
+  } catch (e) {}
+};
+export const createEntranceMaterialRequest = async (body: {
+  material_id: number | null, qty_sell: number | null, date_shipping: string
+}, params: ProjectFiltersType) => {
+  try {
+    const res = await residentialSettingsAPI.createEntranceMaterialRequest(
+      body,
       params
     );
     return res?.data;

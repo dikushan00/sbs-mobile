@@ -12,7 +12,7 @@ type PropsType = {
 export const HeaderTitle = ({ title }: PropsType) => {
   const route: { params?: { withDesc?: boolean; dynamicTitle?: boolean } } =
     useRoute();
-  const { pageHeaderData } = useSelector(userAppState);
+  const { pageHeaderData, isOkk } = useSelector(userAppState);
 
   const showTitle = useMemo(() => {
     if (route.params?.dynamicTitle) {
@@ -34,6 +34,7 @@ export const HeaderTitle = ({ title }: PropsType) => {
         <Text
           style={{
             ...styles.headerTextDesc,
+            fontFamily: isOkk ? FONT.bold : FONT.regular,
             color: pageHeaderData.descColor || "#404040",
             width: "85%",
             textAlign: "center",

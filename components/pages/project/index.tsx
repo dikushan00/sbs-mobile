@@ -230,7 +230,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.backgroundSecondary,
   },
   contentContainer: {
     padding: 16,

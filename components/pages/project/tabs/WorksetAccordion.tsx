@@ -109,15 +109,6 @@ export const WorkSetAccordion: React.FC<MaterialsAccordionProps> = ({ placement,
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <View style={styles.backButtonIcon}>
-            <Icon name="arrowRightAlt" width={20} height={20} fill={COLORS.gray} />
-          </View>
-          <Text style={styles.headerTitle}>{placement?.placement_type_name}</Text>
-        </TouchableOpacity>
-      </View>
-
       {placement?.work_set_check_groups.map((group) => {
         const isExpanded = expandedGroups.has(group.work_set_check_group_id);
         const statusData = getCheckStatus(group.checked_status)

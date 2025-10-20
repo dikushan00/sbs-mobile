@@ -301,14 +301,16 @@ export const Okk = () => {
             list={residentOptions}
             labelKey="resident_name"
             onChange={(id, item) => onParamsChange("resident_id", id, item)}
-            label="Выберите ЖК"
+            label="ЖК"
+            placeholder="Выберите ЖК"
             value={params.resident_id}
             valueKey="resident_id"
           />
           <CustomSelect
             list={entrances}
             onChange={(id, item) => onParamsChange("entrance", id, item)}
-            label="Выберите блок"
+            label="Блок"
+            placeholder="Выберите блок"
             valueKey="entrance"
             value={params.entrance}
           />
@@ -469,7 +471,7 @@ export const Okk = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.backgroundSecondary,
     padding: 10,
     paddingTop: 0,
   },

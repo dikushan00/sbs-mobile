@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ProjectMainDocumentType } from '@/components/main/types';
@@ -16,6 +16,7 @@ interface SignatoriesListProps {
 
 export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleClose }) => {
   const { document, onSign } = data;
+  const [loading, setLoading] = useState(false)
 
   const handleSign = useCallback(async () => {
     Alert.alert(
@@ -24,14 +25,18 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
       [
         {
           text: "Отмена",
-          style: "cancel",
+          style: "destructive",
         },
         {
           text: "Подписать",
           style: "default",
-          onPress: () => {
+          onPress: async () => {
+            setLoading(true)
+            try {
+              onSign && await onSign()
+            } catch(e) {}
+            setLoading(false)
             handleClose()
-            onSign && onSign()
           }
         },
       ]
@@ -54,7 +59,7 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
     <View style={styles.container}>
       <BottomDrawerHeader handleClose={handleClose} title={`Подписанты: ${document.work_set_check_group_name}`} />
       
-      <View style={styles.signatoriesList}>
+      <ScrollView style={styles.signatoriesList} contentContainerStyle={styles.scrollContent}>
         {document.assign_signs?.map((signatory, index) => (
           <View key={index} style={styles.signatoryCard}>
             <View style={styles.signatoryInfo}>
@@ -87,11 +92,11 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
             </View>
           </View>
         ))}
-      </View>
+      </ScrollView>
 
-      {!!signDocument && <View style={styles.actionContainer}>
+      {!!signDocument && <View style={styles.fixedActionContainer}>
         <CustomButton
-          title="Подписать"
+          title="Подписать" loading={loading}
           onClick={handleSign}
           type="contained"
           stylesProps={{ backgroundColor: COLORS.primary }}
@@ -110,8 +115,10 @@ const styles = StyleSheet.create({
   },
   signatoriesList: {
     flex: 1,
-    marginBottom: 20,
-    paddingTop: 20
+    paddingTop: 20,
+  },
+  scrollContent: {
+    paddingBottom: 100,
   },
   signatoryCard: {
     backgroundColor: COLORS.background,
@@ -143,8 +150,15 @@ const styles = StyleSheet.create({
     fontFamily: FONT.medium,
     color: COLORS.white,
   },
-  actionContainer: {
-    width: '100%',
+  fixedActionContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    paddingBottom: 30,
   },
   signButton: {
     width: '100%',

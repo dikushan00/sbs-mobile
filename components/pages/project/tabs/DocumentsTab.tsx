@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl, Linking } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes } from '@/components/main/services';
+import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, signEntranceDocument } from '@/components/main/services';
 import { DocumentTypeType, ProjectFiltersType, ProjectMainDocumentType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
-import { showBottomDrawer } from '@/services/redux/reducers/app';
+import { closeBottomDrawer, showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { NotFound } from '@/components/common/NotFound';
@@ -23,6 +23,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
   const dispatch = useDispatch();
   const [documentsData, setDocumentsData] = useState<ProjectMainDocumentType[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState<Record<number, boolean>>({});
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [floorsData, setFloorsData] = useState<SimpleFloorType[]>([]);
   const [documentTypesData, setDocumentTypesData] = useState<DocumentTypeType[]>([]);
@@ -61,14 +62,12 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     fetchDocuments();
   }, [fetchDocuments]);
 
-  // Обновляем данные при возвращении в приложение
   useFocusEffect(
     useCallback(() => {
       fetchDocuments();
     }, [fetchDocuments])
   );
 
-  // Обновляем данные при возврате приложения в активное состояние (foreground)
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
@@ -112,6 +111,38 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
         floor_map_document_id: document.floor_map_document_id
       }
     }))
+  };
+
+  const handleSign = (document: ProjectMainDocumentType) => {
+    dispatch(showBottomDrawer({
+      type: BOTTOM_DRAWER_KEYS.signatoriesList,
+      data: {
+        document,
+        onSign: async () => await confirmSign(document.floor_map_document_id)
+      }
+    }));
+  };
+
+  const confirmSign = async (floor_map_document_id: number) => {
+    if (processing[floor_map_document_id]) return;
+    setProcessing(prev => ({...prev, [floor_map_document_id]: true}));
+
+    const body = {
+      floor_map_document_id,
+    };
+
+    const res = await signEntranceDocument(body, filters);
+    setProcessing(prev => ({...prev, [floor_map_document_id]: false}));
+    dispatch(closeBottomDrawer())
+    if(!res) return;
+    try {
+      if (res?.redirect_url) {
+        const canOpen = await Linking.canOpenURL(res.redirect_url);
+        if (canOpen) {
+          await Linking.openURL(res.redirect_url);
+        }
+      }
+    } catch (error) {}
   };
 
   if (!documentsData && !loading) {
@@ -159,6 +190,8 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
             {documentsData?.map((item) => {
             const isExpanded = expandedItems.has(item.floor_map_document_id);
             const show1cInfo = isSBS && item.is_avr_sent_bi && (item.guid || item.esf_status || item.avr_code || item.error)
+
+            const canSign = item?.assign_signs?.find((signatory) => !signatory.is_signed && signatory.can_sign)
             return (
               <View key={item.floor_map_document_id} style={styles.materialContainer}>
                 <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
@@ -184,6 +217,12 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
                           <Icon name="closeCircle" width={16} height={16} fill={COLORS.gray} />
                           <Text style={styles.notSentText}>Не отправлено в 1С</Text>
                         </View>
+                  }
+                  {
+                    !item.is_signed && !item.is_avr_sent_bi && canSign && 
+                    <TouchableOpacity onPress={() => handleSign(item)} disabled={processing[item.floor_map_document_id]} style={{backgroundColor: COLORS.primary, borderRadius: 6, padding: 7, paddingHorizontal: 10}}>
+                      <Text style={{color: "#fff"}}>Подписать</Text>
+                    </TouchableOpacity>
                   }
                 </View>
                 <View style={{marginTop: 15}}>
