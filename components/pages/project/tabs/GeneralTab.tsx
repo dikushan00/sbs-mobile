@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.background,
     gap: 5,
   },
 });

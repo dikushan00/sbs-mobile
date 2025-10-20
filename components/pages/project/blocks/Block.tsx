@@ -18,12 +18,12 @@ export const BlockContainer = ({ children }: { children: React.ReactNode }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.background,
   },
   contentContainer: {
     padding: 16,
     gap: 12,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.background,
   },
   block: {
     backgroundColor: COLORS.white,

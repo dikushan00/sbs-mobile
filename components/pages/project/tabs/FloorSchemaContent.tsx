@@ -165,7 +165,7 @@ export const FloorSchemaContent = ({ filters, onBack, selectedData }: FloorSchem
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundSecondary,
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',

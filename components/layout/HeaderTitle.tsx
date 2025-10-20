@@ -37,6 +37,7 @@ export const HeaderTitle = ({ title }: PropsType) => {
             fontFamily: isOkk ? FONT.bold : FONT.regular,
             color: pageHeaderData.descColor || "#404040",
             width: "85%",
+            // width: "100%",
             textAlign: "center",
           }}
         >
@@ -50,7 +51,9 @@ export const HeaderTitle = ({ title }: PropsType) => {
 const styles = StyleSheet.create({
   headerContainer: {
     alignItems: "center",
-    minWidth: 190
+    minWidth: 190,
+    // justifyContent: "center",
+    // width: "100%",
   },
   headerText: {
     fontFamily: FONT.semiBold,

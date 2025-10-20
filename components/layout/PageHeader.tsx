@@ -38,6 +38,7 @@ export const PageHeader = ({
       style={{
         ...styles.header,
         justifyContent: "space-between",
+        position: "relative",
         paddingTop:
           Platform.OS === "ios" ? (newVersionBannerShowed ? 0 : insets.top) : 0,
       }}
@@ -58,7 +59,9 @@ export const PageHeader = ({
           )}
         </TouchableOpacity>
       )}
-      <HeaderTitle title={params?.title} />
+      <View style={styles.centerTitleContainer}>
+        <HeaderTitle title={params?.title} />
+      </View>
       <HeaderRight />
     </View>
   );
@@ -72,6 +75,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     height: Platform.OS === "ios" ? "auto" : 56,
     paddingVertical: Platform.OS === "ios" ? 10 : 0,
+  },
+  centerTitleContainer: {
+    position: "absolute",
+    left: 60,
+    right: 60,
+    top: Platform.OS === "ios" ? 30 : 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    pointerEvents: "none",
   },
   headerText: {
     fontSize: Platform.OS === "ios" ? 30 : 24,

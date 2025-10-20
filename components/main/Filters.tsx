@@ -35,15 +35,11 @@ export const MainPageFilters = ({ onChange, filters, onRefresh }: PropsType) => 
   };
 
   const refreshAllLists = useCallback(async () => {
-    // Обновляем список жителей
     await getResidents();
     
-    // Если выбран житель, обновляем типы проектов
     if (filters?.resident_id) {
       await getProjectTypesData(filters.resident_id);
     }
-    
-    // Если выбраны житель и тип проекта, обновляем подъезды
     if (filters?.resident_id && filters?.project_type_id) {
       await getEntrances(filters);
     }
@@ -58,7 +54,6 @@ export const MainPageFilters = ({ onChange, filters, onRefresh }: PropsType) => 
     }
   }, [])
 
-  // Эффект для обновления списков при свайпе
   useEffect(() => {
     if (onRefresh && onRefresh > 0) {
       refreshAllLists();
@@ -87,7 +82,7 @@ export const MainPageFilters = ({ onChange, filters, onRefresh }: PropsType) => 
   return (
     <View style={{ gap: 20 }}>
       <CustomSelect
-        list={residents}
+        list={residents} alt
         labelKey="resident_name"
         onChange={(id, item) => onFiltersChange("resident_id", id, item)}
         label="Выберите ЖК" required
@@ -95,7 +90,7 @@ export const MainPageFilters = ({ onChange, filters, onRefresh }: PropsType) => 
         valueKey="resident_id"
       />
       <CustomSelect
-        list={projectTypes}
+        list={projectTypes} alt
         labelKey="project_type_name"
         onChange={(id, item) => onFiltersChange("project_type_id", id, item)}
         label="Тип проекта" required
@@ -103,7 +98,7 @@ export const MainPageFilters = ({ onChange, filters, onRefresh }: PropsType) => 
         valueKey="project_type_id"
       />
       <CustomSelect
-        list={entrances}
+        list={entrances} alt
         onChange={(id, item) =>
           onFiltersChange("project_entrance_id", id, item)
         }

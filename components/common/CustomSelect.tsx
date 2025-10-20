@@ -68,7 +68,7 @@ export const CustomSelect = (props: CustomSelectProps) => {
         style={{
           padding: 10,
           paddingHorizontal: 16,
-          backgroundColor: "#f0f0f0",
+          backgroundColor: props.alt ? COLORS.background : "#f0f0f0",
           borderRadius: 12,
           width: "100%",
           height: 48,
