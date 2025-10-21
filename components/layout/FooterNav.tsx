@@ -9,9 +9,9 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS, PAGE_NAMES } from "@/constants";
-import { FontAwesome5 } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { appState } from "@/services/redux/reducers/app";
+import { Icon } from "../Icon";
 
 export const FooterNav = () => {
   const navigation = useNavigation();
@@ -40,11 +40,9 @@ export const FooterNav = () => {
         style={styles.item}
         onPress={() => goTo(PAGE_NAMES.main)}
       >
-        <FontAwesome5
-          name="tasks"
-          size={20}
-          color={isActive(PAGE_NAMES.main) ? COLORS.primary : "#666"}
-        />
+        <Icon name="documentAlt"
+          fill={isActive(PAGE_NAMES.main) ? COLORS.primary : "#D1D5DB"}
+          width={20} height={20} />
         <Text
           style={[styles.label, isActive(PAGE_NAMES.main) && styles.activeText]}
         >
@@ -56,11 +54,9 @@ export const FooterNav = () => {
         style={styles.item}
         onPress={() => goTo(PAGE_NAMES.profile)}
       >
-        <FontAwesome5
-          name="user"
-          size={20}
-          color={isActive(PAGE_NAMES.profile) ? COLORS.primary : "#666"}
-        />
+        <Icon name="profile"
+          fill={isActive(PAGE_NAMES.profile) ? COLORS.primary : "#D1D5DB"}
+          width={20} height={20} />
         <Text
           style={[
             styles.label,
@@ -92,7 +88,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: "#666",
+    color: "#9CA3AF",
   },
   activeText: {
     color: COLORS.primary,
