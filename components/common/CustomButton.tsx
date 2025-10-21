@@ -68,7 +68,7 @@ export const CustomButton = ({
           ? COLORS.disabled
           : COLORS.primaryDisabled
         : COLORS.primary
-      : disabled ? COLORS.darkGray : COLORS.white;
+      : disabled ? '#757575' : COLORS.white;
   }, [type, disabled, color]);
 
   const handleClick = () => {

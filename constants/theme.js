@@ -3,7 +3,7 @@ const COLORS = {
   primaryLight: "#0060FE",
   red: "red",
   primaryDisabled: "rgba(19, 116, 207, 0.25)",
-  disabled: "#dedede",
+  disabled: "#F2F2F2",
   primaryBorder: "rgba(19, 116, 207, 0.5)",
   backgroundWhite: "#fff",
   background: "#F2F5F8",
