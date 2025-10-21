@@ -320,19 +320,6 @@ export const Schema = ({
                           pointerEvents="auto"
                         />
                       ))}
-
-                    {/* {displayedSize &&
-                      data?.points?.map((pt: PointCoordType) => (
-                        pt.coord_type === 'LINESTRING' && <Line
-                          key={String(pt.floor_param_id)}
-                          x1={pt.points[0][0] * displayedSize.scale + displayedSize.offsetX}
-                          y1={pt.points[0][1] * displayedSize.scale + displayedSize.offsetY}
-                          x2={pt.points[1][0] * displayedSize.scale + displayedSize.offsetX}
-                          y2={pt.points[1][1] * displayedSize.scale + displayedSize.offsetY}
-                          stroke={pt.floor_param_type_color || "#333"}
-                          strokeWidth={1.5}
-                        />
-                      ))} */}
                     {activePoint && displayedSize && (
                       <Circle
                         cx={

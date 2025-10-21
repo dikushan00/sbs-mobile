@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { COLORS } from '@/constants';
 import { FloorMapWorkSetsResponseType, FloorSchemaResRefactorType, ProjectFloorType, SelectedDataType, FlatType, WorkSetType, WorkSetFloorParamType } from '@/components/main/types';
 import { CustomTabs } from '@/components/common/CustomTabs';
@@ -10,8 +10,10 @@ import { setPageSettings } from '@/services/redux/reducers/app';
 import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/reducers/userApp';
 import { getFloorSchema, getFloorWorkSets, getFloorWorkSetParams } from '@/components/main/services';
 import { CustomLoader } from '@/components/common/CustomLoader';
+import { CustomButton } from '@/components/common/CustomButton';
 import { FloorSchema } from '../FloorSchema';
 import { MaterialsFloorTab } from './MaterialsFloorTab';
+import { Icon } from '@/components/Icon';
 
 interface FloorDetailProps {
   floor: {floor_map_id: number, floor: number | string};
@@ -28,6 +30,14 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
   const [selectedFlat, setSelectedFlat] = useState<FlatType | null>(null);
   const [selectedWorkSet, setSelectedWorkSet] = useState<WorkSetType | null>(null);
   const [workSetParams, setWorkSetParams] = useState<WorkSetFloorParamType[] | null>(null);
+  const [showCheckBtn, setShowCheckBtn] = useState(false);
+  const [showCheckPoints, setShowCheckPoints] = useState(false);
+
+  useEffect(() => {
+    getFloorWorkSets(floor.floor_map_id).then(res => {
+      setShowCheckBtn(!!res?.is_defect_exist)
+    })
+  }, [floor.floor_map_id])
 
   const getFloorSchemaData = async () => {
     setIsFetching(true);
@@ -54,7 +64,6 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
     getFloorWorkSetsData()
   }, [floor.floor_map_id]);
 
-  // Получаем параметры конструктива при его выборе
   useEffect(() => {
     if (selectedWorkSet) {
       getWorkSetParamsData(selectedWorkSet.work_set_id);
@@ -74,6 +83,13 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
     }));
   }, [floor.floor, onBack, dispatch, selectedData]);
 
+  useEffect(() => {
+    if(activeTab === 'scheme')
+      dispatch(setUserPageHeaderData({
+        title: 'Схема этажа',
+      }));
+  }, [activeTab]);
+
   const tabsData = [
     { label: 'Схема этажа', value: 'scheme' },
     { label: 'Материалы', value: 'materials' }
@@ -88,7 +104,6 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
     return null;
   };
 
-  // Получаем все work sets из workSets
   const getAllWorkSets = () => {
     if (!workSets?.data) return [];
     
@@ -124,10 +139,28 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
         </View>
       </View>
       <View style={styles.schemaContainer}>
+       {showCheckBtn && <View style={styles.schemaHeader}>
+          <TouchableOpacity
+            onPress={() => setShowCheckPoints(prev => !prev)}
+            style={{
+              padding: 10,
+              backgroundColor: 'rgba(255, 59, 59, 0.1)',
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: 'rgba(255, 59, 59, 0.5)',
+            }}
+          >
+            <Text style={{color: COLORS.primary}}>
+              <Icon name={showCheckPoints ? 'close' : 'infoOutline'} stroke={showCheckPoints ? 'red' : ''}
+               fill='#FF3B3B' width={20} height={20} />
+            </Text>
+          </TouchableOpacity>
+        </View>}
         <FloorSchema 
           data={floorSchema} 
           selectedFlat={selectedFlat}
           workSetParams={workSetParams}
+          showCheckPoints={showCheckPoints}
           handlePress={() => {}} 
         />
       </View>
@@ -136,7 +169,7 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
 
   const renderMaterialsContent = () => (
     <View style={styles.tabContent}>
-      <MaterialsFloorTab floor_map_id={floor.floor_map_id} />
+      <MaterialsFloorTab floor_map_id={floor.floor_map_id} onBack={onBack} />
     </View>
   );
 
@@ -180,6 +213,12 @@ const styles = StyleSheet.create({
   },
   schemaContainer: {
     marginBottom: 16,
+  },
+  schemaHeader: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
   },
   filterIndicator: {
     backgroundColor: COLORS.primaryLight,

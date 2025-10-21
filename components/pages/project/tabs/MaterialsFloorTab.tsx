@@ -7,15 +7,31 @@ import { MaterialsList } from '@/components/pages/project/tabs/MaterialsList';
 import { MaterialsAccordion } from '@/components/pages/project/tabs/MaterialsAccordion';
 import { BlockItem } from '@/components/common/BlockItem';
 import { CustomLoader } from '@/components/common/CustomLoader';
+import { useDispatch } from 'react-redux';
+import { setPageSettings } from '@/services/redux/reducers/app';
+import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 
 interface MaterialsFloorTabProps {  
   floor_map_id: number;
+  onBack: () => void;
 }
 
-export const MaterialsFloorTab: React.FC<MaterialsFloorTabProps> = ({ floor_map_id }) => {
+export const MaterialsFloorTab: React.FC<MaterialsFloorTabProps> = ({ floor_map_id, onBack }) => {
+  const dispatch = useDispatch()
   const [materialsData, setMaterialsData] = useState<WorkSetsMaterialsResponseType | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPlacement, setSelectedPlacement] = useState<FloorMapWorkSetWithMaterialsType | null>(null);
+
+  useEffect(() => {
+    if(!selectedPlacement) {
+      dispatch(setPageSettings({goBack: onBack}))
+      dispatch(
+        setPageHeaderData({
+          title: 'Материалы',
+        })
+      );
+    } 
+  }, [selectedPlacement]);
 
   useEffect(() => {
     const fetchMaterials = async () => {

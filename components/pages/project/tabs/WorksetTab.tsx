@@ -9,6 +9,7 @@ import { WorkSetAccordion } from './WorksetAccordion';
 import { Icon } from '@/components/Icon';
 import { useDispatch } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
+import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 
 interface MaterialsTabProps {
   floor_map_id: number;
@@ -37,6 +38,11 @@ export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id, onBack }
       dispatch(setPageSettings({goBack: () => setSelectedPlacement(null)}))
     } else {
       dispatch(setPageSettings({goBack: onBack}))
+      dispatch(
+        setPageHeaderData({
+          title: 'Вызок ОКК',
+        })
+      );
     }
   }, [selectedPlacement]);
 

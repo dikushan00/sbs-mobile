@@ -1,5 +1,5 @@
 import { instance } from "@/services/api";
-import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType, SimpleFloorType, PlacementType, DocumentTypeType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectCheckType, ProjectStagesChecksParamsType } from "../types";
+import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType, SimpleFloorType, PlacementType, DocumentTypeType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectCheckType, ProjectStagesChecksParamsType, FloorCheckPoint, FloorCheckPointInfo } from "../types";
 import { ReqResponse } from "@/services/types";
 import { ProjectStageType, ProjectWorkSetType } from "../types";
 import { ProjectStagesFiltersType } from "../types";
@@ -181,12 +181,12 @@ export const residentialSettingsAPI = {
       .post(`/project/documents/sign/`, body, { params })
       .then((res) => res?.data);
   },
-  async getFloorMapPoints(floor_map_id: number, params = {}) {
+  async getFloorMapPoints(floor_map_id: number, params = {}):Promise<ReqResponse<FloorCheckPoint[] | undefined>> {
     return await instance()
       .get(`/project/floor_map/${floor_map_id}/check_points/read/`, { params })
       .then((res) => res?.data);
   },
-  async getFloorMapPointInfo(floor_map_id: number, call_check_list_point_id: number) {
+  async getFloorMapPointInfo(floor_map_id: number, call_check_list_point_id: number):Promise<ReqResponse<FloorCheckPointInfo | undefined>> {
     return await instance()
       .get(
         `/project/floor_map/${floor_map_id}/check_points/${call_check_list_point_id}/info/`

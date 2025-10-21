@@ -510,3 +510,16 @@ export interface ProjectWorkSetType {
 	work_set_check_groups: ProjectWorkSetCheckGroupType[];
 }
 
+export interface FloorCheckPoint {
+  call_check_list_point_id: number
+  is_accepted: boolean | null
+  x: number
+  y: number
+}
+
+export interface FloorCheckPointInfo {
+  check_name: string
+  comments: string | null
+  file_urls: string[]
+  is_accepted: boolean | null
+}

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout, userAppState } from "@/services/redux/reducers/userApp";
 import { AppDispatch } from "@/services/redux";
 import { COLORS } from "@/constants";
+import { NavigationLayout } from "@/components/layout/NavigationLayout";
 
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -32,66 +33,68 @@ export default function ProfilePage() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
-            {userData?.image_url ? (
-              <Image source={{ uri: userData.image_url }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>
-                  {userData?.fio ? userData.fio.charAt(0).toUpperCase() : 'U'}
-                </Text>
+    <NavigationLayout>
+      <ScrollView style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.profileHeader}>
+            <View style={styles.avatarContainer}>
+              {userData?.image_url ? (
+                <Image source={{ uri: userData.image_url }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarText}>
+                    {userData?.fio ? userData.fio.charAt(0).toUpperCase() : 'U'}
+                  </Text>
+                </View>
+              )}
+            </View>
+            
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>{userData?.fio || 'Не указано'}</Text>
+              <Text style={styles.userPosition}>{userData?.position_name || 'Не указано'}</Text>
+            </View>
+          </View>
+
+          <View style={styles.detailsSection}>
+            <View style={styles.detailItem}>
+              <Icon name="work" width={20} height={20} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Компания</Text>
+                <Text style={styles.detailValue}>{userData?.company_name || 'Не указано'}</Text>
               </View>
-            )}
-          </View>
-          
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>{userData?.fio || 'Не указано'}</Text>
-            <Text style={styles.userPosition}>{userData?.position_name || 'Не указано'}</Text>
-          </View>
-        </View>
-
-        <View style={styles.detailsSection}>
-          <View style={styles.detailItem}>
-            <Icon name="work" width={20} height={20} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Компания</Text>
-              <Text style={styles.detailValue}>{userData?.company_name || 'Не указано'}</Text>
             </View>
-          </View>
 
-          <View style={styles.detailItem}>
-            <Icon name="map" width={20} height={20} fill={COLORS.primaryLight} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Город</Text>
-              <Text style={styles.detailValue}>{userData?.city_name || 'Не указано'}</Text>
+            <View style={styles.detailItem}>
+              <Icon name="map" width={20} height={20} fill={COLORS.primaryLight} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Город</Text>
+                <Text style={styles.detailValue}>{userData?.city_name || 'Не указано'}</Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.detailItem}>
-            <Icon name="people" width={20} height={20} fill={COLORS.primaryLight} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Email</Text>
-              <Text style={styles.detailValue}>{userData?.email || 'Не указано'}</Text>
+            <View style={styles.detailItem}>
+              <Icon name="people" width={20} height={20} fill={COLORS.primaryLight} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Email</Text>
+                <Text style={styles.detailValue}>{userData?.email || 'Не указано'}</Text>
+              </View>
             </View>
-          </View>
-          <View style={styles.detailItem}>
-            <Icon name="info" width={20} height={20} fill={COLORS.primaryLight} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>ID сотрудника</Text>
-              <Text style={styles.detailValue}>{userData?.employee_id || 'Не указано'}</Text>
+            <View style={{...styles.detailItem, borderBottomWidth: 0}}>
+              <Icon name="info" width={20} height={20} fill={COLORS.primaryLight} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>ID сотрудника</Text>
+                <Text style={styles.detailValue}>{userData?.employee_id || 'Не указано'}</Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
-      
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Icon name="logout" width={20} height={20} />
-        <Text style={styles.logoutText}>Выйти</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Icon name="logout" width={20} height={20} />
+          <Text style={styles.logoutText}>Выйти</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </NavigationLayout>
   );
 }
 
@@ -165,6 +168,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderRadius: 12,
     padding: 20,
+    paddingVertical: 10,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

@@ -59,7 +59,7 @@ export const PageHeader = ({
           )}
         </TouchableOpacity>
       )}
-      <View style={styles.centerTitleContainer}>
+      <View style={{...styles.centerTitleContainer, top: Platform.OS === "ios" ? insets.top - 10 : 0}}>
         <HeaderTitle title={params?.title} />
       </View>
       <HeaderRight />

@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { FloorMapWorkSetWithMaterialsType, WorkSetCheckGroupWithMaterialsType, WorkSetMaterialType, WorkSetType } from '@/components/main/types';
 import { numberWithCommas } from '@/utils';
+import { useDispatch } from 'react-redux';
+import { setPageSettings } from '@/services/redux/reducers/app';
+import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 
 interface MaterialsAccordionProps {
   placement: FloorMapWorkSetWithMaterialsType;
@@ -12,7 +15,19 @@ interface MaterialsAccordionProps {
 }
 
 export const MaterialsAccordion: React.FC<MaterialsAccordionProps> = ({ placement, onBack }) => {
+  const dispatch = useDispatch()
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if(placement) {
+      dispatch(setPageSettings({goBack: onBack}))
+      dispatch(
+        setPageHeaderData({
+          title: `Материалы (${placement.placement_type_name})`,
+        })
+      );
+    } 
+  }, [placement]);
 
   const toggleGroup = (groupId: number) => {
     const newExpanded = new Set(expandedGroups);
@@ -30,15 +45,6 @@ export const MaterialsAccordion: React.FC<MaterialsAccordionProps> = ({ placemen
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <View style={styles.backButtonIcon}>
-            <Icon name="arrowRightAlt" width={20} height={20} fill={COLORS.gray} />
-          </View>
-          <Text style={styles.headerTitle}>{placement?.placement_type_name}</Text>
-        </TouchableOpacity>
-      </View>
-
       {placement.work_set_check_groups.map((group) => {
         const isExpanded = expandedGroups.has(group.work_set_check_group_id);
         const groupTotal = calculateGroupTotal(group);

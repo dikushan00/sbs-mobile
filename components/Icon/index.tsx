@@ -17,6 +17,7 @@ import Check from "@/assets/icons/check.svg";
 import CheckCircle from "@/assets/icons/check-circle.svg";
 import CheckCircleBlue from "@/assets/icons/check-circle-blue.svg";
 import Info from "@/assets/icons/info.svg";
+import InfoOutline from "@/assets/icons/info_outline.svg";
 import Folder from "@/assets/icons/folder.svg";
 import Map from "@/assets/icons/map.svg";
 import Materials from "@/assets/icons/materials.svg";
@@ -57,6 +58,7 @@ const icons = {
   back: Back,
   cloud: Cloud,
   info: Info,
+  infoOutline: InfoOutline,
   folder: Folder,
   map: Map,
   materials: Materials,

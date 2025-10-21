@@ -3,7 +3,7 @@ import { userAppState } from "@/services/redux/reducers/userApp";
 import { cutString } from "@/utils";
 import { useRoute } from "@react-navigation/native";
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Platform} from "react-native";
 import { useSelector } from "react-redux";
 
 type PropsType = {
@@ -37,7 +37,6 @@ export const HeaderTitle = ({ title }: PropsType) => {
             fontFamily: isOkk ? FONT.bold : FONT.regular,
             color: pageHeaderData.descColor || "#404040",
             width: "85%",
-            // width: "100%",
             textAlign: "center",
           }}
         >
@@ -52,11 +51,9 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: "center",
     minWidth: 190,
-    // justifyContent: "center",
-    // width: "100%",
   },
   headerText: {
-    fontFamily: FONT.semiBold,
+    fontFamily: Platform.OS === 'ios' ? FONT.semiBold : FONT.mediumRoboto,
     fontWeight: 600,
     fontSize: 16,
     textAlign: "center",

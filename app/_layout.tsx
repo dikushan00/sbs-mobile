@@ -21,6 +21,7 @@ import { Roboto_500Medium } from "@expo-google-fonts/dev";
 import {
   Roboto_900Black as RobotoBlack,
   Roboto_700Bold as RobotoBold,
+  Roboto_500Medium as RobotoMedium,
   Roboto_400Regular as RobotoRegular,
   Roboto_100Thin as RobotoThin,
 } from "@expo-google-fonts/roboto";
@@ -89,6 +90,7 @@ export const Content = () => {
     RobotoBlack,
     RobotoThin,
     Roboto_500Medium,
+    RobotoMedium,
     ...FontAwesome.font,
   });
   const { init, webViewMode, networkWasOff, modal, bottomDrawerData } =

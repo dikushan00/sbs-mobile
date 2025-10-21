@@ -14,6 +14,7 @@ import { PaymentActions } from "./content/paymentActions";
 import { StagesActions } from "./content/stagesActions";
 import { SignatoriesList } from "./content/signatoriesList";
 import { DatePicker } from "./content/datePicker";
+import { PointInfo } from "./content/pointInfo";
 import {
   ConfirmDrawerType,
   SelectModuleProps,
@@ -24,6 +25,7 @@ import {
   StagesActionsDrawerType,
   SignatoriesListDrawerType,
   DatePickerDrawerType,
+  PointInfoDrawerType,
 } from "./types";
 
 export const BOTTOM_DRAWER_KEYS = {
@@ -39,6 +41,7 @@ export const BOTTOM_DRAWER_KEYS = {
   stagesActions: "stagesActions",
   signatoriesList: "signatoriesList",
   datePicker: "datePicker",
+  pointInfo: "pointInfo",
 } as const;
 
 export const getBottomDrawerContent = (isOkk = false) => ({
@@ -125,5 +128,12 @@ export const getBottomDrawerContent = (isOkk = false) => ({
       handleClose: () => void;
     }>,
     snapPoints: ['90%'],
+  },
+  [BOTTOM_DRAWER_KEYS.pointInfo]: {
+    component: PointInfo as React.FC<{
+      data: PointInfoDrawerType;
+      handleClose: () => void;
+    }>,
+    snapPoints: [400],
   },
 });

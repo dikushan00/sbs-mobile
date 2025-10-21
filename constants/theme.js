@@ -57,6 +57,7 @@ export const THEMES = {
 const FONT = {
   regular: "RobotoRegular",
   medium: "Roboto_500Medium",
+  mediumRoboto: "RobotoMedium",
   semiBold: "RobotoMono_600SemiBold",
   bold: "RobotoBold",
 };

@@ -1,7 +1,7 @@
 import { FileType } from "@/services/types";
 import { CustomSelectProps } from "../common/CustomSelect";
 import { PointType } from "../pages/okk/services";
-import { MaterialRequestType, ProjectFiltersType, ProjectMainDocumentType, ProjectPaymentType, ProjectStageType } from "../main/types";
+import { MaterialRequestType, ProjectFiltersType, ProjectMainDocumentType, ProjectPaymentType, ProjectStageType, FloorCheckPointInfo, FloorCheckPoint } from "../main/types";
 import { BOTTOM_DRAWER_KEYS } from "./services";
 
 export type BottomDrawerContentKeys = keyof typeof BOTTOM_DRAWER_KEYS;
@@ -73,6 +73,11 @@ export type DatePickerDrawerType = {
   onConfirm: (date: Date) => void;
 };
 
+export type PointInfoDrawerType = {
+  floor_map_id: number;
+  point: FloorCheckPoint;
+};
+
 export type BottomDrawerDataType = {
   show: boolean;
   data: any;
@@ -91,6 +96,7 @@ type BottomDrawerPayloadMap = {
   [BOTTOM_DRAWER_KEYS.stagesActions]: StagesActionsDrawerType;
   [BOTTOM_DRAWER_KEYS.signatoriesList]: SignatoriesListDrawerType;
   [BOTTOM_DRAWER_KEYS.datePicker]: DatePickerDrawerType;
+  [BOTTOM_DRAWER_KEYS.pointInfo]: PointInfoDrawerType;
 };
 
 export type BottomDrawerPayload<T extends BottomDrawerContentKeys | null> = {

@@ -1,4 +1,4 @@
-import { CompleteWorkSetBodyType, DocumentTypeType, FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, MaterialRequestType, MaterialType, PlacementType, ProjectDocumentType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectMainDocumentType, ProjectTypeType, ResidentType, SimpleFloorType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectStagesFiltersType, ProjectStageType, ProjectStagesChecksParamsType, ProjectWorkSetType } from "../types";
+import { CompleteWorkSetBodyType, DocumentTypeType, FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, MaterialRequestType, MaterialType, PlacementType, ProjectDocumentType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectMainDocumentType, ProjectTypeType, ResidentType, SimpleFloorType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectStagesFiltersType, ProjectStageType, ProjectStagesChecksParamsType, ProjectWorkSetType, FloorCheckPoint, FloorCheckPointInfo } from "../types";
 import { residentialSettingsAPI } from "./api";
 import { ProjectCheckType } from "../types";
 
@@ -307,7 +307,7 @@ export const signEntranceDocument = async (body: {floor_map_document_id: number}
     return res?.data;
   } catch (e) {}
 };
-export const getFloorMapPoints = async (floor_map_id: number, params: ProjectFiltersType) => {
+export const getFloorMapPoints = async (floor_map_id: number, params: any):Promise<FloorCheckPoint[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getFloorMapPoints(
       floor_map_id,
@@ -319,7 +319,7 @@ export const getFloorMapPoints = async (floor_map_id: number, params: ProjectFil
 export const getFloorMapPointInfo = async (
   floor_map_id: number,
   call_check_list_point_id: number
-) => {
+):Promise<FloorCheckPointInfo | undefined> => {
   try {
     const res = await residentialSettingsAPI.getFloorMapPointInfo(
       floor_map_id,

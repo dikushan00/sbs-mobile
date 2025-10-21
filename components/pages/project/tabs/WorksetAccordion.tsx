@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
@@ -6,6 +6,8 @@ import { FloorMapWorkSetsResponseType, FloorMapWorkSetType, WorkSetType } from '
 import { numberWithCommas } from '@/utils';
 import { completeWorkSet, callOKK } from '@/components/main/services';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
+import { useDispatch } from 'react-redux';
+import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 
 interface MaterialsAccordionProps {
   placement: FloorMapWorkSetType;
@@ -15,12 +17,21 @@ interface MaterialsAccordionProps {
 }
 
 export const WorkSetAccordion: React.FC<MaterialsAccordionProps> = ({ placement, onBack, floor_map_id, setWorkSets }) => {
+  const dispatch = useDispatch()
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [groupCheckLoadingStates, setGroupCheckLoadingStates] = useState<Set<number>>(new Set());
   const [okkLoadingStates, setOkkLoadingStates] = useState<Set<string>>(new Set());
   const [workSetLoadingStates, setWorkSetLoadingStates] = useState<Set<number>>(new Set());
 
   const { showSuccessSnackbar } = useSnackbar();
+
+  useEffect(() => {
+    dispatch(
+      setPageHeaderData({
+        title: `Вызок ОКК (${placement.placement_type_name})`,
+      })
+    );
+  }, [placement])
 
   const toggleGroup = (groupId: number) => {
     const newExpanded = new Set(expandedGroups);

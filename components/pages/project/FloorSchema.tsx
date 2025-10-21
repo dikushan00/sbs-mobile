@@ -23,9 +23,13 @@ import Animated, {
   useSharedValue,
 } from "react-native-reanimated";
 import Svg, { Circle, Line, Text as SvgText } from "react-native-svg";
-import { FloorSchemaResRefactorType, FlatType, WorkSetFloorParamType } from "@/components/main/types";
-import { downloadSchemaImage, getImageSize } from "../okk/services";
+import { FloorSchemaResRefactorType, FlatType, WorkSetFloorParamType, FloorCheckPoint } from "@/components/main/types";
+import { downloadSchemaImage, getCircleRadius, getCircleStrokeWidth, getImageSize, PointType } from "../okk/services";
 import { SchemaZoomControl } from "../okk/SchemaZoomControl";
+import { getFloorMapPoints } from "@/components/main/services";
+import { useDispatch } from "react-redux";
+import { showBottomDrawer } from "@/services/redux/reducers/app";
+import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/services";
 
 const { width } = Dimensions.get("window");
 export const schemaHeight = 400;
@@ -34,14 +38,18 @@ type PropsType = {
   data: FloorSchemaResRefactorType | null;
   selectedFlat: FlatType | null;
   workSetParams: WorkSetFloorParamType[] | null;
+  showCheckPoints?: boolean;
   handlePress: (event: any) => void;
 };
 export const FloorSchema = ({
   data,
   selectedFlat,
   workSetParams,
+  showCheckPoints = true,
   handlePress,
 }: PropsType) => {
+  const dispatch = useDispatch();
+  const [checkPoints, setCheckPoints] = useState<FloorCheckPoint[]>([]);
   const [downloaded, setDownloaded] = useState(false);
   const [zoomValue, setZoomValue] = useState(1);
   const panRef = useRef(null);
@@ -53,9 +61,7 @@ export const FloorSchema = ({
   const baseScale = useSharedValue(1);
   const pinchScale = useSharedValue(1);
   const isPinching = useSharedValue(false);
-
-  console.log(data)
-
+  
   const [imageSize, setImageSize] = useState<{
     width: number;
     height: number;
@@ -66,6 +72,15 @@ export const FloorSchema = ({
     const fileName = data?.floor_map.image_url.split("/").reverse()[0];
     return fileName;
   }, [data]);
+
+  useEffect(() => {
+    if(data?.floor_map.floor_map_id) {
+      getFloorMapPoints(data?.floor_map.floor_map_id, {}).then((res) => {
+        if(!res) return;
+        setCheckPoints(res);
+      });
+    }
+  }, [data?.floor_map]);
 
   const checkIfFileExist = useCallback(async () => {
     if (!schemaFileName) return;
@@ -179,7 +194,6 @@ export const FloorSchema = ({
     checkIfFileExist();
   }, [checkIfFileExist]);
 
-  // Получаем ID параметров конструктива для подсветки
   const workSetParamIds = useMemo(() => {
     if (!workSetParams || workSetParams.length === 0) return new Set();
     return new Set(workSetParams.map(param => param.floor_param_id));
@@ -231,6 +245,34 @@ export const FloorSchema = ({
 
     const newPoint = { x: xOnImage, y: yOnImage };
     handlePress(newPoint);
+  };
+    
+  const getCircleStrokeColor = (
+    pt: FloorCheckPoint,
+  ) => {
+    if (pt.is_accepted) return "#006600";
+    if (pt.is_accepted === false) return "red";
+    return COLORS.primary;
+  };
+
+  const getPointBackground = (pt: FloorCheckPoint) => {
+    if (pt.is_accepted) return "green";
+    if (pt.is_accepted === false) return "red";
+    return COLORS.primary;
+  };
+
+  const showPointData = (pt: FloorCheckPoint) => {
+    if (!data?.floor_map.floor_map_id) {
+      return;
+    }
+    
+    dispatch(showBottomDrawer({
+      type: BOTTOM_DRAWER_KEYS.pointInfo,
+      data: {
+        floor_map_id: data.floor_map.floor_map_id,
+        point: pt
+      }
+    }));
   };
 
   return (
@@ -310,7 +352,6 @@ export const FloorSchema = ({
                           />
                         })}
                         
-                        {/* Отрисовка кругов */}
                         {filteredCircles?.map((circle) => (
                           <Circle
                             key={String(circle.floor_param_id)}
@@ -323,7 +364,6 @@ export const FloorSchema = ({
                           />
                         ))}
                         
-                        {/* Отрисовка текстов */}
                         {filteredTexts?.map((text) => (
                           <SvgText
                             key={String(text.floor_param_id)}
@@ -336,6 +376,31 @@ export const FloorSchema = ({
                             {text.frame_name}
                           </SvgText>
                         ))}
+                        {displayedSize && showCheckPoints && checkPoints && checkPoints.length > 0 && (
+                          <>
+                            {checkPoints.map((pt: FloorCheckPoint) => {
+                              const circleX = pt.x * displayedSize.scale + displayedSize.offsetX;
+                              const circleY = pt.y * displayedSize.scale + displayedSize.offsetY;
+                              const circleRadius = getCircleRadius(zoomValue);
+                              
+                              return (
+                                <Circle
+                                  key={String(pt.call_check_list_point_id)}
+                                  cx={circleX}
+                                  cy={circleY}
+                                  r={String(Math.max(circleRadius, 3))}
+                                  fill={getPointBackground(pt)}
+                                  stroke={getCircleStrokeColor(pt)}
+                                  strokeWidth={Math.max(getCircleStrokeWidth(zoomValue), 1)}
+                                  onPressIn={() => {
+                                    showPointData(pt);
+                                  }}
+                                  pointerEvents="auto"
+                                />
+                              );
+                            })}
+                          </>
+                        )}
                       </>
                     )}
                   </Svg>
@@ -357,7 +422,6 @@ const styles = StyleSheet.create({
     height: schemaHeight,
   },
   image: {
-    // width: width,
     height: schemaHeight,
     objectFit: "contain",
     opacity: 0.7,
