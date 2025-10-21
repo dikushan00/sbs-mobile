@@ -10,7 +10,6 @@ import { setPageSettings } from '@/services/redux/reducers/app';
 import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/reducers/userApp';
 import { getFloorSchema, getFloorWorkSets, getFloorWorkSetParams } from '@/components/main/services';
 import { CustomLoader } from '@/components/common/CustomLoader';
-import { CustomButton } from '@/components/common/CustomButton';
 import { FloorSchema } from '../FloorSchema';
 import { MaterialsFloorTab } from './MaterialsFloorTab';
 import { Icon } from '@/components/Icon';
