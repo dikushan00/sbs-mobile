@@ -16,6 +16,7 @@ import Back from "@/assets/icons/back.svg";
 import Check from "@/assets/icons/check.svg";
 import CheckCircle from "@/assets/icons/check-circle.svg";
 import CheckCircleBlue from "@/assets/icons/check-circle-blue.svg";
+import Success from "@/assets/icons/success.svg";
 import Info from "@/assets/icons/info.svg";
 import InfoOutline from "@/assets/icons/info_outline.svg";
 import Folder from "@/assets/icons/folder.svg";
@@ -56,6 +57,7 @@ const icons = {
   check: Check,
   checkCircle: CheckCircle,
   checkCircleBlue: CheckCircleBlue,
+  success: Success,
   fullScreen: FullScreen,
   back: Back,
   cloud: Cloud,

@@ -15,6 +15,7 @@ import { StagesActions } from "./content/stagesActions";
 import { SignatoriesList } from "./content/signatoriesList";
 import { DatePicker } from "./content/datePicker";
 import { PointInfo } from "./content/pointInfo";
+import { CitySelect } from "./content/citySelect";
 import {
   ConfirmDrawerType,
   SelectModuleProps,
@@ -26,6 +27,7 @@ import {
   SignatoriesListDrawerType,
   DatePickerDrawerType,
   PointInfoDrawerType,
+  CitySelectDrawerType,
 } from "./types";
 
 export const BOTTOM_DRAWER_KEYS = {
@@ -42,6 +44,7 @@ export const BOTTOM_DRAWER_KEYS = {
   signatoriesList: "signatoriesList",
   datePicker: "datePicker",
   pointInfo: "pointInfo",
+  citySelect: "citySelect",
 } as const;
 
 export const getBottomDrawerContent = (isOkk = false) => ({
@@ -135,5 +138,12 @@ export const getBottomDrawerContent = (isOkk = false) => ({
       handleClose: () => void;
     }>,
     snapPoints: [400],
+  },
+  [BOTTOM_DRAWER_KEYS.citySelect]: {
+    component: CitySelect as React.FC<{
+      data: CitySelectDrawerType;
+      handleClose: () => void;
+    }>,
+    snapPoints: [500],
   },
 });

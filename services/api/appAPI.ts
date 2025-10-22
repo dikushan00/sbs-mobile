@@ -1,6 +1,7 @@
 import { apiUrl } from "@/constants";
 import { instance } from ".";
 import { MenuItem, UserDataType } from "../redux/types";
+import { CityType, ReqResponse } from "../types";
 
 export const appAPI = {
   async getUserData(): Promise<{ user_info: UserDataType }> {
@@ -23,6 +24,16 @@ export const appAPI = {
   async getAppLastVersion(): Promise<{ data: { version_name: string } }> {
     return await instance(false, { showSnackbar: false }, apiUrl)
       .get("/partner/commons/mobile_app/version/get/")
+      .then((res) => res?.data);
+  },
+  async getCities(): Promise<ReqResponse<CityType[] | undefined>> {
+    return await instance()
+      .get("/common/cities/read/")
+      .then((res) => res?.data);
+  },
+  async chooseCity(city_id: number) {
+    return await instance()
+      .post("/common/cities/choose/", {city_id})
       .then((res) => res?.data);
   },
 };

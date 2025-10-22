@@ -23,6 +23,7 @@ const initialState: UserAppStateType = {
   okkData: [],
   isFetching: false,
   logoutLoading: false,
+  userDataFetching: false,
   isOkk: false,
 };
 const appSlice = createSlice({
@@ -44,6 +45,9 @@ const appSlice = createSlice({
     },
     setIsFetching: (state, { payload }) => {
       state.isFetching = !!payload;
+    },
+    setUserDataFetching: (state, { payload }) => {
+      state.userDataFetching = !!payload;
     },
     setLogoutLoading: (state, { payload }) => {
       state.logoutLoading = !!payload;
@@ -74,6 +78,7 @@ export const {
   setIsFetching,
   setLogoutLoading,
   setOkkData,
+  setUserDataFetching,
 } = appSlice.actions;
 
 export type appStateType = ReturnType<typeof appSlice.reducer>;
@@ -81,7 +86,9 @@ export const userAppState = (state: RootState) => state.userApp;
 export default appSlice.reducer;
 
 export const getUserInfo = (): AppThunk => async (dispatch) => {
+  dispatch(setUserDataFetching(true));
   const res = await getUserData();
+  dispatch(setUserDataFetching(false));
   if (!res) {
     const localData = await storageService.getData(STORAGE_KEYS.userData);
     if (!localData || !localData) return;

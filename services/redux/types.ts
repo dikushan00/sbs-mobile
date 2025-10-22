@@ -62,6 +62,7 @@ export interface UserAppStateType {
   isFetching: boolean;
   logoutLoading: boolean;
   isOkk: boolean;
+  userDataFetching: boolean;
 }
 
 export interface OfflineActionType {

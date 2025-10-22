@@ -1,15 +1,39 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, ScrollView } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, ScrollView, RefreshControl } from "react-native";
 import { Icon } from "@/components/Icon";
 import { useDispatch, useSelector } from "react-redux";
-import { logout, userAppState } from "@/services/redux/reducers/userApp";
+import { logout, userAppState, getUserInfo } from "@/services/redux/reducers/userApp";
+import { showBottomDrawer } from "@/services/redux/reducers/app";
 import { AppDispatch } from "@/services/redux";
 import { COLORS } from "@/constants";
 import { NavigationLayout } from "@/components/layout/NavigationLayout";
+import { chooseCity } from "@/services";
+import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/services";
 
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>()
-  const { logoutLoading, userData } = useSelector(userAppState);
+  const { logoutLoading, userData, userDataFetching } = useSelector(userAppState);
+
+  const onRefresh = () => {
+    dispatch(getUserInfo());
+  };
+
+  const handleCityPress = () => {
+    dispatch(showBottomDrawer({
+      type: BOTTOM_DRAWER_KEYS.citySelect,
+      data: {
+        currentCityId: userData?.city_id,
+        onSelect: handleCitySelect,
+      }
+    }));
+  };
+
+  const handleCitySelect = async (cityId: number) => {
+    const success = await chooseCity(cityId);
+    if (success) {
+      dispatch(getUserInfo());
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -34,7 +58,17 @@ export default function ProfilePage() {
 
   return (
     <NavigationLayout>
-      <ScrollView style={styles.container}>
+      <ScrollView 
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={userDataFetching}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
         <View style={styles.content}>
           <View style={styles.profileHeader}>
             <View style={styles.avatarContainer}>
@@ -64,13 +98,14 @@ export default function ProfilePage() {
               </View>
             </View>
 
-            <View style={styles.detailItem}>
+            <TouchableOpacity style={styles.detailItem} onPress={handleCityPress}>
               <Icon name="map" width={20} height={20} fill={COLORS.primaryLight} />
               <View style={styles.detailContent}>
                 <Text style={styles.detailLabel}>Город</Text>
                 <Text style={styles.detailValue}>{userData?.city_name || 'Не указано'}</Text>
               </View>
-            </View>
+              <Icon name="arrowRight" width={16} height={16} />
+            </TouchableOpacity>
 
             <View style={styles.detailItem}>
               <Icon name="people" width={20} height={20} fill={COLORS.primaryLight} />

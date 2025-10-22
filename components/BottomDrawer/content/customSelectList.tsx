@@ -54,7 +54,7 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
         </View>
         <TextInput
           style={styles.searchInput}
-          placeholder="Поиск"
+          placeholder="Поиск" placeholderTextColor={COLORS.darkGray}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />

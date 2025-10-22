@@ -46,7 +46,7 @@ export const BottomDrawer = () => {
 
   const handleClose = () => {
     if (loading) return;
-    if (data.onClose) return data.onClose();
+    if (data?.onClose) return data.onClose();
     dispatch(closeBottomDrawer());
     bottomSheetRef.current?.close();
   };

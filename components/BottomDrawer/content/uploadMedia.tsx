@@ -161,7 +161,7 @@ export const UploadMedia = ({ data, handleClose }: PropsType) => {
   };
 
   const onClose = () => {
-    if (data.onClose) return data.onClose();
+    if (data?.onClose) return data.onClose();
     return handleClose();
   };
   const containerStyle = {

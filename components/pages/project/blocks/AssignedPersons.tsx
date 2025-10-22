@@ -16,13 +16,23 @@ export const AssignedPersons = ({ data }: AssignedPersonsProps) => {
           <View style={styles.blockContent}>
             <View style={styles.assignTypeSection}>
               <Text style={styles.assignTypeLabel}>Организация:</Text>
-              <Text style={styles.assignTypeValue}>{contractor.contractor_name}</Text>
+              <Text 
+                style={styles.assignTypeValue}
+                numberOfLines={0}
+                ellipsizeMode="tail"
+              >
+                {contractor.contractor_name}
+              </Text>
             </View>
             
             {contractor.assign_types.map((assignType, assignIndex) => (
               <View key={assignIndex} style={styles.assignTypeSection}>
                 <Text style={styles.assignTypeLabel}>{assignType.assign_type_name}:</Text>
-                <Text style={styles.assignTypeValue}>
+                <Text 
+                  style={styles.assignTypeValue}
+                  numberOfLines={0}
+                  ellipsizeMode="tail"
+                >
                   {assignType.fio || ''}
                 </Text>
               </View>
@@ -58,14 +68,15 @@ const styles = StyleSheet.create({
   assignTypeSection: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    flexWrap: 'wrap',
+    flexWrap: 'wrap'
   },
   assignTypeLabel: {
     fontSize: 14,
     fontFamily: FONT.regular,
     color: COLORS.darkGray,
-    marginRight: 8,
-    flex: 0,
+    marginRight: 5,
+    flexShrink: 0,
+    minWidth: 100,
   },
   assignTypeValue: {
     fontSize: 14,
@@ -73,5 +84,7 @@ const styles = StyleSheet.create({
     color: COLORS.dark,
     flex: 1,
     flexWrap: 'wrap',
+    lineHeight: 20,
+    minWidth: 200
   },
 });

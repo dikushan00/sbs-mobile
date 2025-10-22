@@ -42,3 +42,9 @@ export type FileType = {
   deletable?: boolean;
   file?: Blob | undefined | null;
 };
+
+export interface CityType {
+  city_id: number;
+  city_name: string;
+  is_filter: boolean;
+}

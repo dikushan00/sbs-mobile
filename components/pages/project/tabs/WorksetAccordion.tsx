@@ -437,9 +437,12 @@ const styles = StyleSheet.create({
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
     gap: 10,
     padding: 10,
     borderRadius: 8,
     backgroundColor: COLORS.background,
+    marginBottom: 10
   },
 });

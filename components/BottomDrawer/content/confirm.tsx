@@ -26,7 +26,7 @@ export const ConfirmBlock = ({ data, handleClose }: PropsType) => {
       />
       <CustomButton
         type="outlined"
-        onClick={data.onClose ? data.onClose : handleClose}
+        onClick={data?.onClose ? data.onClose : handleClose}
         disabled={loading}
         color={COLORS.error}
         title="Отмена"

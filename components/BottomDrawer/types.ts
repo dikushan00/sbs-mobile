@@ -78,6 +78,11 @@ export type PointInfoDrawerType = {
   point: FloorCheckPoint;
 };
 
+export type CitySelectDrawerType = {
+  currentCityId?: number;
+  onSelect: (cityId: number) => void;
+};
+
 export type BottomDrawerDataType = {
   show: boolean;
   data: any;
@@ -97,6 +102,7 @@ type BottomDrawerPayloadMap = {
   [BOTTOM_DRAWER_KEYS.signatoriesList]: SignatoriesListDrawerType;
   [BOTTOM_DRAWER_KEYS.datePicker]: DatePickerDrawerType;
   [BOTTOM_DRAWER_KEYS.pointInfo]: PointInfoDrawerType;
+  [BOTTOM_DRAWER_KEYS.citySelect]: CitySelectDrawerType;
 };
 
 export type BottomDrawerPayload<T extends BottomDrawerContentKeys | null> = {

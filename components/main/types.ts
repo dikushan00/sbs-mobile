@@ -392,6 +392,13 @@ export type CompleteWorkSetBodyType = {
 
 export type ProviderRequestStatusCodeType = 'BRING_TO_CONTRACTOR' | 'SHIP' | 'AVAIL' | 'CREATE';
 
+export interface NewMaterialRequestData {
+  material_id: number | null, 
+  qty_sell: number | null, 
+  date_shipping: string,
+  material_name: string
+  unit_name: string
+}
 export interface MaterialRequestType {
 	material_name: string;
 	qty_atom: number;

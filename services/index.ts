@@ -17,7 +17,7 @@ import {
 } from "./redux/reducers/app";
 import { MenuItem, OfflineActionType, UserDataType } from "./redux/types";
 import { storageService } from "./storage";
-import { AuthLoginData, LoginResponseType } from "./types";
+import { AuthLoginData, CityType, LoginResponseType } from "./types";
 
 export const getWebViewUrl = (loginData: LoginResponseType) => {
   return `${webUrl}/?${STORE_KEYS.accessToken}=${loginData.token?.access}&${STORE_KEYS.refreshToken}=${loginData.token?.refresh}`;
@@ -58,6 +58,20 @@ export const getAppLastVersion = async () => {
   try {
     const res = await appAPI.getAppLastVersion();
     return res?.data;
+  } catch (e) {}
+};
+
+export const getCities = async (): Promise<CityType[] | undefined> => {
+  try {
+    const res = await appAPI.getCities();
+    return res?.data;
+  } catch (e) {}
+};
+
+export const chooseCity = async (city_id: number): Promise<boolean | undefined> => {
+  try {
+    await appAPI.chooseCity(city_id);
+    return true;
   } catch (e) {}
 };
 

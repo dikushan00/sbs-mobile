@@ -3,28 +3,33 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getEntranceMaterialRequests } from '@/components/main/services';
-import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType } from '@/components/main/types';
+import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType, SelectedDataType, NewMaterialRequestData } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { CustomButton } from '@/components/common/CustomButton';
 import { MaterialOrderForm } from './MaterialOrderForm';
+import { MaterialOrderSuccess } from './MaterialOrderSuccess';
 import { numberWithCommas } from '@/utils';
 import { Icon } from '@/components/Icon';
 import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
 import { NotFound } from '@/components/common/NotFound';
+import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 
 interface MaterialsTabProps {
   filters: ProjectFiltersType;
   onBack: () => void;
+  selectedData: SelectedDataType
 }
 
-export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack }) => {
+export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, selectedData }) => {
   const dispatch = useDispatch();
   const [materialsData, setMaterialsData] = useState<MaterialRequestType[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [showOrderForm, setShowOrderForm] = useState(false);
+  const [showSuccessPage, setShowSuccessPage] = useState(false);
+  const [orderData, setOrderData] = useState<NewMaterialRequestData | null>(null);
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -39,13 +44,17 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack }) =
   }, [filters]);
 
   useEffect(() => {
-    if(!showOrderForm) {
-    dispatch(setPageSettings({ 
-        backBtn: true, 
-        goBack: onBack
+    if(!showOrderForm && !showSuccessPage) {
+      dispatch(setPageSettings({ 
+          backBtn: true, 
+          goBack: onBack
+        }));
+      dispatch(setPageHeaderData({
+        title: 'Материалы',
+        desc: '',
       }));
     }
-  }, [onBack, showOrderForm])
+  }, [onBack, showOrderForm, showSuccessPage])
 
   const getStatusColour = (statusCode: ProviderRequestStatusCodeType) => {
     switch (statusCode) {
@@ -76,11 +85,19 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack }) =
 
   const handleBackToMaterials = () => {
     setShowOrderForm(false);
+    setShowSuccessPage(false);
+    setOrderData(null);
   };
 
   const handleSubmitOrder = (res: MaterialRequestType[]) => {
     if(!res) return
     setMaterialsData(res)
+  };
+
+  const handleOrderSuccess = (orderData: NewMaterialRequestData) => {
+    setOrderData(orderData);
+    setShowOrderForm(false);
+    setShowSuccessPage(true);
   };
 
   const handleMoreActions = (material: MaterialRequestType) => {
@@ -125,7 +142,17 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack }) =
       <MaterialOrderForm
         onBack={handleBackToMaterials}
         onSubmit={handleSubmitOrder}
-        filters={filters}
+        onSuccess={handleOrderSuccess}
+        filters={filters} selectedData={selectedData}
+      />
+    );
+  }
+
+  if (showSuccessPage && orderData) {
+    return (
+      <MaterialOrderSuccess
+        onBack={handleBackToMaterials}
+        orderData={orderData}
       />
     );
   }

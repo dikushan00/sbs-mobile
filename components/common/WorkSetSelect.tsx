@@ -3,7 +3,6 @@ import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/services";
 import { showBottomDrawer } from "@/services/redux/reducers/app";
 import { Pressable, View } from "react-native";
 import { Text } from "react-native";
-import { FontAwesome5 } from "@expo/vector-icons";
 import { COLORS } from "@/constants";
 import { WorkSetType } from "@/components/main/types";
 import { Icon } from "../Icon";
@@ -80,11 +79,8 @@ export const WorkSetSelect = (props: WorkSetSelectProps) => {
         >
           {displayText}
         </Text>
-        <FontAwesome5 
-          name="chevron-down" 
-          size={14} 
-          color={props.value ? "#fff" : COLORS.darkGray} 
-        />
+        <Icon name="arrowDown"
+          fill={props.value ? "#fff" : COLORS.darkGray} width={14} height={14}  />
       </Pressable>
     </View>
   );

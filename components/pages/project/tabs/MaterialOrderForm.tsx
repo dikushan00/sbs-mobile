@@ -1,26 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { COLORS, FONT, SIZES } from '@/constants';
+import { COLORS, FONT } from '@/constants';
 import { CustomButton } from '@/components/common/CustomButton';
 import { numberWithCommas } from '@/utils';
-import { MaterialRequestType, MaterialType, ProjectFiltersType } from '@/components/main/types';
+import { MaterialRequestType, MaterialType, NewMaterialRequestData, ProjectFiltersType, SelectedDataType } from '@/components/main/types';
 import { createEntranceMaterialRequest, getEntranceMaterials } from '@/components/main/services';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { Icon } from '@/components/Icon';
 import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
-import { useSnackbar } from '@/components/snackbar/SnackbarContext';
+import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 
 interface MaterialOrderFormProps {
   onBack: () => void;
   onSubmit: (res: MaterialRequestType[]) => void;
+  onSuccess: (orderData: NewMaterialRequestData) => void;
   filters: ProjectFiltersType;
+  selectedData: SelectedDataType
 }
 
-export const MaterialOrderForm: React.FC<MaterialOrderFormProps> = ({ onBack, onSubmit, filters }) => {
+export const MaterialOrderForm: React.FC<MaterialOrderFormProps> = ({ onBack, onSubmit, onSuccess, filters, selectedData }) => {
   const dispatch = useDispatch();
-  const {showSuccessSnackbar} = useSnackbar();
   const [isLoading, setIsLoading] = useState(false);
   const [materials, setMaterials] = useState<MaterialType[]>([]);
   const [formData, setFormData] = useState<{material_id: number | null, qty_sell: number | null, date_shipping: string}>({material_id: null, qty_sell: null, date_shipping: ''});
@@ -31,7 +32,11 @@ export const MaterialOrderForm: React.FC<MaterialOrderFormProps> = ({ onBack, on
       backBtn: true, 
       goBack: onBack
     }));
-  }, [onBack])
+    dispatch(setPageHeaderData({
+      title: 'Заказать материал',
+      desc: `${selectedData?.entrance_name || ''}`,
+    }));
+  }, [onBack, selectedData])
 
   const handleSubmitOrder = async () => {
     if (!formData.material_id || !formData.qty_sell || Number(formData.qty_sell) <= 0) {
@@ -41,9 +46,9 @@ export const MaterialOrderForm: React.FC<MaterialOrderFormProps> = ({ onBack, on
     const res = await createEntranceMaterialRequest(formData, filters)
     setIsLoading(false);
     if(!res) return;
-    showSuccessSnackbar('Успешно')
     onSubmit(res);
-    onBack();
+    if(selectedMaterial)
+      onSuccess({...formData, unit_name: selectedMaterial.unit_name, material_name: selectedMaterial.material_name});
   };
 
   const isFormValid = formData.material_id && formData.qty_sell && Number(formData.qty_sell) > 0 && formData.date_shipping;
