@@ -2,7 +2,7 @@ import { FileType } from "@/services/types";
 import { CustomSelectProps } from "../common/CustomSelect";
 import { PointType } from "../pages/okk/services";
 import { MaterialRequestType, ProjectFiltersType, ProjectMainDocumentType, ProjectPaymentType, ProjectStageType, FloorCheckPointInfo, FloorCheckPoint } from "../main/types";
-import { BOTTOM_DRAWER_KEYS } from "./services";
+import { BOTTOM_DRAWER_KEYS } from "./constants";
 
 export type BottomDrawerContentKeys = keyof typeof BOTTOM_DRAWER_KEYS;
 

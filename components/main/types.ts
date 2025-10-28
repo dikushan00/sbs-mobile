@@ -217,6 +217,7 @@ export interface SelectedDataType {
 	project_id: number;
 	project_type_id: number;
 	project_type_name: string;
+	project_name: string;
 	resident_id: number;
 	resident_name: string;
 }

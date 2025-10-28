@@ -8,7 +8,7 @@ import { AppDispatch } from "@/services/redux";
 import { COLORS } from "@/constants";
 import { NavigationLayout } from "@/components/layout/NavigationLayout";
 import { chooseCity } from "@/services";
-import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/services";
+import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/constants";
 
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>()

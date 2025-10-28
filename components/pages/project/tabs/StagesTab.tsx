@@ -9,7 +9,7 @@ import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
 import { showBottomDrawer } from '@/services/redux/reducers/app';
 import { setPageSettings } from '@/services/redux/reducers/app';
-import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
+import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { CommentsView } from './CommentsView';
 import { setPageHeaderData } from '@/services/redux/reducers/userApp';

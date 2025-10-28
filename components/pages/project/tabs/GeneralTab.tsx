@@ -38,10 +38,8 @@ export const GeneralTab = ({projectInfo, onBackToProject, projectId, isSBS}: Gen
         return <AssignedPersons data={projectInfo?.employees || []} />;
       }
       case '2':
-        return <Contracts project_id={projectId} isSBS={isSBS} />;
-      case '3':
         return <FinancialInfo data={projectInfo?.sums || []} />;
-      case '4':
+      case '3':
         return <OrderedMaterials data={projectInfo?.materials || []} />;
       default:
         return null;
@@ -103,16 +101,11 @@ const blocks = [
   },
   {
     id: 2,
-    title: 'Договора',
-    icon: 'document',
-  },
-  {
-    id: 3,
     title: 'Финансовая информация',
     icon: 'money',
   },
   {
-    id: 4,
+    id: 3,
     title: 'Заказанный объем материалов',
     icon: 'materials',
   },

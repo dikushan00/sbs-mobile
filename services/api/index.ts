@@ -34,6 +34,7 @@ export const instance = (
     axiosInstance.interceptors.request.use(
       async (config) => {
         const token = await SecureStore.getItemAsync(STORE_KEYS.accessToken);
+        // console.log(token)
         config.headers.Authorization = `Bearer ${token}`;
         return config;
       },
@@ -100,6 +101,7 @@ export const instance = (
             //@ts-ignore
           } else if (!res?.errNetwork) {
             await storageService.resetAllData();
+            console.log('delete')
             await SecureStore.deleteItemAsync(STORE_KEYS.auth);
             await Updates.reloadAsync();
           }

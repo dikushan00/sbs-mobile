@@ -8,7 +8,7 @@ import styles from "./login.style";
 import { requestNewPassword } from "./services";
 import { useDispatch } from "react-redux";
 import { showBottomDrawer } from "@/services/redux/reducers/app";
-import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/services";
+import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/constants";
 import LogoBlue from "@/assets/images/logo_blue.svg";
 
 export const ForgetPasswordForm = () => {

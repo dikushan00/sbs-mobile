@@ -29,7 +29,7 @@ import { SchemaZoomControl } from "../okk/SchemaZoomControl";
 import { getFloorMapPoints } from "@/components/main/services";
 import { useDispatch } from "react-redux";
 import { showBottomDrawer } from "@/services/redux/reducers/app";
-import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/services";
+import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/constants";
 
 const { width } = Dimensions.get("window");
 export const schemaHeight = 400;

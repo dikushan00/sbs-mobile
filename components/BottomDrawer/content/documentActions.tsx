@@ -5,7 +5,7 @@ import { Icon } from '@/components/Icon';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ProjectMainDocumentType, ProjectFiltersType } from '@/components/main/types';
 import { CustomDatePicker } from '@/components/common/CustomDatePicker';
-import { BOTTOM_DRAWER_KEYS } from '../services';
+import { BOTTOM_DRAWER_KEYS } from '../constants';
 import { showSecondBottomDrawer } from '@/services/redux/reducers/app';
 import { useDispatch } from 'react-redux';
 import { changeDateEntranceDocument, sendAvrTo1C, signEntranceDocument } from '@/components/main/services';

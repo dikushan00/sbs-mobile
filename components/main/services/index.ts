@@ -94,7 +94,7 @@ export const getFloorTabs = async (): Promise<Tabulation[] | undefined> => {
     const res = await residentialSettingsAPI.getFloorTabs();
     tabs = res?.tabulations || [];
     if(!tabs?.length) return []
-    return [tabs[0], { grant_id: 0, grant_code: 'EntranceSchema', grant_name: 'Схема этажа', blocks: [] }, ...tabs.slice(1)]
+    return [{ grant_id: 0, grant_code: 'CallOKK', grant_name: 'Вызок ОКК', blocks: [] }, tabs[0],{ grant_id: 0, grant_code: 'Agreements', grant_name: 'Договор', blocks: [] }, { grant_id: 0, grant_code: 'EntranceSchema', grant_name: 'Схема этажа', blocks: [] }, ...tabs.slice(1)]
   } catch (e) {
     return tabs
   }

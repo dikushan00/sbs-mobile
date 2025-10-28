@@ -23,8 +23,6 @@ export const MaterialOrderSuccess: React.FC<MaterialOrderSuccessProps> = ({ onBa
     }));
   }, [onBack]);
 
-  console.log(orderData)
-
   if(!orderData)
     return null
 

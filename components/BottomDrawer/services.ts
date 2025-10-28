@@ -1,7 +1,6 @@
 import React from "react";
 import { CustomSelectProps } from "../common/CustomSelect";
 import { FlatSelectProps } from "../common/FlatSelect";
-import { WorkSetSelectProps } from "../common/WorkSetSelect";
 import { ConfirmBlock } from "./content/confirm";
 import { CustomSelectList } from "./content/customSelectList";
 import { FlatSelectList } from "./content/flatSelectList";
@@ -16,6 +15,7 @@ import { SignatoriesList } from "./content/signatoriesList";
 import { DatePicker } from "./content/datePicker";
 import { PointInfo } from "./content/pointInfo";
 import { CitySelect } from "./content/citySelect";
+import { BOTTOM_DRAWER_KEYS } from "./constants";
 import {
   ConfirmDrawerType,
   SelectModuleProps,
@@ -30,22 +30,6 @@ import {
   CitySelectDrawerType,
 } from "./types";
 
-export const BOTTOM_DRAWER_KEYS = {
-  confirm: "confirm",
-  uploadMedia: "uploadMedia",
-  customSelectList: "customSelectList",
-  selectModule: "selectModule",
-  flatSelectList: "flatSelectList",
-  workSetSelectList: "workSetSelectList",
-  materialActions: "materialActions",
-  documentActions: "documentActions",
-  paymentActions: "paymentActions",
-  stagesActions: "stagesActions",
-  signatoriesList: "signatoriesList",
-  datePicker: "datePicker",
-  pointInfo: "pointInfo",
-  citySelect: "citySelect",
-} as const;
 
 export const getBottomDrawerContent = (isOkk = false) => ({
   [BOTTOM_DRAWER_KEYS.confirm]: {

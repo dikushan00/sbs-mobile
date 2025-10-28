@@ -249,7 +249,6 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
             : <NotFound title='Договоров не найдено' />
         }
       </ScrollView>
-      
       {agreements.length > 0 && (
         (() => {
           const agreement = agreements[0];
@@ -278,6 +277,10 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   agreementHeader: {
     marginBottom: 16,
   },
@@ -348,15 +351,11 @@ const styles = StyleSheet.create({
     fontFamily: FONT.regular,
     color: COLORS.primaryLight,
   },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.backgroundWhite,
-  },
   scrollView: {
     flex: 1,
   },
   signButtonContainer: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.background,
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingBottom: 20,

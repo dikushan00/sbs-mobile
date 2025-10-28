@@ -8,7 +8,7 @@ import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
 import { showBottomDrawer } from '@/services/redux/reducers/app';
-import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
+import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { numberWithCommas } from '@/utils';
 import { NotFound } from '@/components/common/NotFound';
@@ -182,7 +182,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
                 <View style={{marginTop: 15}}>
                   <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
                     <ValueDisplay label='Контрагент' value={item.contragent} />
-                    <ValueDisplay label='Тип' value={item.placement_type_name} />
+                      <ValueDisplay label='Сумма платежа, ₸' value={`${numberWithCommas(item.payment_amount)}`} />
                     {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
                       style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
                       onPress={() => toggleExpanded(item.remont_costs_id)}
@@ -201,12 +201,12 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
                   <View>
                     <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
                       <ValueDisplay label='Сумма работ, ₸' value={`${numberWithCommas(item.col_sum)}`} />
-                      <ValueDisplay label='Сумма платежа, ₸' value={`${numberWithCommas(item.payment_amount)}`} />
+                      <ValueDisplay label='Дата платежа' value={`${item.date_payment}`} />
                       <View style={{width: 85}}></View>
                     </View>
                     <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
                       <ValueDisplay label='Этаж' value={`${item.floor}`} />
-                      <ValueDisplay label='Дата платежа' value={`${item.date_payment}`} />
+                      <ValueDisplay label='Тип' value={item.placement_type_name} />
                       <View style={{width: 85}}></View>
                     </View>
                     <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>

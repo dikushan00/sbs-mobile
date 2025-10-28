@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/services";
+import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/constants";
 import { showBottomDrawer } from "@/services/redux/reducers/app";
 import { Pressable, View } from "react-native";
 import { Text } from "react-native";

@@ -2,7 +2,7 @@ import { COLORS, FONT } from "@/constants"
 import { StyleSheet, TouchableOpacity, View } from "react-native"
 import { Text } from "react-native"
 import { Icon } from "../Icon"
-import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/services"
+import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/constants"
 import { useDispatch } from "react-redux"
 import { showSecondBottomDrawer } from "@/services/redux/reducers/app"
 

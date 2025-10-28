@@ -9,7 +9,7 @@ import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
 import { closeBottomDrawer, showBottomDrawer } from '@/services/redux/reducers/app';
-import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
+import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { NotFound } from '@/components/common/NotFound';
 

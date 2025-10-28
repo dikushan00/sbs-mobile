@@ -10,6 +10,8 @@ import Download from "./iconComponents/download";
 import DownloadAlt from "@/assets/icons/download_alt.svg";
 import Cloud from "./iconComponents/cloud";
 import Close from "@/assets/icons/close.svg";
+import Clock from "@/assets/icons/clock.svg";
+import ClockFilled from "@/assets/icons/clock_filled.svg";
 import FullScreen from "@/assets/icons/full-screen.svg";
 import AddCircle from "@/assets/icons/add-cirlce.svg";
 import Back from "@/assets/icons/back.svg";
@@ -31,6 +33,7 @@ import Work from "@/assets/icons/work.svg";
 import People from "@/assets/icons/people.svg";
 import Money from "@/assets/icons/money.svg";
 import MoneyAlt from "@/assets/icons/money_alt.svg";
+import MoneyDollar from "@/assets/icons/money_dollar.svg";
 import Note from "@/assets/icons/note.svg";
 import docCar from "@/assets/icons/doc_car.svg";
 import Logout from "@/assets/icons/logout.svg";
@@ -75,6 +78,7 @@ const icons = {
   people: People,
   money: Money,
   moneyAlt: MoneyAlt,
+  moneyDollar: MoneyDollar,
   note: Note,
   docCar: docCar,
   more: More,
@@ -83,6 +87,8 @@ const icons = {
   search: Search,
   calendar: Calendar,
   profile: Profile,
+  clock: Clock,
+  clockFilled: ClockFilled,
 };
 
 type IconKeysType = keyof typeof icons;

@@ -9,7 +9,7 @@ import { createEntranceMaterialRequest, getEntranceMaterials } from '@/component
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { Icon } from '@/components/Icon';
 import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
-import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
+import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 
 interface MaterialOrderFormProps {

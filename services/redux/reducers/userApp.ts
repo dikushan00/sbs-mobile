@@ -101,7 +101,6 @@ export const getMenuData =
   (update = false): AppThunk =>
   async (dispatch, getState) => {
     if (getState()?.userApp?.menu?.length && !update) return;
-    return;
     const res = await getMenu();
     if (!res) {
       const localData = await storageService.getData(STORAGE_KEYS.menu);
@@ -153,6 +152,7 @@ export const checkUserAuth = (): AppThunk => async (dispatch, getState) => {
 };
 
 export const resetAuthData = async () => {
+  // console.log('reset')
   try {
     await SecureStore.deleteItemAsync(STORE_KEYS.allowBiometry);
     await SecureStore.deleteItemAsync(STORE_KEYS.login);

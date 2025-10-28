@@ -1,43 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectFiltersType, ProjectFloorType } from '@/components/main/types';
+import { ProjectFiltersType, ProjectFloorType, SelectedDataType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { getEntranceApartments } from '@/components/main/services';
 import { Icon } from '@/components/Icon';
 import { useDispatch } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
 import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/reducers/userApp';
+import { EntranceSelector } from '@/components/common/EntranceSelector';
 
 interface OkkFloorSelectionProps {
-  filters: ProjectFiltersType;
   onBack: () => void;
   onFloorSelect: (floor: ProjectFloorType) => void;
+  selectedData: SelectedDataType;
 }
 
 export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({ 
-  filters, 
+  selectedData, 
   onBack, 
   onFloorSelect 
 }) => {
   const dispatch = useDispatch();
   const [floorsPlan, setFloorsPlan] = useState<ProjectFloorType[] | null>(null);
   const [isFetching, setIsFetching] = useState(false);
+  const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
 
-  const getFloorsPlan = async () => {
-    if (!filters?.project_entrance_id) {
-      setFloorsPlan(null);
-      return;
-    }
+  const getFloorsPlan = useCallback(async () => {
     setIsFetching(true);
-    const res = await getEntranceApartments(filters);
+    const res = await getEntranceApartments({resident_id: selectedData.resident_id, project_type_id: selectedData.project_type_id, project_entrance_id: projectEntranceId});
     setIsFetching(false);
     setFloorsPlan(res || []);
-  };
+  }, [projectEntranceId, selectedData])
 
   useEffect(() => {
     getFloorsPlan();
-  }, [filters?.project_entrance_id]);
+  }, [getFloorsPlan]);
 
   useEffect(() => {
     dispatch(setPageSettings({ 
@@ -91,7 +89,7 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
           </View>
           
           <View style={styles.paymentContainer}>
-            <Icon name="moneyAlt" width={16} height={16} fill={getPaymentColor(paymentPercent)} />
+            <Icon name="moneyDollar" width={14} height={14} fill={COLORS.white} />
             <Text style={[styles.paymentText, { color: getPaymentColor(paymentPercent) }]}>
               {paymentPercent}%
             </Text>
@@ -136,6 +134,11 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
   return (
     <View style={styles.container}>
       {isFetching && <CustomLoader />}
+      <EntranceSelector
+        selectedEntranceId={projectEntranceId}
+        onSelectEntrance={setProjectEntranceId}
+        selectedData={selectedData}
+      />
       
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Выберите этаж</Text>

@@ -1,4 +1,4 @@
-import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/services";
+import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/constants";
 import { CustomButton } from "@/components/common/CustomButton";
 import { useSnackbar } from "@/components/snackbar/SnackbarContext";
 import { COLORS } from "@/constants";

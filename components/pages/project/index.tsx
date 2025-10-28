@@ -18,6 +18,8 @@ import {
 import { FloorSchemaTab } from './tabs/FloorSchemaTab';
 import { getFloorTabs, getIsProjectSBS, getProjectInfo } from '@/components/main/services';
 import { CustomLoader } from '@/components/common/CustomLoader';
+import { Contracts } from './blocks';
+import { OKKTab } from './tabs/OkkTab';
 
 interface ProjectPageProps {
   projectId: number | null,
@@ -28,6 +30,7 @@ interface ProjectPageProps {
 
 const getIconForGrantCode = (grantCode: string) => {
   const iconMap: { [key: string]: string } = {
+    'CallOKK': 'checkCircleBlue',
     'M__ProjectFormInfoTab': 'info',
     'EntranceSchema': 'map',
     'M__ProjectFormWorkTab': 'work',
@@ -81,15 +84,15 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     }));
   };
 
-  useEffect(() => {
-    if(projectId) {
-      setIsFetching(true)
-      getProjectInfo(projectId).then(res => {
-        setIsFetching(false)
-        setProjectInfo(res || null)
-      })
-    }
-  }, [projectId])
+  // useEffect(() => {
+  //   if(projectId) {
+  //     setIsFetching(true)
+  //     getProjectInfo(projectId).then(res => {
+  //       setIsFetching(false)
+  //       setProjectInfo(res || null)
+  //     })
+  //   }
+  // }, [projectId])
 
   const backToProject = () => {
     setCurrentTab(null);
@@ -133,8 +136,13 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
             }));
           }}
         />;
+        
+      case 'Agreements':
+        return <Contracts project_id={projectId} isSBS={isSBS} />;
+      case 'CallOKK':
+        return <OKKTab onBack={backToProject} selectedData={selectedData} />;
       case 'EntranceSchema':
-        return <FloorSchemaTab filters={filters} onBack={backToProject} selectedData={selectedData} />;
+        return <FloorSchemaTab onBack={backToProject} selectedData={selectedData} />;
       case 'M__ProjectFormWorkTab':
         return <WorkTab filters={filters} selectedData={selectedData} />;
       case 'M__ProjectFormMaterialTab':
@@ -151,33 +159,32 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
   };
 
   const renderProjectInfoBlock = () => {
-    if(!projectInfo) return
     return (
       <View
         style={styles.projectInfoBlock}
       >
         <View style={styles.projectInfoHeader}>
-          <Text style={styles.projectName}>{projectInfo.data?.project_name}</Text>
+          <Text style={styles.projectName}>{selectedData?.resident_name}</Text>
           <Icon name="folder" width={24} height={24} fill={COLORS.primary} />
         </View>
         
         <View style={styles.projectDetails}>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Тип проекта:</Text>
-            <Text style={styles.detailValue}>{projectInfo.data?.project_type_name}</Text>
+            <Text style={styles.detailValue}>{selectedData?.project_type_name}</Text>
           </View>
           
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Период:</Text>
             <Text style={styles.detailValue}>
-              {projectInfo.data?.start_date} - {projectInfo.data?.finish_date}
+              {selectedData?.start_date} - {selectedData?.finish_date}
             </Text>
           </View>
           
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Подъезд:</Text>
+            <Text style={styles.detailLabel}>Подъезды:</Text>
             <Text style={styles.detailValue}>
-              Подъезд {selectedData?.entrance}, Блок {selectedData?.block_name}
+              {selectedData.entrances_info?.map((entrance: any) => `${entrance.entrance} ${entrance.block_name || ''}`).join(' ') || 'Не указаны'}
             </Text>
           </View>
         </View>
@@ -206,6 +213,25 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
                 height={20} 
                 fill={COLORS.primaryLight} 
               />
+              {tab.grant_code === 'CallOKK' && <View style={{position: 'absolute', bottom: -23, left: 0,flexDirection: 'row', gap: 5, alignItems: 'center'}}>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
+                backgroundColor: COLORS.background, padding: 3, borderRadius: 10, }}>
+                  <Icon name='clockFilled' fill={'#FFAE4C'} width={12} height={12} />
+                  <Text style={{fontSize: 12}}>8</Text>
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 3, 
+                backgroundColor: COLORS.background, padding: 3, borderRadius: 10, }}>
+                  <Icon name='info' fill='red' width={12} height={12} />
+                  <Text style={{fontSize: 12}}>10</Text>
+                </View>
+              </View>}
+              {tab.grant_code === 'M__ProjectFormDocumentTab' && <View style={{position: 'absolute', bottom: -23, left: 0,flexDirection: 'row', gap: 5, alignItems: 'center'}}>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
+                backgroundColor: COLORS.background, padding: 3, borderRadius: 10, }}>
+                  <Icon name='clockFilled' fill={'#FFAE4C'} width={12} height={12} />
+                  <Text style={{fontSize: 12}}>8</Text>
+                </View>
+              </View>}
             </View>
           </TouchableOpacity>
         )}
@@ -219,8 +245,16 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
 
   if(isFetching || tabsFetching)
     return <CustomLoader />
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <View style={{flexDirection: 'row', gap: 10, alignItems: 'center', 
+      backgroundColor: '#F5EECA', padding: 15, borderRadius: 12, marginBottom: 15}}>
+        <View style={{borderRadius: '50%', backgroundColor: '#BBBE31', padding: 5}}>
+          <Icon name='clock' fill='#fff' />
+        </View>
+        <Text>Договор на подписании</Text>
+      </View>
       {renderProjectInfoBlock()}
       {renderTabGrid()}
     </ScrollView>

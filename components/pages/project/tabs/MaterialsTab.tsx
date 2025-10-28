@@ -12,7 +12,7 @@ import { MaterialOrderSuccess } from './MaterialOrderSuccess';
 import { numberWithCommas } from '@/utils';
 import { Icon } from '@/components/Icon';
 import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
-import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/services';
+import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { NotFound } from '@/components/common/NotFound';
 import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 

@@ -1,42 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectFiltersType, ProjectFloorType, SelectedDataType } from '@/components/main/types';
+import { ProjectFloorType, SelectedDataType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { getEntranceApartments } from '@/components/main/services';
-import { BlockItem } from '@/components/common/BlockItem';
 import { Icon } from '@/components/Icon';
 import { FloorDetail } from './FloorDetail';
 import { useDispatch } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
 import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/reducers/userApp';
+import { EntranceSelector } from '@/components/common/EntranceSelector';
 
 interface FloorSchemaContentProps {
-  filters: ProjectFiltersType;
-  onBack: () => void;
+  onBack?: () => void;
   selectedData: SelectedDataType;
 }
 
-export const FloorSchemaContent = ({ filters, onBack, selectedData }: FloorSchemaContentProps) => {
+export const FloorSchemaContent = ({ onBack, selectedData }: FloorSchemaContentProps) => {
   const dispatch = useDispatch();
   const [floorsPlan, setFloorsPlan] = useState<ProjectFloorType[] | null>(null);
   const [isFetching, setIsFetching] = useState(false);
+  const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
   const [selectedFloor, setSelectedFloor] = useState<ProjectFloorType | null>(null);
 
-  const getFloorsPlan = async () => {
-    if (!filters?.project_entrance_id) {
+  const getFloorsPlan = useCallback(async () => {
+    if (!projectEntranceId) {
       setFloorsPlan(null);
       return;
     }
     setIsFetching(true);
-    const res = await getEntranceApartments(filters);
+    const res = await getEntranceApartments({resident_id: selectedData.resident_id, project_type_id: selectedData.project_type_id, project_entrance_id: projectEntranceId});
     setIsFetching(false);
     setFloorsPlan(res || []);
-  };
+  }, [projectEntranceId, selectedData])
 
   useEffect(() => {
     getFloorsPlan();
-  }, [filters?.project_entrance_id]);
+  }, [getFloorsPlan]);
 
   useEffect(() => {
     if(!selectedFloor) {
@@ -84,15 +84,15 @@ export const FloorSchemaContent = ({ filters, onBack, selectedData }: FloorSchem
         </View>
         <View style={{gap: 10}}>
           <View style={styles.statusContainer}>
-              <Icon name="check" width={16} height={16} fill={getStatusColor(workCurrent, workTotal)} />
-              <Text style={[styles.statusText, { color: getStatusColor(workCurrent, workTotal) }]}>
-                {workCurrent}
-              </Text>
-              <Text style={styles.statusTotal}>из {workTotal}</Text>
-            </View>
+            <Icon name="check" width={16} height={16} fill={getStatusColor(workCurrent, workTotal)} />
+            <Text style={[styles.statusText, { color: getStatusColor(workCurrent, workTotal) }]}>
+              {workCurrent}
+            </Text>
+            <Text style={styles.statusTotal}>из {workTotal}</Text>
+          </View>
           
           <View style={styles.paymentContainer}>
-            <Icon name="moneyAlt" width={16} height={16} fill={getPaymentColor(paymentPercent)} />
+            <Icon name="moneyDollar" width={14} height={14} fill={COLORS.white} stroke={COLORS.primary} />
             <Text style={[styles.paymentText, { color: getPaymentColor(paymentPercent) }]}>
               {paymentPercent}%
             </Text>
@@ -148,6 +148,11 @@ export const FloorSchemaContent = ({ filters, onBack, selectedData }: FloorSchem
     <View style={styles.container}>
       {isFetching && <CustomLoader />}
       
+      <EntranceSelector
+        selectedEntranceId={projectEntranceId}
+        onSelectEntrance={setProjectEntranceId}
+        selectedData={selectedData}
+      />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Выберите этаж</Text>
         <Text style={styles.headerCount}>
