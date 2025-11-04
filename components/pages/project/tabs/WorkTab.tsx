@@ -5,27 +5,29 @@ import { Icon } from '@/components/Icon';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ProjectWorkSetType, ProjectFiltersType, SelectedDataType } from '@/components/main/types';
 import { getEntranceWorkSets } from '@/components/main/services';
+import { EntranceSelector } from '@/components/common/EntranceSelector';
 
 interface WorkTabProps {
   filters: ProjectFiltersType;
   selectedData: SelectedDataType;
 }
 
-export const WorkTab: React.FC<WorkTabProps> = ({ filters }) => {
+export const WorkTab: React.FC<WorkTabProps> = ({ filters, selectedData }) => {
   const [workSets, setWorkSets] = useState<ProjectWorkSetType[] | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [expandedPlacements, setExpandedPlacements] = useState<Set<number>>(new Set());
+  const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchWorkSets = async () => {
       setLoading(true);
-      const data = await getEntranceWorkSets(filters);
+      const data = await getEntranceWorkSets({...filters, project_entrance_id: projectEntranceId});
       setWorkSets(data || []);
       setLoading(false);
     };
-
-    fetchWorkSets();
-  }, [filters]);
+    if(!!projectEntranceId)
+      fetchWorkSets();
+  }, [filters, projectEntranceId]);
 
   const togglePlacement = (placementId: number) => {
     const newExpanded = new Set(expandedPlacements);
@@ -37,85 +39,88 @@ export const WorkTab: React.FC<WorkTabProps> = ({ filters }) => {
     setExpandedPlacements(newExpanded);
   };
 
-  if (loading) {
-    return <CustomLoader />;
-  }
-
-  if (!workSets || workSets.length === 0) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Нет данных о работах</Text>
-      </View>
-    );
-  }
-
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {workSets.map((placement) => {
-        const isPlacementExpanded = expandedPlacements.has(placement.placement_type_id);
+    <View style={styles.container}>
+    <EntranceSelector
+      selectedEntranceId={projectEntranceId}
+      onSelectEntrance={setProjectEntranceId}
+      selectedData={selectedData}
+    />
+      {
+        loading 
+          ? <CustomLoader />
+          : !workSets || workSets.length === 0 
+            ? <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>Нет данных о работах</Text>
+          </View>
+            : <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+                {workSets.map((placement) => {
+                  const isPlacementExpanded = expandedPlacements.has(placement.placement_type_id);
 
-        return (
-          <View key={placement.placement_type_id} style={styles.placementContainer}>
-            <TouchableOpacity
-              style={styles.placementHeader}
-              onPress={() => togglePlacement(placement.placement_type_id)}
-            >
-              <View style={styles.placementHeaderLeft}>
-                <Icon
-                  name={isPlacementExpanded ? "arrowDown" : "arrowRightBlack"}
-                  width={13}
-                  height={13}
-                  fill={COLORS.black}
-                />
-                <View style={{ marginLeft: 10 }}>
-                  <Text style={styles.placementTitle}>{placement.placement_type_name}</Text>
-                </View>
-              </View>
-              <Text style={[
-                styles.placementTotal,
-                placement.percent === 100 && styles.placementTotalCompleted
-              ]}>
-                {placement.percent}%
-              </Text>
-            </TouchableOpacity>
-
-            {isPlacementExpanded && (
-              <View style={styles.placementContent}>
-                {placement.work_set_check_groups.map((group) => {
                   return (
-                    <View key={group.work_set_check_group_id} style={styles.groupContainer}>
-                        <View
-                          style={[
-                            styles.groupHeader,
-                            group.work_set_check_group_percent === 100 && styles.groupHeaderCompleted
-                          ]}
-                        >
-                          <View style={styles.groupHeaderLeft}>
-                            <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Text style={[
-                                styles.groupTitle,
-                                group.work_set_check_group_percent === 100 && styles.groupTitleCompleted
-                              ]}>
-                                {group.work_set_check_group_name}
-                              </Text>
-                              <Text style={[
-                                styles.groupPercent,
-                                group.work_set_check_group_percent === 100 && styles.groupPercentCompleted
-                              ]}>
-                                {group.work_set_check_group_percent}%
-                              </Text>
-                            </View>
+                    <View key={placement.placement_type_id} style={styles.placementContainer}>
+                      <TouchableOpacity
+                        style={styles.placementHeader}
+                        onPress={() => togglePlacement(placement.placement_type_id)}
+                      >
+                        <View style={styles.placementHeaderLeft}>
+                          <Icon
+                            name={isPlacementExpanded ? "arrowDown" : "arrowRightBlack"}
+                            width={13}
+                            height={13}
+                            fill={COLORS.black}
+                          />
+                          <View style={{ marginLeft: 10 }}>
+                            <Text style={styles.placementTitle}>{placement.placement_type_name}</Text>
                           </View>
                         </View>
+                        <Text style={[
+                          styles.placementTotal,
+                          placement.percent === 100 && styles.placementTotalCompleted
+                        ]}>
+                          {placement.percent}%
+                        </Text>
+                      </TouchableOpacity>
+
+                      {isPlacementExpanded && (
+                        <View style={styles.placementContent}>
+                          {placement.work_set_check_groups.map((group) => {
+                            return (
+                              <View key={group.work_set_check_group_id} style={styles.groupContainer}>
+                                  <View
+                                    style={[
+                                      styles.groupHeader,
+                                      group.work_set_check_group_percent === 100 && styles.groupHeaderCompleted
+                                    ]}
+                                  >
+                                    <View style={styles.groupHeaderLeft}>
+                                      <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Text style={[
+                                          styles.groupTitle,
+                                          group.work_set_check_group_percent === 100 && styles.groupTitleCompleted
+                                        ]}>
+                                          {group.work_set_check_group_name}
+                                        </Text>
+                                        <Text style={[
+                                          styles.groupPercent,
+                                          group.work_set_check_group_percent === 100 && styles.groupPercentCompleted
+                                        ]}>
+                                          {group.work_set_check_group_percent}%
+                                        </Text>
+                                      </View>
+                                    </View>
+                                  </View>
+                              </View>
+                            );
+                          })}
+                        </View>
+                      )}
                     </View>
                   );
                 })}
-              </View>
-            )}
-          </View>
-        );
-      })}
-    </ScrollView>
+              </ScrollView>
+      }
+    </View>
   );
 };
 

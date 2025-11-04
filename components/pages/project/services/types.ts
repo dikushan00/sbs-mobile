@@ -40,40 +40,29 @@ export interface EntranceInfoType {
   entrance_num: number;
   project_entrance_id: number;
 }
-
 export interface ProjectType {
-  project_id: number;
-  resident_id: number;
-  project_type_id: number;
-  project_name: string;
-  project_name_info: string;
-  project_short_name: string;
-  avans: string;
-  start_date: string;
+  blocks: string;
+  can_sign: boolean;
   finish_date: string;
-  resident_name: string;
+  is_signed: boolean;
+  project_id: number;
   project_type_name: string;
-  entrances: number[];
-  is_filled: string;
-  entrances_info: EntranceInfoType[];
-  project_status_code: string;
-  project_status_name: string;
-  project_timeline_step_code: string;
-  is_sbs: boolean;
-  doc_info: any | null;
-  sbs_project_id: number | null;
-  sbs_project_name: string | null;
-  is_contractor_nds: boolean;
-}
-
-export interface ProjectGroupType {
-  resident_id: number;
-  resident_name: string;
   project_type_id: number;
-  project_type_name: string;
-  projects_count: number;
-  min_start_date: string;
-  max_finish_date: string;
+  resident_name: string;
+  resident_id: number;
+  start_date: string;
 }
 
-export interface ProjectCombinedType extends ProjectType, ProjectGroupType {}
+export interface GrantTabType {
+  grant_id: number;
+  grant_code: string;
+  grant_name: string;
+  okk_def?: number;
+  okk_call?: number;
+  doc_cnt?: number;
+}
+
+export interface ProjectInfoDataType {
+  project: ProjectType;
+  grant_tabs: GrantTabType[];
+}

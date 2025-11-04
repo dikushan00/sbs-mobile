@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectFiltersType, ProjectFloorType, SelectedDataType } from '@/components/main/types';
+import { ProjectEntranceAllInfoType, ProjectFiltersType, ProjectFloorType, SelectedDataType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { getEntranceApartments } from '@/components/main/services';
 import { Icon } from '@/components/Icon';
@@ -11,15 +11,17 @@ import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/red
 import { EntranceSelector } from '@/components/common/EntranceSelector';
 
 interface OkkFloorSelectionProps {
-  onBack: () => void;
+  onBack?: () => void;
   onFloorSelect: (floor: ProjectFloorType) => void;
   selectedData: SelectedDataType;
+  setEntranceInfo: (n: ProjectEntranceAllInfoType) => void
 }
 
 export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({ 
   selectedData, 
   onBack, 
-  onFloorSelect 
+  onFloorSelect,
+  setEntranceInfo
 }) => {
   const dispatch = useDispatch();
   const [floorsPlan, setFloorsPlan] = useState<ProjectFloorType[] | null>(null);
@@ -81,7 +83,7 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
         </View>
         <View style={styles.floorInfo}>
           <View style={styles.statusContainer}>
-            <Icon name="check" width={16} height={16} fill={getStatusColor(workCurrent, workTotal)} />
+            <Icon name="checkCircleOutline" width={14} height={14} fill={COLORS.primary} />
             <Text style={[styles.statusText, { color: getStatusColor(workCurrent, workTotal) }]}>
               {workCurrent}
             </Text>
@@ -95,6 +97,10 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
             </Text>
             <Text style={styles.paymentTotal}>из 100%</Text>
           </View>
+        </View>
+        <View style={{gap: 5}}>
+          <Icon name="flagTime" width={10} height={10} fill={COLORS.warning || '#000'} />
+          <Icon name='info' fill='red' width={10} height={10} />
         </View>
       </TouchableOpacity>
     );
@@ -136,7 +142,10 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
       {isFetching && <CustomLoader />}
       <EntranceSelector
         selectedEntranceId={projectEntranceId}
-        onSelectEntrance={setProjectEntranceId}
+        onSelectEntrance={(id, data) => {
+          setProjectEntranceId(id)
+          setEntranceInfo(data)
+        }}
         selectedData={selectedData}
       />
       
@@ -173,7 +182,7 @@ const styles = StyleSheet.create({
     color: COLORS.black,
   },
   headerCount: {
-    fontSize: SIZES.medium,
+    fontSize: SIZES.regular,
     fontFamily: FONT.regular,
     color: COLORS.black,
   },
@@ -229,12 +238,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statusText: {
-    fontSize: SIZES.small,
+    fontSize: SIZES.xSmall,
     fontFamily: FONT.medium,
     marginLeft: 4,
   },
   statusTotal: {
-    fontSize: SIZES.small,
+    fontSize: SIZES.xSmall,
     fontFamily: FONT.regular,
     color: COLORS.gray,
     marginLeft: 4,
@@ -244,12 +253,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   paymentText: {
-    fontSize: SIZES.small,
+    fontSize: SIZES.xSmall,
     fontFamily: FONT.medium,
     marginLeft: 4,
   },
   paymentTotal: {
-    fontSize: SIZES.small,
+    fontSize: SIZES.xSmall,
     fontFamily: FONT.regular,
     color: COLORS.gray,
     marginLeft: 4,

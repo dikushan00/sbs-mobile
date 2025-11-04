@@ -100,6 +100,7 @@ export const getUserInfo = (): AppThunk => async (dispatch) => {
 export const getMenuData =
   (update = false): AppThunk =>
   async (dispatch, getState) => {
+    return
     if (getState()?.userApp?.menu?.length && !update) return;
     const res = await getMenu();
     if (!res) {

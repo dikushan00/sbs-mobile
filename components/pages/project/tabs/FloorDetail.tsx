@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { COLORS } from '@/constants';
-import { FloorMapWorkSetsResponseType, FloorSchemaResRefactorType, ProjectFloorType, SelectedDataType, FlatType, WorkSetType, WorkSetFloorParamType } from '@/components/main/types';
+import { FloorMapWorkSetsResponseType, FloorSchemaResRefactorType, ProjectFloorType, SelectedDataType, FlatType, WorkSetType, WorkSetFloorParamType, ProjectEntranceAllInfoType } from '@/components/main/types';
 import { CustomTabs } from '@/components/common/CustomTabs';
 import { FlatSelect } from '@/components/common/FlatSelect';
 import { WorkSetSelect } from '@/components/common/WorkSetSelect';
@@ -18,9 +18,10 @@ interface FloorDetailProps {
   floor: {floor_map_id: number, floor: number | string};
   onBack: () => void;
   selectedData: SelectedDataType;
+  entranceInfo: ProjectEntranceAllInfoType | null;
 }
 
-export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) => {
+export const FloorDetail = ({ floor, onBack, selectedData, entranceInfo }: FloorDetailProps) => {
   const dispatch = useDispatch();
   const [activeTab, setActiveTab] = useState('scheme');
   const [isFetching, setIsFetching] = useState(false);
@@ -53,7 +54,6 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
   const getWorkSetParamsData = async (workSetId: number) => {
     setIsFetching(true);
     const res = await getFloorWorkSetParams(floor.floor_map_id, workSetId);
-    console.log(res)
     setIsFetching(false);
     setWorkSetParams(res || null);
   };
@@ -74,13 +74,13 @@ export const FloorDetail = ({ floor, onBack, selectedData }: FloorDetailProps) =
   useEffect(() => {
     dispatch(setUserPageHeaderData({
       title: 'Схема этажа',
-      desc: `Подъезд ${selectedData.entrance}, Блок ${selectedData.block_name}, Этаж №${floor.floor}`,
+      desc: `Подъезд ${entranceInfo?.entrance}, Блок ${entranceInfo?.block_name}, Этаж №${floor.floor}`,
     }));
     dispatch(setPageSettings({ 
       backBtn: true, 
       goBack: onBack
     }));
-  }, [floor.floor, onBack, dispatch, selectedData]);
+  }, [floor.floor, onBack, dispatch, selectedData, entranceInfo]);
 
   useEffect(() => {
     if(activeTab === 'scheme')

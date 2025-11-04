@@ -21,8 +21,7 @@ export const apiUrl = __DEV__ ? DEV_API_URL : PROD_API_URL;
 
 //Prod
 // export const apiUrl = PROD_API_URL;
-
-export const FILE_URL = "https://office.smartremont.kz";
+// export const apiUrl = DEV_API_URL;
 
 export const FILE_URL_MAIN = PROD_API_URL;
 

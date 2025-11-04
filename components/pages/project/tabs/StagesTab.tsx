@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceStages, getEntranceDocumentFloors, getPlacementTypes } from '@/components/main/services';
-import { ProjectStageType, ProjectFiltersType, PlacementType, SimpleFloorType, SelectedDataType } from '@/components/main/types';
+import { getEntranceStages, getEntranceDocumentFloors, getPlacementTypes, getResidentialEntrances } from '@/components/main/services';
+import { ProjectStageType, ProjectFiltersType, PlacementType, SimpleFloorType, SelectedDataType, ProjectEntranceAllInfoType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
@@ -28,9 +28,12 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
   const [stagesData, setStagesData] = useState<ProjectStageType[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [entrances, setEntrances] = useState<{project_entrance_id: number | string | null, entrance_name: string}[]>([]);
+  const [entranceInfo, setEntranceInfo] = useState<ProjectEntranceAllInfoType | null>(null);
   const [placementTypes, setPlacementTypes] = useState<PlacementType[]>([]);
   const [floors, setFloors] = useState<SimpleFloorType[]>([]);
   const [localFilters, setLocalFilters] = useState({
+    project_entrance_id: null as string | number | null,
     placement_type_id: null as number | null,
     floor: null as number | null,
   });
@@ -40,12 +43,20 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      const [placementTypesData, floorsData] = await Promise.all([
+      const [entrancesData, placementTypesData] = await Promise.all([
+        getResidentialEntrances(filters),
         getPlacementTypes(),
-        getEntranceDocumentFloors(filters),
       ]);
+      if (entrancesData) {
+        if(entrancesData?.length) {
+          setEntranceInfo(entrancesData[0])
+          setLocalFilters(prev => ({...prev, project_entrance_id: entrancesData[0].project_entrance_id}))
+          const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: entrancesData[0].project_entrance_id})
+          setFloors(floorsData || []);
+        }
+        setEntrances(entrancesData);
+      }
       setPlacementTypes(placementTypesData || []);
-      setFloors(floorsData || []);
     };
     fetchInitialData();
   }, []);
@@ -65,7 +76,8 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
       setLoading(false);
       setStagesData(stages || []);
     };
-    fetchStages();
+    if(localFilters.project_entrance_id)
+      fetchStages();
   }, [localFilters, filters]);
 
   useEffect(() => {
@@ -144,6 +156,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
         floor={{floor_map_id: selectedStage.floor_map_id, floor: selectedStage.floor}} 
         selectedData={selectedData} 
         onBack={handleBackToStages} 
+        entranceInfo={entranceInfo}
       />
     );
   }
@@ -159,6 +172,19 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
   return (
     <View style={styles.container}>
       <View style={styles.selectsContainer}>
+        <View style={styles.selectWrapper}>
+          <CustomSelect
+            list={entrances}
+            valueKey="project_entrance_id"
+            labelKey="entrance_name"
+            onChange={(value, row) => {
+              setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
+              setEntranceInfo(row)
+            }}
+            value={localFilters.project_entrance_id}
+            placeholder="Подъезд" alt
+          />
+        </View>
         <View style={styles.selectWrapper}>
           <CustomSelect
             list={floors}

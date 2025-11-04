@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, 
 import { useDispatch } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, signEntranceDocument } from '@/components/main/services';
-import { DocumentTypeType, ProjectFiltersType, ProjectMainDocumentType, SimpleFloorType } from '@/components/main/types';
+import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, signEntranceDocument, getResidentialEntrances } from '@/components/main/services';
+import { DocumentTypeType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectMainDocumentType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
@@ -28,17 +28,25 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
   const [floorsData, setFloorsData] = useState<SimpleFloorType[]>([]);
   const [documentTypesData, setDocumentTypesData] = useState<DocumentTypeType[]>([]);
   const [localFilters, setLocalFilters] = useState({
+    project_entrance_id: null as string | number | null,
     floor: null as any,
     floor_map_document_type_id: null as any
   });
+  const [entrances, setEntrances] = useState<ProjectEntranceAllInfoType[]>([]);
 
   const fetchInitialData = useCallback(async () => {
-    const [floors, documentTypes] = await Promise.all([
+    const [entrancesData, floors, documentTypes] = await Promise.all([
+      getResidentialEntrances(filters),
       getEntranceDocumentFloors(filters),
       getEntranceDocumentTypes()
     ]);
-    if (floors) {
-      setFloorsData(floors);
+    if (entrancesData) {
+      setEntrances(entrancesData);
+      if(entrancesData?.length) {
+        setLocalFilters(prev => ({...prev, project_entrance_id: entrancesData[0].project_entrance_id}))
+        const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: entrancesData[0].project_entrance_id})
+        setFloorsData(floorsData || []);
+      }
     }
     if (documentTypes) {
       setDocumentTypesData(documentTypes);
@@ -46,6 +54,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
   }, [filters]);
 
   const fetchDocuments = useCallback(async () => {
+    if(!localFilters.project_entrance_id) return;
     setLoading(true);
     const documents = await getEntranceDocuments({...filters, ...localFilters});
     setLoading(false);
@@ -156,6 +165,18 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
   return (
     <View style={styles.container}>
       <View style={styles.selectsContainer}>
+        <View style={styles.selectWrapper}>
+          <CustomSelect
+            list={entrances}
+            valueKey="project_entrance_id"
+            labelKey="entrance_name"
+            onChange={(value, row) => {
+              setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
+            }}
+            value={localFilters.project_entrance_id}
+            placeholder="Подъезд" alt
+          />
+        </View>
         <View style={styles.selectWrapper}>
           <CustomSelect
             list={floorsData}

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectFloorType, SelectedDataType } from '@/components/main/types';
+import { ProjectEntranceAllInfoType, ProjectFloorType, SelectedDataType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { getEntranceApartments } from '@/components/main/services';
 import { Icon } from '@/components/Icon';
@@ -21,6 +21,7 @@ export const FloorSchemaContent = ({ onBack, selectedData }: FloorSchemaContentP
   const [floorsPlan, setFloorsPlan] = useState<ProjectFloorType[] | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
+  const [entranceInfo, setEntranceInfo] = useState<ProjectEntranceAllInfoType | null>(null);
   const [selectedFloor, setSelectedFloor] = useState<ProjectFloorType | null>(null);
 
   const getFloorsPlan = useCallback(async () => {
@@ -84,7 +85,7 @@ export const FloorSchemaContent = ({ onBack, selectedData }: FloorSchemaContentP
         </View>
         <View style={{gap: 10}}>
           <View style={styles.statusContainer}>
-            <Icon name="check" width={16} height={16} fill={getStatusColor(workCurrent, workTotal)} />
+            <Icon name="checkCircleOutline" width={14} height={14} fill={COLORS.primary} />
             <Text style={[styles.statusText, { color: getStatusColor(workCurrent, workTotal) }]}>
               {workCurrent}
             </Text>
@@ -139,6 +140,7 @@ export const FloorSchemaContent = ({ onBack, selectedData }: FloorSchemaContentP
       <FloorDetail 
         floor={selectedFloor} 
         selectedData={selectedData} 
+        entranceInfo={entranceInfo}
         onBack={() => setSelectedFloor(null)} 
       />
     );
@@ -150,7 +152,10 @@ export const FloorSchemaContent = ({ onBack, selectedData }: FloorSchemaContentP
       
       <EntranceSelector
         selectedEntranceId={projectEntranceId}
-        onSelectEntrance={setProjectEntranceId}
+        onSelectEntrance={(id, data) => {
+            setProjectEntranceId(id)
+            setEntranceInfo(data)
+          }}
         selectedData={selectedData}
       />
       <View style={styles.header}>

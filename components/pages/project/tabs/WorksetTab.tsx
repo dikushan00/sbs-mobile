@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getFloorWorkSets } from '@/components/main/services';
-import { FloorMapWorkSetsResponseType, FloorMapWorkSetType } from '@/components/main/types';
+import { FloorMapWorkSetsResponseType, FloorMapWorkSetType, ProjectEntranceAllInfoType } from '@/components/main/types';
 import { BlockItem } from '@/components/common/BlockItem';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { WorkSetAccordion } from './WorksetAccordion';

@@ -12,7 +12,7 @@ interface EntranceItem {
 
 interface EntranceSelectorProps {
   selectedEntranceId: number | null;
-  onSelectEntrance: (entranceId: number) => void;
+  onSelectEntrance: (entranceId: number, e: ProjectEntranceAllInfoType) => void;
   containerStyle?: any;
   selectedData: SelectedDataType;
 }
@@ -21,7 +21,7 @@ export const EntranceSelector = ({
   selectedEntranceId, 
   onSelectEntrance, 
   containerStyle,
-  selectedData
+  selectedData,
 }: EntranceSelectorProps) => {
   const [isFetching, setIsFetching] = useState(false);
   const [entrances, setEntrances] = useState<ProjectEntranceAllInfoType[]>([]);
@@ -32,10 +32,10 @@ export const EntranceSelector = ({
     .then((res) => {
       setIsFetching(false)
       if(!res) return
-      onSelectEntrance(+res[0].project_entrance_id)
+      onSelectEntrance(+res[0].project_entrance_id, res[0])
       setEntrances(res || [])
     });
-  }, [selectedData, onSelectEntrance])
+  }, [selectedData])
 
   useEffect(() => {
     getEntrances()
@@ -56,7 +56,9 @@ export const EntranceSelector = ({
               styles.entranceButton,
               selectedEntranceId === +entrance.project_entrance_id && styles.entranceButtonSelected
             ]}
-            onPress={() => onSelectEntrance(+entrance.project_entrance_id)}
+            onPress={() => {
+              onSelectEntrance(+entrance.project_entrance_id, entrance)
+            }}
           >
             <Text style={[
               styles.entranceButtonText,

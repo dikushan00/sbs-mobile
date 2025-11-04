@@ -5,24 +5,25 @@ import { RefreshControl, ScrollView, StyleSheet, View, Text, TouchableOpacity } 
 import { useDispatch } from "react-redux";
 import { ProjectPage } from "../pages/project";
 import { COLORS, FONT, SIZES } from "@/constants";
-import { SelectedDataType } from "./types";
+import { ProjectFiltersType, SelectedDataType } from "./types";
 import { setPageSettings } from "@/services/redux/reducers/app";
-import { getProjectList } from "../pages/project/services";
-import { ProjectCombinedType } from "../pages/project/services/types";
+import { getProjects } from "../pages/project/services";
+import { ProjectType } from "../pages/project/services/types";
+import { CustomLoader } from "../common/CustomLoader";
 
 export const MainPage = () => {
   const dispatch = useDispatch();
+  const [isFetching, setIsFetching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null);
   const [selectedData, setSelectedData] = useState<Partial<SelectedDataType> | null>(null);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<ProjectFiltersType>({
     resident_id: null,
     project_type_id: null,
     project_entrance_id: null,
   });
   const [showProjectPage, setShowProjectPage] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [projectList, setProjectList] = useState<ProjectCombinedType[]>([]);
+  const [projectList, setProjectList] = useState<ProjectType[]>([]);
 
   useEffect(() => {
     dispatch(
@@ -33,47 +34,23 @@ export const MainPage = () => {
     );
   }, [])
 
+  const getProjectsData = async () => {
+    const res = await getProjects()
+    setProjectList(res || [])
+  }
+
   useEffect(() => {
-    getProjectList().then((res) => {
+    setIsFetching(true)
+    getProjects().then((res) => {
       setProjectList(res || [])
-    })
+      setIsFetching(false)
+    }).finally(() => setIsFetching(false))
   }, [])
-
-  const onFiltersChange = (key: string, value: any, row: any) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-    if (!!row)
-      setSelectedData(selectedData ? { ...selectedData, ...row } : { ...row });
-
-    if (key === "resident_id") {
-      setFilters({
-        resident_id: value,
-        project_type_id: null,
-        project_entrance_id: null,
-      });
-      setProjectId(null);
-      if (selectedData)
-        setSelectedData((prev: any) => ({ ...prev, entrance_full_name: null }));
-      if (!value) setSelectedData(null);
-    }
-    if (key === "project_type_id") {
-      setFilters((prev) => ({ ...prev, project_entrance_id: null }));
-      setProjectId(null);
-      if (selectedData)
-        setSelectedData((prev: any) => ({ ...prev, entrance_full_name: null }));
-    }
-    if (key === "project_entrance_id") {
-      setProjectId(row?.project_id);
-    }
-  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    setRefreshTrigger(prev => prev + 1);
+    await getProjectsData()
     setIsRefreshing(false);
-  };
-
-  const isAllFiltersFilled = () => {
-    return filters.resident_id && filters.project_type_id && filters.project_entrance_id;
   };
 
   const handleContinue = () => {
@@ -99,16 +76,35 @@ export const MainPage = () => {
     dispatch(setPageSettings({ backBtn: false, goBack: null }));
   };
 
-  const handleProjectSelect = (project: ProjectCombinedType) => {
+  const handleProjectSelect = (project: ProjectType) => {
     setProjectId(project.project_id);
+    setFilters(prev => ({...prev, resident_id: project.resident_id, project_type_id: project.project_type_id}))
     setSelectedData({
-      entrance_full_name: project.entrances_info?.map(entrance => `${entrance.entrance} ${entrance.block_name || ''}`).join(' ') || '',
       ...project
     });
     handleContinue()
   };
 
-  const renderProjectCard = (project: ProjectCombinedType) => (
+  const getProjectTypeColor = (projectTypeName: string): string => {
+    const typeName = projectTypeName.toLowerCase();
+    if (typeName.includes('черновая') || typeName.includes('чернов')) {
+      return '#6C757D'; // Серый для черновой
+    } else if (typeName.includes('чистовая') || typeName.includes('чистов')) {
+      return '#4ECDC4'; // Бирюзовый для чистовой
+    } else if (typeName.includes('стяжка') || typeName.includes('стяж')) {
+      return '#95E1D3'; // Светло-бирюзовый для косметической
+    } else if (typeName.includes('капитальная') || typeName.includes('капитальн')) {
+      return '#F38181'; // Розовый для капитальной
+    } else if (typeName.includes('элитная') || typeName.includes('элит')) {
+      return '#AA96DA'; // Фиолетовый для элитной
+    } else if (typeName.includes('дизайнерская') || typeName.includes('дизайн')) {
+      return '#FCBAD3'; // Светло-розовый для дизайнерской
+    } else {
+      return COLORS.primaryLight; // По умолчанию
+    }
+  };
+
+  const renderProjectCard = (project: ProjectType) => (
     <TouchableOpacity
       key={project.project_id}
       style={styles.projectCard}
@@ -116,18 +112,30 @@ export const MainPage = () => {
     >
       <View style={styles.projectHeader}>
         <Text style={styles.projectName}>{project.resident_name}</Text>
-        {/* <View style={styles.statusButton}>
+        {project.can_sign && !project.is_signed && <View style={styles.statusButton}>
           <Text style={styles.statusText}>На подписании</Text>
-        </View> */}
+        </View>}
       </View>
       
       <View style={styles.projectDetails}>
-        <Text style={styles.detailText}>Тип проекта: <Text style={styles.detailTextValue}>{project.project_type_name}</Text></Text>
+        <View style={styles.projectTypeContainer}>
+          <Text style={styles.detailText}>Тип проекта: </Text>
+          <View style={[styles.projectTypeBadge, { backgroundColor: getProjectTypeColor(project.project_type_name) }]}>
+            <Text style={styles.projectTypeText}>{project.project_type_name}</Text>
+          </View>
+        </View>
+        <View style={styles.blocksContainer}>
+          <Text style={styles.detailText}>Подъезды: </Text>
+          <View style={styles.blocksList}>
+            {project.blocks.split(' / ').map((block, index) => (
+              <View key={index} style={styles.blockBadge}>
+                <Text style={styles.blockText}>{block.trim()}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
         <Text style={styles.detailText}>
-          Подъезды: <Text style={styles.detailTextValue}>{project.entrances_info?.map(entrance => `${entrance.entrance} ${entrance.block_name || ''}`).join(' ') || 'Не указаны'}</Text>
-        </Text>
-        <Text style={styles.detailText}>
-          Период: <Text style={styles.detailTextValue}>{project.min_start_date} - {project.max_finish_date}</Text>
+          Период: <Text style={styles.detailTextValue}>{project.start_date} - {project.finish_date}</Text>
         </Text>
       </View>
     </TouchableOpacity>
@@ -146,6 +154,7 @@ export const MainPage = () => {
 
   return (
     <View style={styles.wrapper}>
+      {isFetching && <CustomLoader />}
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -158,16 +167,6 @@ export const MainPage = () => {
       >
         {projectList.map(renderProjectCard)}
       </ScrollView>
-      
-      {/* <View style={styles.buttonContainer}>
-        <CustomButton
-          title="Продолжить"
-          type="contained"
-          onClick={handleContinue} wrapperStyles={{height: 46}}
-          disabled={!isAllFiltersFilled()}
-          allWidth={true}
-        />
-      </View> */}
     </View>
   );
 };
@@ -224,6 +223,45 @@ const styles = StyleSheet.create({
   },
   detailTextValue: {
     fontSize: SIZES.regular,
+    color: COLORS.black,
+  },
+  projectTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  projectTypeBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  projectTypeText: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.medium,
+    color: COLORS.white,
+  },
+  blocksContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+  blocksList: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  blockBadge: {
+    backgroundColor: '#E9ECEF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  blockText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
     color: COLORS.black,
   },
   buttonContainer: {

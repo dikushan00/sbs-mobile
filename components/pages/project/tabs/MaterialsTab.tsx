@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getEntranceMaterialRequests } from '@/components/main/services';
-import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType, SelectedDataType, NewMaterialRequestData } from '@/components/main/types';
+import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType, SelectedDataType, NewMaterialRequestData, ProjectEntranceAllInfoType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { CustomButton } from '@/components/common/CustomButton';
@@ -15,6 +15,7 @@ import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { NotFound } from '@/components/common/NotFound';
 import { setPageHeaderData } from '@/services/redux/reducers/userApp';
+import { EntranceSelector } from '@/components/common/EntranceSelector';
 
 interface MaterialsTabProps {
   filters: ProjectFiltersType;
@@ -25,23 +26,25 @@ interface MaterialsTabProps {
 export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, selectedData }) => {
   const dispatch = useDispatch();
   const [materialsData, setMaterialsData] = useState<MaterialRequestType[] | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [showSuccessPage, setShowSuccessPage] = useState(false);
   const [orderData, setOrderData] = useState<NewMaterialRequestData | null>(null);
+  const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchMaterials = async () => {
       setLoading(true);
-      const data = await getEntranceMaterialRequests(filters);
+      const data = await getEntranceMaterialRequests({...filters, project_entrance_id: projectEntranceId});
       setLoading(false);
       if (data) {
         setMaterialsData(data);
       }
     };
-    fetchMaterials();
-  }, [filters]);
+    if(!!projectEntranceId)
+      fetchMaterials();
+  }, [filters, projectEntranceId]);
 
   useEffect(() => {
     if(!showOrderForm && !showSuccessPage) {
@@ -115,28 +118,6 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     }))
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <CustomLoader />
-        <View style={{
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-          <Text style={styles.loadingText}>Загрузка материалов...</Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (!materialsData) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Не удалось загрузить данные о материалах</Text>
-      </View>
-    );
-  }
-
   if (showOrderForm) {
     return (
       <MaterialOrderForm
@@ -163,7 +144,25 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
 
   return (
     <View style={styles.container}>
-      {!!materialsData?.length && <View style={styles.summaryContainer}>
+      <EntranceSelector
+        selectedEntranceId={projectEntranceId}
+        onSelectEntrance={setProjectEntranceId}
+        selectedData={selectedData}
+      />
+      {
+        loading 
+          ? <View style={styles.loadingContainer}>
+            <CustomLoader />
+            <View style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <Text style={styles.loadingText}>Загрузка материалов...</Text>
+            </View>
+          </View>
+          : materialsData 
+            ? <>
+              {!!materialsData?.length && <View style={styles.summaryContainer}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryLabel}>Общая сумма</Text>
           <Text style={styles.summaryValue}>{numberWithCommas(calculateTotalSum())} ₸</Text>
@@ -252,6 +251,11 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
           wrapperStyles={{height: 52}}
         />
       </View>
+            </>
+            : <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>Не удалось загрузить данные о материалах</Text>
+          </View>
+      }
     </View>
   );
 };

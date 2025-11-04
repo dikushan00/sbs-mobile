@@ -16,10 +16,12 @@ import {
   StagesTab 
 } from './tabs';
 import { FloorSchemaTab } from './tabs/FloorSchemaTab';
-import { getFloorTabs, getIsProjectSBS, getProjectInfo } from '@/components/main/services';
+import { getIsProjectSBS, getProjectInfo } from '@/components/main/services';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { Contracts } from './blocks';
 import { OKKTab } from './tabs/OkkTab';
+import { getProjectData } from "../../pages/project/services";
+import { GrantTabType, ProjectType } from './services/types';
 
 interface ProjectPageProps {
   projectId: number | null,
@@ -30,9 +32,9 @@ interface ProjectPageProps {
 
 const getIconForGrantCode = (grantCode: string) => {
   const iconMap: { [key: string]: string } = {
-    'CallOKK': 'checkCircleBlue',
+    'M__ProjectFormMobileOkk': 'checkCircleBlue',
     'M__ProjectFormInfoTab': 'info',
-    'EntranceSchema': 'map',
+    'M__ProjectFormMobileFloorMap': 'map',
     'M__ProjectFormWorkTab': 'work',
     'M__ProjectFormMaterialTab': 'materials',
     'M__ProjectFormRemontCostTab': 'payment',
@@ -49,18 +51,20 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
   const dispatch = useDispatch();
   const [isFetching, setIsFetching] = useState(false);
   const [tabsFetching, setTabsFetching] = useState(false);
-  const [tabulations, setTabulations] = useState<Tabulation[]>([]);
-  const [currentTab, setCurrentTab] = useState<Tabulation | null>(null);
+  const [tabulations, setTabulations] = useState<GrantTabType[]>([]);
+  const [currentTab, setCurrentTab] = useState<GrantTabType | null>(null);
+  const [projectData, setProjectData] = useState<ProjectType | null>(null);
   const [projectInfo, setProjectInfo] = useState<ProjectInfoResponseType | null>(null);
   const [isSBS, setIsSBS] = useState(false);
 
   const getTabs = async () => {
-    if (tabulations?.length) return;
+    if (tabulations?.length || !projectId) return;
     setTabsFetching(true)
-    const res = await getFloorTabs();
+    const res = await getProjectData(projectId);
     setTabsFetching(false)
-    if (!res?.length) return;
-    setTabulations(res || []);
+    if (!res) return;
+    setProjectData(res?.project)
+    setTabulations(res?.grant_tabs || []);
   };
 
   useEffect(() => {
@@ -84,15 +88,15 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     }));
   };
 
-  // useEffect(() => {
-  //   if(projectId) {
-  //     setIsFetching(true)
-  //     getProjectInfo(projectId).then(res => {
-  //       setIsFetching(false)
-  //       setProjectInfo(res || null)
-  //     })
-  //   }
-  // }, [projectId])
+  useEffect(() => {
+    if(projectId) {
+      setIsFetching(true)
+      getProjectInfo(projectId).then(res => {
+        setIsFetching(false)
+        setProjectInfo(res || null)
+      })
+    }
+  }, [projectId])
 
   const backToProject = () => {
     setCurrentTab(null);
@@ -139,9 +143,9 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
         
       case 'Agreements':
         return <Contracts project_id={projectId} isSBS={isSBS} />;
-      case 'CallOKK':
+      case 'M__ProjectFormMobileOkk':
         return <OKKTab onBack={backToProject} selectedData={selectedData} />;
-      case 'EntranceSchema':
+      case 'M__ProjectFormMobileFloorMap':
         return <FloorSchemaTab onBack={backToProject} selectedData={selectedData} />;
       case 'M__ProjectFormWorkTab':
         return <WorkTab filters={filters} selectedData={selectedData} />;
@@ -156,7 +160,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       default:
         return null
     }
-  };
+  }
 
   const renderProjectInfoBlock = () => {
     return (
@@ -164,28 +168,33 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
         style={styles.projectInfoBlock}
       >
         <View style={styles.projectInfoHeader}>
-          <Text style={styles.projectName}>{selectedData?.resident_name}</Text>
+          <Text style={styles.projectName}>{projectData?.resident_name}</Text>
           <Icon name="folder" width={24} height={24} fill={COLORS.primary} />
         </View>
-        
         <View style={styles.projectDetails}>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Тип проекта:</Text>
-            <Text style={styles.detailValue}>{selectedData?.project_type_name}</Text>
+            <Text style={styles.detailValue}>{projectData?.project_type_name}</Text>
           </View>
-          
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Период:</Text>
             <Text style={styles.detailValue}>
-              {selectedData?.start_date} - {selectedData?.finish_date}
+              {projectData?.start_date} - {projectData?.finish_date}
             </Text>
           </View>
-          
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Подъезды:</Text>
-            <Text style={styles.detailValue}>
-              {selectedData.entrances_info?.map((entrance: any) => `${entrance.entrance} ${entrance.block_name || ''}`).join(' ') || 'Не указаны'}
-            </Text>
+            {projectData?.blocks ? (
+              <View style={styles.blocksList}>
+                {projectData.blocks.split(' / ').map((block, index) => (
+                  <View key={index} style={styles.blockBadge}>
+                    <Text style={styles.blockText}>{block.trim()}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.detailValue}>Не указаны</Text>
+            )}
           </View>
         </View>
       </View>
@@ -213,24 +222,24 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
                 height={20} 
                 fill={COLORS.primaryLight} 
               />
-              {tab.grant_code === 'CallOKK' && <View style={{position: 'absolute', bottom: -23, left: 0,flexDirection: 'row', gap: 5, alignItems: 'center'}}>
-                <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
+              {tab.grant_code === 'M__ProjectFormMobileOkk' && <View style={{position: 'absolute', bottom: -23, left: 0,flexDirection: 'row', gap: 5, alignItems: 'center'}}>
+                {!!tab.okk_call && <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
                 backgroundColor: COLORS.background, padding: 3, borderRadius: 10, }}>
                   <Icon name='clockFilled' fill={'#FFAE4C'} width={12} height={12} />
-                  <Text style={{fontSize: 12}}>8</Text>
-                </View>
-                <View style={{flexDirection: 'row', alignItems: 'center', gap: 3, 
+                  <Text style={{fontSize: 12}}>{tab.okk_call}</Text>
+                </View>}
+                {!!tab.okk_def && <View style={{flexDirection: 'row', alignItems: 'center', gap: 3, 
                 backgroundColor: COLORS.background, padding: 3, borderRadius: 10, }}>
                   <Icon name='info' fill='red' width={12} height={12} />
-                  <Text style={{fontSize: 12}}>10</Text>
-                </View>
+                  <Text style={{fontSize: 12}}>{tab.okk_def}</Text>
+                </View>}
               </View>}
               {tab.grant_code === 'M__ProjectFormDocumentTab' && <View style={{position: 'absolute', bottom: -23, left: 0,flexDirection: 'row', gap: 5, alignItems: 'center'}}>
-                <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
+                {!!tab.doc_cnt && <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
                 backgroundColor: COLORS.background, padding: 3, borderRadius: 10, }}>
                   <Icon name='clockFilled' fill={'#FFAE4C'} width={12} height={12} />
-                  <Text style={{fontSize: 12}}>8</Text>
-                </View>
+                  <Text style={{fontSize: 12}}>{tab.doc_cnt}</Text>
+                </View>}
               </View>}
             </View>
           </TouchableOpacity>
@@ -248,13 +257,13 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={{flexDirection: 'row', gap: 10, alignItems: 'center', 
+      {projectData?.can_sign && !projectData?.is_signed && <View style={{flexDirection: 'row', gap: 10, alignItems: 'center', 
       backgroundColor: '#F5EECA', padding: 15, borderRadius: 12, marginBottom: 15}}>
         <View style={{borderRadius: '50%', backgroundColor: '#BBBE31', padding: 5}}>
           <Icon name='clock' fill='#fff' />
         </View>
         <Text>Договор на подписании</Text>
-      </View>
+      </View>}
       {renderProjectInfoBlock()}
       {renderTabGrid()}
     </ScrollView>
@@ -314,6 +323,24 @@ const styles = StyleSheet.create({
     fontFamily: FONT.regular,
     color: COLORS.dark,
     flex: 1,
+  },
+  blocksList: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+    flex: 1,
+  },
+  blockBadge: {
+    backgroundColor: '#E9ECEF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  blockText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: COLORS.black,
   },
   tabBlock: {
     backgroundColor: COLORS.white,

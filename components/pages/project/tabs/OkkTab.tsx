@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView } from 'react-native';
-import { SelectedDataType, ProjectFloorType } from '@/components/main/types';
+import { SelectedDataType, ProjectFloorType, ProjectEntranceAllInfoType } from '@/components/main/types';
 import { OkkFloorSelection } from './OkkFloorSelection';
 import { useDispatch } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
@@ -9,15 +9,8 @@ import { WorksetTab } from './WorksetTab';
 
 export const OKKTab = ({onBack, selectedData}: {onBack?: () => void, selectedData: SelectedDataType}) => {
   const [selectedFloorForOkk, setSelectedFloorForOkk] = useState<ProjectFloorType | null>(null);
+  const [entranceInfo, setEntranceInfo] = useState<ProjectEntranceAllInfoType | null>(null);
   const dispatch = useDispatch();
-
-  const handleBackToFloors = () => {
-    setSelectedFloorForOkk(null);
-    dispatch(setUserPageHeaderData({
-      title: "Схема этажа",
-      desc: "",
-    }));
-  };
 
   const handleBackToFloorsSchema = () => {
     setSelectedFloorForOkk(null);
@@ -27,7 +20,7 @@ export const OKKTab = ({onBack, selectedData}: {onBack?: () => void, selectedDat
     setSelectedFloorForOkk(floor);
     dispatch(setUserPageHeaderData({
       title: "Вызов ОКК",
-      desc: `Подъезд ${selectedData.entrance}, Блок ${selectedData.block_name}, Этаж №${floor.floor}`,
+      desc: `Подъезд ${entranceInfo?.entrance}, Блок ${entranceInfo?.block_name}, Этаж №${floor.floor}`,
     }));
   };
 
@@ -58,8 +51,9 @@ export const OKKTab = ({onBack, selectedData}: {onBack?: () => void, selectedDat
       </ScrollView>
         : <OkkFloorSelection 
           selectedData={selectedData}
-          onBack={handleBackToFloors} 
+          onBack={onBack} 
           onFloorSelect={handleFloorSelectForOkk}
+          setEntranceInfo={setEntranceInfo}
         />
     }
   </>

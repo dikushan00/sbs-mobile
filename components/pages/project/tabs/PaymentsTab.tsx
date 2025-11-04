@@ -112,6 +112,16 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
       <View style={styles.selectsContainer}>
         <View style={styles.selectWrapper}>
           <CustomSelect
+            list={entrances}
+            valueKey="project_entrance_id"
+            labelKey="entrance_name"
+            onChange={(value) => setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))}
+            value={localFilters.project_entrance_id}
+            placeholder="Подъезд" alt
+          />
+        </View>
+        <View style={styles.selectWrapper}>
+          <CustomSelect
             list={floors}
             valueKey="floor"
             labelKey="floor_name"
@@ -128,16 +138,6 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
             onChange={(value) => setLocalFilters(prev => ({ ...prev, placement_type_id: value }))}
             value={localFilters.placement_type_id}
             placeholder="Тип" alt
-          />
-        </View>
-        <View style={styles.selectWrapper}>
-          <CustomSelect
-            list={entrances}
-            valueKey="project_entrance_id"
-            labelKey="entrance_name"
-            onChange={(value) => setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))}
-            value={localFilters.project_entrance_id}
-            placeholder="Подъезд" alt
           />
         </View>
       </View>
