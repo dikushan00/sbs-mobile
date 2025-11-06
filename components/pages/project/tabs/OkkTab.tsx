@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView } from 'react-native';
-import { SelectedDataType, ProjectFloorType, ProjectEntranceAllInfoType } from '@/components/main/types';
+import { SelectedDataType, ProjectFloorOkkType, ProjectEntranceAllInfoType } from '@/components/main/types';
 import { OkkFloorSelection } from './OkkFloorSelection';
 import { useDispatch } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
@@ -8,7 +8,7 @@ import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/red
 import { WorksetTab } from './WorksetTab';
 
 export const OKKTab = ({onBack, selectedData}: {onBack?: () => void, selectedData: SelectedDataType}) => {
-  const [selectedFloorForOkk, setSelectedFloorForOkk] = useState<ProjectFloorType | null>(null);
+  const [selectedFloorForOkk, setSelectedFloorForOkk] = useState<ProjectFloorOkkType | null>(null);
   const [entranceInfo, setEntranceInfo] = useState<ProjectEntranceAllInfoType | null>(null);
   const dispatch = useDispatch();
 
@@ -16,7 +16,7 @@ export const OKKTab = ({onBack, selectedData}: {onBack?: () => void, selectedDat
     setSelectedFloorForOkk(null);
   };
 
-  const handleFloorSelectForOkk = (floor: ProjectFloorType) => {
+  const handleFloorSelectForOkk = (floor: ProjectFloorOkkType) => {
     setSelectedFloorForOkk(floor);
     dispatch(setUserPageHeaderData({
       title: "Вызов ОКК",

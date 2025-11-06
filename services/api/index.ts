@@ -34,7 +34,6 @@ export const instance = (
     axiosInstance.interceptors.request.use(
       async (config) => {
         const token = await SecureStore.getItemAsync(STORE_KEYS.accessToken);
-        // console.log(token)
         config.headers.Authorization = `Bearer ${token}`;
         return config;
       },

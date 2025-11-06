@@ -111,6 +111,9 @@ export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id, onBack }
                   blockMode={false}
                   renderContent={showContent ? () => <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
                     {
+                      placementType.is_defect_exist && <Icon name='info' fill='red' />
+                    }
+                    {
                       placementType.placement_okk_status_colours?.map(item => {
                         return (
                           <Icon key={item} name="flagTime" width={16} height={16} fill={item || '#000'} />

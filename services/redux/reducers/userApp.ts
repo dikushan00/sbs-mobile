@@ -153,7 +153,6 @@ export const checkUserAuth = (): AppThunk => async (dispatch, getState) => {
 };
 
 export const resetAuthData = async () => {
-  // console.log('reset')
   try {
     await SecureStore.deleteItemAsync(STORE_KEYS.allowBiometry);
     await SecureStore.deleteItemAsync(STORE_KEYS.login);

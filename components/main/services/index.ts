@@ -1,4 +1,4 @@
-import { CompleteWorkSetBodyType, DocumentTypeType, FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, MaterialRequestType, MaterialType, PlacementType, ProjectDocumentType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectMainDocumentType, ProjectTypeType, ResidentType, SimpleFloorType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectStagesFiltersType, ProjectStageType, ProjectStagesChecksParamsType, ProjectWorkSetType, FloorCheckPoint, FloorCheckPointInfo } from "../types";
+import { CompleteWorkSetBodyType, DocumentTypeType, FloorMapWorkSetsResponseType, FloorSchemaResponseType, FloorSchemaResRefactorType, MaterialRequestType, MaterialType, PlacementType, ProjectDocumentType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectFloorOkkType, ProjectFloorType, ProjectInfoResponseType, ProjectMainDocumentType, ProjectTypeType, ResidentType, SimpleFloorType, Tabulation, WorkSetFloorParamsResponseType, WorkSetFloorParamType, WorkSetsMaterialsResponseType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectStagesFiltersType, ProjectStageType, ProjectStagesChecksParamsType, ProjectWorkSetType, FloorCheckPoint, FloorCheckPointInfo } from "../types";
 import { residentialSettingsAPI } from "./api";
 import { ProjectCheckType } from "../types";
 
@@ -62,6 +62,13 @@ export const getResidentialEntrances = async (params: ProjectFiltersType): Promi
 export const getEntranceApartments = async (params: ProjectFiltersType): Promise<ProjectFloorType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getEntranceApartments(params);
+    if (!res) return;
+    return res?.data || []
+  } catch (e) {}
+};
+export const getEntranceFloors = async (project_entrance_id: number): Promise<ProjectFloorOkkType[] | undefined> => {
+  try {
+    const res = await residentialSettingsAPI.getEntranceFloors(project_entrance_id);
     if (!res) return;
     return res?.data || []
   } catch (e) {}

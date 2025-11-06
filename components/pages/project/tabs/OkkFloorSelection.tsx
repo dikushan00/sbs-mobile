@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectEntranceAllInfoType, ProjectFiltersType, ProjectFloorType, SelectedDataType } from '@/components/main/types';
+import { ProjectEntranceAllInfoType, ProjectFloorOkkType, ProjectFloorType, SelectedDataType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
-import { getEntranceApartments } from '@/components/main/services';
+import { getEntranceFloors } from '@/components/main/services';
 import { Icon } from '@/components/Icon';
 import { useDispatch } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
@@ -12,7 +12,7 @@ import { EntranceSelector } from '@/components/common/EntranceSelector';
 
 interface OkkFloorSelectionProps {
   onBack?: () => void;
-  onFloorSelect: (floor: ProjectFloorType) => void;
+  onFloorSelect: (floor: ProjectFloorOkkType) => void;
   selectedData: SelectedDataType;
   setEntranceInfo: (n: ProjectEntranceAllInfoType) => void
 }
@@ -24,13 +24,14 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
   setEntranceInfo
 }) => {
   const dispatch = useDispatch();
-  const [floorsPlan, setFloorsPlan] = useState<ProjectFloorType[] | null>(null);
+  const [floorsPlan, setFloorsPlan] = useState<ProjectFloorOkkType[] | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
 
   const getFloorsPlan = useCallback(async () => {
+    if(!projectEntranceId) return
     setIsFetching(true);
-    const res = await getEntranceApartments({resident_id: selectedData.resident_id, project_type_id: selectedData.project_type_id, project_entrance_id: projectEntranceId});
+    const res = await getEntranceFloors(projectEntranceId);
     setIsFetching(false);
     setFloorsPlan(res || []);
   }, [projectEntranceId, selectedData])
@@ -64,14 +65,8 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
     return COLORS.gray;
   };
 
-  const renderFloorItem = (floor: ProjectFloorType, index: number) => {
-    const workStatus = floor.floor_work_status?.[2];
-    const paymentStatus = floor.floor_payment_status?.[2];
+  const renderFloorItem = (floor: ProjectFloorOkkType) => {
     
-    const workCurrent = workStatus?.status_cnt || 0;
-    const workTotal = floor.floor_work_status?.reduce((sum, status) => sum + status.status_cnt, 0) || 0;
-    const paymentPercent = paymentStatus?.status_percent || 0;
-
     return (
       <TouchableOpacity 
         key={floor.floor} 
@@ -84,23 +79,23 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
         <View style={styles.floorInfo}>
           <View style={styles.statusContainer}>
             <Icon name="checkCircleOutline" width={14} height={14} fill={COLORS.primary} />
-            <Text style={[styles.statusText, { color: getStatusColor(workCurrent, workTotal) }]}>
-              {workCurrent}
+            <Text style={[styles.statusText, { color: getStatusColor(floor.floor_work_done, floor.floor_work_cnt) }]}>
+              {floor.floor_work_done}
             </Text>
-            <Text style={styles.statusTotal}>из {workTotal}</Text>
+            <Text style={styles.statusTotal}>из {floor.floor_work_cnt}</Text>
           </View>
           
           <View style={styles.paymentContainer}>
             <Icon name="moneyDollar" width={14} height={14} fill={COLORS.white} />
-            <Text style={[styles.paymentText, { color: getPaymentColor(paymentPercent) }]}>
-              {paymentPercent}%
+            <Text style={[styles.paymentText, { color: getPaymentColor(floor.floor_payment_status) }]}>
+              {floor.floor_payment_status}%
             </Text>
             <Text style={styles.paymentTotal}>из 100%</Text>
           </View>
         </View>
         <View style={{gap: 5}}>
-          <Icon name="flagTime" width={10} height={10} fill={COLORS.warning || '#000'} />
-          <Icon name='info' fill='red' width={10} height={10} />
+          {floor.has_okk_call && <Icon name="flagTime" width={10} height={10} fill={COLORS.warning || '#000'} />}
+          {floor.has_okk_defect && <Icon name='info' fill='red' width={10} height={10} />}
         </View>
       </TouchableOpacity>
     );
@@ -126,10 +121,10 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
       rows.push(
         <View key={i} style={styles.floorRow}>
           <View style={styles.floorColumn}>
-            {leftFloor ? renderFloorItem(leftFloor, i) : <View style={styles.emptyFloor} />}
+            {leftFloor ? renderFloorItem(leftFloor) : <View style={styles.emptyFloor} />}
           </View>
           <View style={styles.floorColumn}>
-            {rightFloor ? renderFloorItem(rightFloor, i + maxRows) : <View style={styles.emptyFloor} />}
+            {rightFloor ? renderFloorItem(rightFloor) : <View style={styles.emptyFloor} />}
           </View>
         </View>
       );

@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     color: '#856404',
   },
   projectDetails: {
-    gap: 4,
+    gap: 8,
   },
   detailText: {
     fontSize: SIZES.regular,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   projectTypeText: {
-    fontSize: SIZES.regular,
+    fontSize: SIZES.small,
     fontFamily: FONT.medium,
     color: COLORS.white,
   },

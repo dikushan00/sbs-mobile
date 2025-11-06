@@ -1,5 +1,5 @@
 import { instance } from "@/services/api";
-import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType, SimpleFloorType, PlacementType, DocumentTypeType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectCheckType, ProjectStagesChecksParamsType, FloorCheckPoint, FloorCheckPointInfo } from "../types";
+import { ProjectDocumentType, ProjectEntranceType, ProjectFiltersType, ProjectFloorType, ProjectInfoResponseType, ProjectTypeType, ResidentType, Tabulation, WorkSetFloorParamsResponseType, CompleteWorkSetBodyType, MaterialRequestType, MaterialType, ProjectMainDocumentType, SimpleFloorType, PlacementType, DocumentTypeType, ProjectPaymentType, ProjectPaymentsFiltersType, ProjectCheckType, ProjectStagesChecksParamsType, FloorCheckPoint, FloorCheckPointInfo, ProjectFloorOkkType } from "../types";
 import { ReqResponse } from "@/services/types";
 import { ProjectStageType, ProjectWorkSetType } from "../types";
 import { ProjectStagesFiltersType } from "../types";
@@ -38,6 +38,11 @@ export const residentialSettingsAPI = {
   async getEntranceApartments(params: ProjectFiltersType): Promise<ReqResponse<ProjectFloorType[] | undefined>> {
     return await instance()
       .get(`/project/flats/read/`, { params })
+      .then((res) => res?.data);
+  },
+  async getEntranceFloors(project_entrance_id: number): Promise<ReqResponse<ProjectFloorOkkType[] | undefined>> {
+    return await instance()
+      .get(`mobile/floor_map/project_entrance_id/${project_entrance_id}/`)
       .then((res) => res?.data);
   },
   async getEntranceWorkSets(params: ProjectFiltersType): Promise<ReqResponse<ProjectWorkSetType[] | undefined>> {

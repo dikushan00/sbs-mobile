@@ -141,6 +141,7 @@ export const WorkSetAccordion: React.FC<MaterialsAccordionProps> = ({ placement,
                   <Text style={styles.groupTotalAlt}>Сумма: {numberWithCommas(Math.floor(group.total_sum))} 〒</Text>
                 </View>
               </View>
+              {group.is_defect_exist && <View style={{marginRight: 20}}><Icon name='info' fill='red' /></View>}
               <View style={styles.groupHeaderRight}>
                 {group.checked_status_code !== 'DONE' && group.checked_status_code !== 'PROCESSING' && (
                   <TouchableOpacity
@@ -207,7 +208,7 @@ export const WorkSetAccordion: React.FC<MaterialsAccordionProps> = ({ placement,
                       borderRadius: 8,
                       backgroundColor: group.checked_status_colour || COLORS.gray
                     }}>
-                      <Text style={{color: '#404040'}}>{statusData.status_text}</Text>
+                      <Text style={{color: '#fff'}}>{statusData.status_text}</Text>
                     </View>
                   </View>
                 }

@@ -123,6 +123,22 @@ export interface ProjectFloorType {
 	is_selected: boolean
 }
 
+export interface ProjectFloorOkkType {
+	entrance: number
+	floor: string | number
+	floor_map_id: number
+	hex_code: string
+	colour_id: number
+	has_okk_defect: boolean
+	has_okk_call: boolean
+	floor_payment_status: number
+	smeta_recalc_date: string | null
+	smeta_status_code: string
+	smeta_error: string | null
+	floor_work_done: number
+	floor_work_cnt: number
+}
+
 export type SimpleFloorType = {
 	floor: number;
   floor_name: string;
