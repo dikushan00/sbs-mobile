@@ -338,7 +338,10 @@ export interface WorkSetCheckGroupType {
 	work_set_check_group_id: number;
 	work_set_check_group_name: string;
 	checked_status: string | null;
-	checked_status_code: string | null;
+	status_date: string | null
+ 	status_fio: string | null
+	status_name: string;
+	checked_status_code: 'DONE' | 'PROCESSING' | 'DEFECT' | null;
 	checked_status_colour: string | null;
 	to_disable: boolean;
 	is_defect_exist: boolean;

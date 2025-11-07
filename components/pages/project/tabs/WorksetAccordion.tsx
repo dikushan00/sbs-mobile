@@ -103,26 +103,12 @@ export const WorkSetAccordion: React.FC<MaterialsAccordionProps> = ({ placement,
     if(!res) return;
     setWorkSets(res);
     showSuccessSnackbar('Успешно');
-  };
-
-  const getCheckStatus = (status: string | null) => {
-    if(!status) return null;
-    try {
-      const [status_text, fio, date] = status.split(',')
-      return {
-        status_text,
-        fio,
-        date
-      }
-    } catch (error) {
-    }
   }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {placement?.work_set_check_groups.map((group) => {
         const isExpanded = expandedGroups.has(group.work_set_check_group_id);
-        const statusData = getCheckStatus(group.checked_status)
         return (
           <View key={group.work_set_check_group_id} style={styles.groupContainer}>
             <TouchableOpacity
@@ -193,25 +179,23 @@ export const WorkSetAccordion: React.FC<MaterialsAccordionProps> = ({ placement,
                     isLoading={workSetLoadingStates.has(workSet.work_set_id)}
                   />
                 ))}
-                {
-                  statusData && <View style={styles.statusContainer}>
-                    <View>
-                      <Text style={styles.groupTotalAlt}>ФИО</Text>
-                      <Text style={{fontSize: SIZES.small,}}>{statusData.fio}</Text>
-                    </View>
-                    <View>
-                      <Text style={styles.groupTotalAlt}>Дата</Text>
-                      <Text style={{fontSize: SIZES.small}}>{statusData.date}</Text>
-                    </View>
-                    <View style={{
-                      padding: 7,
-                      borderRadius: 8,
-                      backgroundColor: group.checked_status_colour || COLORS.gray
-                    }}>
-                      <Text style={{color: '#fff'}}>{statusData.status_text}</Text>
-                    </View>
+                {group.status_name && <View style={styles.statusContainer}>
+                  {group.status_fio && <View>
+                    <Text style={styles.groupTotalAlt}>ФИО</Text>
+                    <Text style={{fontSize: SIZES.small,}}>{group.status_fio}</Text>
+                  </View>}
+                  {group.status_date && <View>
+                    <Text style={styles.groupTotalAlt}>Дата</Text>
+                    <Text style={{fontSize: SIZES.small}}>{group.status_date}</Text>
+                  </View>}
+                  <View style={{
+                    padding: 7,
+                    borderRadius: 8,
+                    backgroundColor: group.checked_status_colour || COLORS.gray
+                  }}>
+                    <Text style={{color: '#fff'}}>{group.status_name}</Text>
                   </View>
-                }
+                </View>}
               </View>
             )}
           </View>

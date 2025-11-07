@@ -12,6 +12,7 @@ import { doOfflineActions } from "@/services";
 import {
   appState,
   closeBottomDrawer,
+  closeSecondBottomDrawer,
   closeModal,
   initialize,
   setNetworkStatus,
@@ -93,7 +94,7 @@ export const Content = () => {
     RobotoMedium,
     ...FontAwesome.font,
   });
-  const { init, webViewMode, networkWasOff, modal, bottomDrawerData } =
+  const { init, webViewMode, networkWasOff, modal, bottomDrawerData, secondBottomDrawerData, pageSettings } =
     useSelector(appState);
   const { auth } = useSelector(userAppState);
   const lastBackPressed = useRef(0);
@@ -136,20 +137,37 @@ export const Content = () => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+        // Сначала проверяем goBack из pageSettings
+        if (pageSettings.goBack) {
+          pageSettings.goBack();
+          return true;
+        }
+
+        // Затем проверяем модалку
         if (modal.show) {
           dispatch(closeModal());
           return true;
         }
+
+        // Затем проверяем второй bottom drawer
+        if (secondBottomDrawerData.show) {
+          dispatch(closeSecondBottomDrawer());
+          return true;
+        }
+
+        // Затем проверяем первый bottom drawer
         if (bottomDrawerData.show) {
           dispatch(closeBottomDrawer());
           return true;
         }
 
+        // Затем проверяем навигацию
         const currentTime = Date.now();
         if (navigation.canGoBack()) {
           navigation.goBack();
           return true;
         } else {
+          // В конце выходим из приложения
           if (currentTime - lastBackPressed.current <= exitTimeout) {
             BackHandler.exitApp();
             return false;
@@ -165,7 +183,7 @@ export const Content = () => {
     return () => {
       backHandler.remove();
     };
-  }, [navigation, modal, bottomDrawerData]);
+  }, [navigation, modal, bottomDrawerData, secondBottomDrawerData, pageSettings]);
 
   useEffect(() => {
     if (error) throw error;

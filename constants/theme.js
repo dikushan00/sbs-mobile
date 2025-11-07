@@ -56,9 +56,9 @@ export const THEMES = {
 
 const FONT = {
   regular: "RobotoRegular",
-  medium: "Roboto_500Medium",
+  medium: "Roboto_500Medium", // Соответствует RobotoMedium из загруженных шрифтов
   mediumRoboto: "RobotoMedium",
-  semiBold: "RobotoMono_600SemiBold",
+  semiBold: "RobotoBold", 
   bold: "RobotoBold",
 };
 

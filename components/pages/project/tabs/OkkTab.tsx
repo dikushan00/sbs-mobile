@@ -8,9 +8,10 @@ import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/red
 import { WorksetTab } from './WorksetTab';
 
 export const OKKTab = ({onBack, selectedData}: {onBack?: () => void, selectedData: SelectedDataType}) => {
+  const dispatch = useDispatch();
   const [selectedFloorForOkk, setSelectedFloorForOkk] = useState<ProjectFloorOkkType | null>(null);
   const [entranceInfo, setEntranceInfo] = useState<ProjectEntranceAllInfoType | null>(null);
-  const dispatch = useDispatch();
+  const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
 
   const handleBackToFloorsSchema = () => {
     setSelectedFloorForOkk(null);
@@ -52,6 +53,8 @@ export const OKKTab = ({onBack, selectedData}: {onBack?: () => void, selectedDat
         : <OkkFloorSelection 
           selectedData={selectedData}
           onBack={onBack} 
+          projectEntranceId={projectEntranceId}
+          setProjectEntranceId={setProjectEntranceId}
           onFloorSelect={handleFloorSelectForOkk}
           setEntranceInfo={setEntranceInfo}
         />

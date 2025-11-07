@@ -15,18 +15,21 @@ interface OkkFloorSelectionProps {
   onFloorSelect: (floor: ProjectFloorOkkType) => void;
   selectedData: SelectedDataType;
   setEntranceInfo: (n: ProjectEntranceAllInfoType) => void
+  projectEntranceId: number | null
+  setProjectEntranceId: (n: number) => void
 }
 
 export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({ 
   selectedData, 
   onBack, 
   onFloorSelect,
-  setEntranceInfo
+  setEntranceInfo,
+  projectEntranceId,
+  setProjectEntranceId,
 }) => {
   const dispatch = useDispatch();
   const [floorsPlan, setFloorsPlan] = useState<ProjectFloorOkkType[] | null>(null);
   const [isFetching, setIsFetching] = useState(false);
-  const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
 
   const getFloorsPlan = useCallback(async () => {
     if(!projectEntranceId) return
@@ -137,7 +140,8 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
       {isFetching && <CustomLoader />}
       <EntranceSelector
         selectedEntranceId={projectEntranceId}
-        onSelectEntrance={(id, data) => {
+        onSelectEntrance={(id, data, init) => {
+          if(projectEntranceId && init) return
           setProjectEntranceId(id)
           setEntranceInfo(data)
         }}

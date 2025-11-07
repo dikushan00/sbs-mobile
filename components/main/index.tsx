@@ -1,7 +1,7 @@
 import { setPageHeaderData } from "@/services/redux/reducers/userApp";
 import { setHideFooterNav } from "@/services/redux/reducers/app";
 import React, { useEffect, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { useDispatch } from "react-redux";
 import { ProjectPage } from "../pages/project";
 import { COLORS, FONT, SIZES } from "@/constants";
@@ -162,7 +162,6 @@ export const MainPage = () => {
             onRefresh={handleRefresh}
           />
         }
-        contentContainerStyle={{ paddingBottom: 100 }}
         style={styles.container}
       >
         {projectList.map(renderProjectCard)}
@@ -178,7 +177,7 @@ const styles = StyleSheet.create({
   },
   container: { 
     padding: 16, 
-    paddingTop: 0,
+    paddingTop: Platform.OS === 'ios' ? 0 : 16,
     flex: 1, 
     gap: 15 
   },
