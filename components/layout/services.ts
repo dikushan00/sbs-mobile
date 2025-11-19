@@ -6,6 +6,7 @@ import OkkPage from "@/app/okk";
 import { PAGE_NAMES } from "@/constants";
 import { sortArrayToFirstPlace } from "@/services";
 import MainPage from "@/app/index";
+import RegisterPage from "@/app/register";
 
 export const authRoutes = [
   {
@@ -76,6 +77,11 @@ export const unAuthRoutes = [
   {
     name: PAGE_NAMES.forgetPassword,
     component: ForgetPasswordPage,
+    options: { title: "", withoutLayout: true },
+  },
+  {
+    name: PAGE_NAMES.register,
+    component: RegisterPage,
     options: { title: "", withoutLayout: true },
   },
 ];

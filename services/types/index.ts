@@ -22,6 +22,13 @@ export type AuthLoginData = {
   mobile_token?: string;
 };
 
+export type AuthRegisterData = {
+  fio: string;
+  login: string;
+  password: string;
+  password_repeat: string;
+};
+
 export interface NotificationType {
   mobile_notify_id: number;
   mobile_notify_title: string;

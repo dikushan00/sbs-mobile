@@ -11,9 +11,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between",
   },
+  contentContainerRegister: {
+    flex: 1,
+    justifyContent: "space-between",
+    paddingBottom: 30
+  },
   formContainer: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center'
+  },
+  formContainerRegister: {
+    flex: 1,
+    paddingTop: 80
   },
   bottomButtonsContainer: {
     paddingBottom: 20,

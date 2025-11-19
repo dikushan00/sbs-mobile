@@ -4,6 +4,7 @@ import { getMenuData, getUserInfo } from "@/services/redux/reducers/userApp";
 import { storageService } from "@/services/storage";
 import {
   AuthLoginData,
+  AuthRegisterData,
   LoginResponseType,
   NetworkErrorType,
 } from "@/services/types";
@@ -55,6 +56,12 @@ export const checkAuth = async (): Promise<boolean> => {
 export const requestNewPassword = async (body: { email: string }) => {
   try {
     await loginAPI.requestNewPassword(body);
+    return true;
+  } catch (e: any) {}
+};
+export const registerNewContractor = async (body: AuthRegisterData) => {
+  try {
+    await loginAPI.register(body);
     return true;
   } catch (e: any) {}
 };

@@ -1,26 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectFiltersType, ProjectInfoResponseType } from '@/components/main/types';
+import { View, StyleSheet } from 'react-native';
+import { COLORS } from '@/constants';
+import { ProjectInfoResponseType } from '@/components/main/types';
 import { useDispatch } from 'react-redux';
 import { setPageHeaderData as setUserPageHeaderData } from '@/services/redux/reducers/userApp';
 import { setPageSettings } from '@/services/redux/reducers/app';
 import { 
   AssignedPersons, 
-  Contracts, 
   FinancialInfo, 
   OrderedMaterials 
 } from '../blocks';
 import { BlockItem } from '@/components/common/BlockItem';
 
 interface GeneralTabProps {
-  projectId: number | null;
   projectInfo: ProjectInfoResponseType | null;
   onBackToProject?: () => void;
-  isSBS: boolean;
 }
 
-export const GeneralTab = ({projectInfo, onBackToProject, projectId, isSBS}: GeneralTabProps) => {
+export const GeneralTab = ({projectInfo, onBackToProject}: GeneralTabProps) => {
   const dispatch = useDispatch();
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
 

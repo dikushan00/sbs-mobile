@@ -129,9 +129,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     switch (currentTab.grant_code) {
       case 'M__ProjectFormInfoTab':
         return <GeneralTab 
-          projectId={projectId}
           projectInfo={projectInfo} 
-          isSBS={isSBS} 
           onBackToProject={() => {
             setCurrentTab(null);
             dispatch(setUserPageHeaderData({
@@ -141,7 +139,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
           }}
         />;
         
-      case 'Agreements':
+      case 'M__ProjectFormMobileAgreement':
         return <Contracts project_id={projectId} isSBS={isSBS} />;
       case 'M__ProjectFormMobileOkk':
         return <OKKTab onBack={backToProject} selectedData={selectedData} />;
@@ -174,7 +172,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
         <View style={styles.projectDetails}>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Тип проекта:</Text>
-            <Text style={styles.detailValue}>{projectData?.project_type_name}</Text>
+            <Text style={styles.detailValue}>{projectData?.project_type_name || projectInfo?.data?.project_type_name}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Период:</Text>

@@ -214,15 +214,26 @@ export const LoginForm = ({ disabled = false }) => {
               placeholder={"Пароль"}
             />
           </View>
-          <TouchableOpacity
-            style={styles.textButton}
-            disabled={disabled}
-            onPress={() =>
-              navigation.navigate(PAGE_NAMES.forgetPassword as never)
-            }
-          >
-            <Text style={styles.buttonTextPrimaryLight}>Забыли пароль?</Text>
-          </TouchableOpacity>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+            <TouchableOpacity
+              style={styles.textButton}
+              disabled={disabled}
+              onPress={() =>
+                navigation.navigate(PAGE_NAMES.forgetPassword as never)
+              }
+            >
+              <Text style={styles.buttonTextPrimaryLight}>Забыли пароль?</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.textButton}
+              disabled={disabled}
+              onPress={() =>
+                navigation.navigate(PAGE_NAMES.register as never)
+              }
+            >
+              <Text style={styles.buttonTextPrimaryLight}>Регистрация</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.bottomButtonsContainer}>
           <TouchableOpacity

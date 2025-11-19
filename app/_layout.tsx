@@ -46,6 +46,7 @@ import {
 } from "react-native-safe-area-context";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { AppDispatch, store } from "../services/redux";
+import { useDeepLinking } from "@/utils/useDeepLinking";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -100,6 +101,9 @@ export const Content = () => {
   const lastBackPressed = useRef(0);
   const [offlineActionsLoading, setOfflineActionsLoading] = useState(false);
   const [networkConnected, setNetworkConnected] = useState(true);
+  
+  // Инициализация deep linking
+  useDeepLinking();
 
   const checkOfflineActions = async () => {
     if (offlineActionsLoading) return;
