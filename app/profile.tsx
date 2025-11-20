@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, ScrollView, RefreshControl } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Image, ScrollView, RefreshControl, Modal, Linking } from "react-native";
 import { Icon } from "@/components/Icon";
 import { useDispatch, useSelector } from "react-redux";
 import { logout, userAppState, getUserInfo } from "@/services/redux/reducers/userApp";
@@ -7,12 +7,14 @@ import { showBottomDrawer } from "@/services/redux/reducers/app";
 import { AppDispatch } from "@/services/redux";
 import { COLORS } from "@/constants";
 import { NavigationLayout } from "@/components/layout/NavigationLayout";
-import { chooseCity } from "@/services";
+import { chooseCity, deleteAccount } from "@/services";
 import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/constants";
 
 export default function ProfilePage() {
   const dispatch = useDispatch<AppDispatch>()
   const { logoutLoading, userData, userDataFetching } = useSelector(userAppState);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const onRefresh = () => {
     dispatch(getUserInfo());
@@ -56,19 +58,58 @@ export default function ProfilePage() {
     );
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Удаление аккаунта",
+      "Вы уверены, что хотите деактивировать свой аккаунт? Это действие можно будет отменить.",
+      [
+        {
+          text: "Отмена",
+          style: "cancel",
+        },
+        {
+          text: "Удалить",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              const success = await deleteAccount();
+              if (success) {
+                setShowDeleteModal(true);
+              }
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleCloseModal = () => {
+    setShowDeleteModal(false);
+    dispatch(logout());
+  };
+
+  const handleOpenFAQ = () => {
+    handleCloseModal()
+    Linking.openURL("https://smartremont.kz/faq");
+  };
+
   return (
     <NavigationLayout>
-      <ScrollView 
-        style={styles.container}
-        refreshControl={
-          <RefreshControl
-            refreshing={userDataFetching}
-            onRefresh={onRefresh}
-            colors={[COLORS.primary]}
-            tintColor={COLORS.primary}
-          />
-        }
-      >
+      <>
+        <ScrollView 
+          style={styles.container}
+          refreshControl={
+            <RefreshControl
+              refreshing={userDataFetching}
+              onRefresh={onRefresh}
+              colors={[COLORS.primary]}
+              tintColor={COLORS.primary}
+            />
+          }
+        >
         <View style={styles.content}>
           <View style={styles.profileHeader}>
             <View style={styles.avatarContainer}>
@@ -128,7 +169,49 @@ export default function ProfilePage() {
           <Icon name="logout" width={20} height={20} />
           <Text style={styles.logoutText}>Выйти</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.deleteButton} 
+          onPress={handleDeleteAccount}
+          disabled={isDeleting}
+        >
+          <Icon name="trashLine" width={20} height={20} fill={COLORS.red} />
+          <Text style={styles.deleteText}>
+            {isDeleting ? "Удаление..." : "Удалить аккаунт"}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
+
+      <Modal
+        visible={showDeleteModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalIconContainer}>
+              <Icon name="checkCircle" width={60} height={60} fill={COLORS.primary} />
+            </View>
+            
+            <Text style={styles.modalTitle}>Аккаунт успешно деактивирован</Text>
+            
+            <Text style={styles.modalDescription}>
+              Чтобы полностью удалить данные о вашем аккаунте, необходимо перейти по ссылке и заполнить форму:
+            </Text>
+
+            <TouchableOpacity style={styles.linkButton} onPress={handleOpenFAQ}>
+              <Text style={styles.linkButtonText}>Перейти</Text>
+              <Icon name="arrowRightAlt" width={16} height={16} fill={COLORS.primary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.modalCloseButton} onPress={handleCloseModal}>
+              <Text style={styles.modalCloseButtonText}>Закрыть</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      </>
     </NavigationLayout>
   );
 }
@@ -257,6 +340,103 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
+  },
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    padding: 15,
+    margin: 20,
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#FF3B30",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  deleteText: {
+    marginLeft: 10,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FF3B30",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 30,
+    width: "100%",
+    maxWidth: 400,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalIconContainer: {
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  modalDescription: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  linkButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F0F8FF",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  linkButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.primary,
+    marginRight: 8,
+  },
+  modalCloseButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 10,
+    width: "100%",
+    alignItems: "center",
+  },
+  modalCloseButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
   },
 });
 

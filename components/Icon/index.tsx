@@ -40,6 +40,7 @@ import docCar from "@/assets/icons/doc_car.svg";
 import Logout from "@/assets/icons/logout.svg";
 import More from "@/assets/icons/more.svg";
 import Trash from "@/assets/icons/trash.svg";
+import TrashLine from "@/assets/icons/trash_line.svg";
 import Search from "@/assets/icons/search.svg";
 import Calendar from "@/assets/icons/calendar.svg";
 import Profile from "@/assets/icons/profile.svg";
@@ -85,6 +86,7 @@ const icons = {
   docCar: docCar,
   more: More,
   trash: Trash,
+  trashLine: TrashLine,
   logout: Logout,
   search: Search,
   calendar: Calendar,

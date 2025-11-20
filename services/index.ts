@@ -75,6 +75,15 @@ export const chooseCity = async (city_id: number): Promise<boolean | undefined> 
   } catch (e) {}
 };
 
+export const deleteAccount = async (): Promise<boolean | undefined> => {
+  try {
+    const res = await appAPI.deleteAccount();
+    return res?.status;
+  } catch (e) {
+    return false;
+  }
+};
+
 export const registerForPushNotificationsAsync = async () => {
   if (Platform.OS === "android") {
     Notifications.setNotificationChannelAsync("default", {

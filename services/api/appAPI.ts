@@ -36,4 +36,9 @@ export const appAPI = {
       .post("/common/cities/choose/", {city_id})
       .then((res) => res?.data);
   },
+  async deleteAccount(): Promise<{ status: boolean }> {
+    return await instance()
+      .delete("/mobile/user_delete/")
+      .then((res) => res?.data);
+  },
 };
