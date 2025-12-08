@@ -10,16 +10,19 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+// TODO: Migrate to expo-audio when Node.js version is updated to >=18
+// import { useAudioPlayer, AudioSource } from 'expo-audio';
 import { Audio } from 'expo-av';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
-import { useVoiceAssistant, ServerMessage } from '@/utils/useVoiceAssistant';
+import { useVoiceAssistant } from '@/utils/useVoiceAssistant';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
 import { setPageHeaderData, userAppState } from '@/services/redux/reducers/userApp';
 
 interface AIChatOrderScreenProps {
   onBack: () => void;
+  projectId: number;
 }
 
 const API_KEYS = [
@@ -28,7 +31,7 @@ const API_KEYS = [
   '98096593aca9de78bacec1f02f2d60846451ff50070ddc7f024ed135d13eac49',
 ];
 
-export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack }) => {
+export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, projectId }) => {
   const dispatch = useDispatch();
   const scrollViewRef = useRef<ScrollView>(null);
   const [inputText, setInputText] = useState('');
@@ -51,8 +54,7 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack }) 
     },
   ]);
 
-  // console.log("[VAC] userData", userData);
-  // console.log("[VAC] chatMessages", chatMessages);
+  console.log("[VAC] chatMessages", chatMessages);
   const {
     isConnected,
     isRecording,
@@ -65,8 +67,9 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack }) 
     sendTextMessage,
   } = useVoiceAssistant({
     apiKey: API_KEYS[selectedKeyIndex],
-    // contractorId: '1',
-    // contractorName: 'ТОО Строитель',
+    contractorId: userData?.contractor_id,
+    employeeId: userData?.employee_id,
+    projectId,
   });
 
   useEffect(() => {
@@ -274,6 +277,7 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack }) 
     );
   };
 
+  console.log(chatMessages?.map(item => !!item.audioUri));
   return (
     <KeyboardAvoidingView
       style={styles.container}

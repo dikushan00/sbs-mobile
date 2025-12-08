@@ -46,10 +46,10 @@ export const EntranceSelector = ({
       if (position !== undefined) {
         // Небольшая задержка для завершения рендеринга
         setTimeout(() => {
-          scrollViewRef.current?.scrollTo({
+              scrollViewRef.current?.scrollTo({
             x: position - 20, // Отступ слева
-            animated: true,
-          });
+                animated: true,
+              });
         }, 100);
       }
     }

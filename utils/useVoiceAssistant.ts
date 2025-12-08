@@ -7,8 +7,9 @@ interface VoiceAssistantConfig {
   apiKey: string;
   wsUrl?: string;
   sessionId?: string;
-  contractorId?: string;
-  contractorName?: string;
+  contractorId?: number;
+  employeeId?: number;
+  projectId?: number;
 }
 
 export interface ServerMessage {
@@ -44,7 +45,8 @@ export const useVoiceAssistant = ({
   wsUrl = "wss://apigw.test.bi.group/ai-ofc-sbs-vac",
   sessionId = `rn-session-${Date.now()}`,
   contractorId,
-  contractorName,
+  employeeId,
+  projectId,
 }: VoiceAssistantConfig) => {
   const wsRef = useRef<WebSocket | null>(null);
   const recordingRef = useRef<any | null>(null);
@@ -63,7 +65,8 @@ export const useVoiceAssistant = ({
 
       let url = `${wsUrl}/ws/${sessionId}?api_key=${apiKey}`;
       if (contractorId) url += `&contractor_id=${contractorId}`;
-      if (contractorName) url += `&contractor_name=${encodeURIComponent(contractorName)}`;
+      if (employeeId) url += `&employee_id=${employeeId}`;
+      if (projectId) url += `&project_id=${projectId}`;
 
       const ws = new WebSocket(url);
       ws.binaryType = "arraybuffer";
@@ -75,11 +78,10 @@ export const useVoiceAssistant = ({
       };
 
       ws.onmessage = async (event) => {
-        
         try {
           if (typeof event.data === "string") {
             const msg = JSON.parse(event.data);
-            console.log(msg);
+            // console.log(msg);
             console.log('[VAC] msg.type', msg.type)
             
             // Skip empty audio buffer errors
@@ -89,7 +91,7 @@ export const useVoiceAssistant = ({
             
             // Log non-audio messages
             if(msg.type !== 'audio') {
-              console.log("[VAC] message", msg);
+              // console.log("[VAC] message", msg);
             }
             
             console.log("[VAC] msg", msg.type, !!msg?.audio);
@@ -100,13 +102,13 @@ export const useVoiceAssistant = ({
                 // Save base64 audio to file
                 const audioUri = await saveAudioToFile(msg.audio);
                 msg.audioUri = audioUri;
+                msg.role = 'assistant';
                 console.log("[VAC] Audio saved to:", audioUri);
               } catch (err) {
                 console.error("[VAC] Failed to save audio:", err);
               }
             }
             
-            console.log("[VAC] msg", msg);
             setMessages((prev) => [...prev, msg]);
             handleServerMessage(msg);
           }
@@ -121,7 +123,7 @@ export const useVoiceAssistant = ({
       console.error("[VAC] connect error", err);
       setError("Connection failed");
     }
-  }, [apiKey, wsUrl, sessionId, contractorName, contractorId]);
+  }, [apiKey, wsUrl, sessionId, contractorId, employeeId, projectId]);
 
   const startRecording = useCallback(async () => {
     AudioRecord.init({
@@ -186,6 +188,7 @@ export const useVoiceAssistant = ({
   // SEND TEXT MESSAGE
   // ============================================================
   const sendTextMessage = useCallback((text: string) => {
+    return
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       setError("WebSocket not connected");
       return;
@@ -197,6 +200,7 @@ export const useVoiceAssistant = ({
   // SEND CONTROL MESSAGE
   // ============================================================
   const sendMessage = useCallback((message: any) => {
+    return
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       setError("WebSocket not connected");
       return;

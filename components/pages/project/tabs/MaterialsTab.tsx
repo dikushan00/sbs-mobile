@@ -129,6 +129,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     return (
       <AIChatOrderScreen
         onBack={handleBackToMaterials}
+        projectId={selectedData?.project_id}
       />
     );
   }

@@ -38,6 +38,7 @@ export type UserDataType = {
   company_name: string;
   email: string;
   employee_id: number;
+  contractor_id: number;
   fio: string;
   group_names: string;
   image_url: string | null;
