@@ -141,11 +141,6 @@ export const Content = () => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        // Сначала проверяем goBack из pageSettings
-        if (pageSettings.goBack) {
-          pageSettings.goBack();
-          return true;
-        }
 
         // Затем проверяем модалку
         if (modal.show) {
@@ -162,6 +157,11 @@ export const Content = () => {
         // Затем проверяем первый bottom drawer
         if (bottomDrawerData.show) {
           dispatch(closeBottomDrawer());
+          return true;
+        }
+        // Сначала проверяем goBack из pageSettings
+        if (pageSettings.goBack) {
+          pageSettings.goBack();
           return true;
         }
 

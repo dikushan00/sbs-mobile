@@ -267,6 +267,7 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 32,
     fontWeight: "600",
+    textAlign: "center",
   },
   userInfo: {
     alignItems: "center",
@@ -276,6 +277,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
     marginBottom: 5,
+    textAlign: "center",
   },
   userPosition: {
     fontSize: 16,

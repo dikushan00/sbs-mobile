@@ -13,6 +13,7 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useDispatch } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
@@ -27,6 +28,7 @@ export const LoginForm = ({ disabled = false }) => {
   const [biometricData, setBiometricData] = useState<AuthLoginData | null>(
     null
   );
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isBiometricSupportedAndAllowed, setIsBiometricSupportedAndAllowed] =
     useState(false);
@@ -206,14 +208,24 @@ export const LoginForm = ({ disabled = false }) => {
           </View>
           <View style={styles.inputWrapper}>
             <TextInput
-              secureTextEntry
+              secureTextEntry={!showPassword}
               placeholderTextColor="#BABABA"
-              style={styles.input}
+              style={styles.inputWithIcon}
               autoCapitalize="none"
               value={formData.password}
               onChangeText={(text) => onChange("password", text)}
               placeholder={"Пароль"}
             />
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Ionicons
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
+                size={24}
+                color="#BABABA"
+              />
+            </TouchableOpacity>
           </View>
           <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
             <TouchableOpacity

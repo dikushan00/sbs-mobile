@@ -9,6 +9,7 @@ import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { CustomButton } from '@/components/common/CustomButton';
 import { MaterialOrderForm } from './MaterialOrderForm';
 import { MaterialOrderSuccess } from './MaterialOrderSuccess';
+import { AIChatOrderScreen } from './AIChatOrderScreen';
 import { numberWithCommas } from '@/utils';
 import { Icon } from '@/components/Icon';
 import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
@@ -30,6 +31,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [showSuccessPage, setShowSuccessPage] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
   const [orderData, setOrderData] = useState<NewMaterialRequestData | null>(null);
   const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
 
@@ -45,9 +47,9 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     if(!!projectEntranceId)
       fetchMaterials();
   }, [filters, projectEntranceId]);
-
+  
   useEffect(() => {
-    if(!showOrderForm && !showSuccessPage) {
+    if(!showOrderForm && !showSuccessPage && !showAIChat) {
       dispatch(setPageSettings({ 
           backBtn: true, 
           goBack: onBack
@@ -57,7 +59,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
         desc: '',
       }));
     }
-  }, [onBack, showOrderForm, showSuccessPage])
+  }, [onBack, showOrderForm, showSuccessPage, showAIChat])
 
   const getStatusColour = (statusCode: ProviderRequestStatusCodeType) => {
     switch (statusCode) {
@@ -89,7 +91,12 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
   const handleBackToMaterials = () => {
     setShowOrderForm(false);
     setShowSuccessPage(false);
+    setShowAIChat(false);
     setOrderData(null);
+  };
+
+  const handleOpenAIChat = () => {
+    setShowAIChat(true);
   };
 
   const handleSubmitOrder = (res: MaterialRequestType[]) => {
@@ -118,13 +125,21 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     }))
   };
 
+  if (showAIChat) {
+    return (
+      <AIChatOrderScreen
+        onBack={handleBackToMaterials}
+      />
+    );
+  }
+
   if (showOrderForm) {
     return (
       <MaterialOrderForm
         onBack={handleBackToMaterials}
         onSubmit={handleSubmitOrder}
         onSuccess={handleOrderSuccess}
-        filters={filters} selectedData={selectedData}
+        filters={{...filters, project_entrance_id: projectEntranceId}} selectedData={selectedData}
       />
     );
   }
@@ -242,6 +257,13 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
             : !loading && <NotFound title='Данные не найдены' />
         }
       </ScrollView>
+      <TouchableOpacity
+        style={styles.aiFloatingButton}
+        onPress={handleOpenAIChat}
+      >
+        <Icon name="aiAssistant" width={28} height={28} fill={COLORS.white} />
+        {/* <Text style={{color: COLORS.white, fontSize: 20, fontFamily: FONT.bold}}>AI</Text> */}
+      </TouchableOpacity>
       <View style={styles.fixedButtonContainer}>
         <CustomButton
           title="Заказать материал"
@@ -327,6 +349,25 @@ const styles = StyleSheet.create({
   },
   orderButton: {
     backgroundColor: COLORS.primary,
+  },
+  aiFloatingButton: {
+    position: 'absolute',
+    bottom: 82,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   materialName: {
     flex: 1,

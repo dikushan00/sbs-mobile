@@ -7,13 +7,14 @@ import { ProjectMainDocumentType, ProjectFiltersType } from '@/components/main/t
 import { CustomDatePicker } from '@/components/common/CustomDatePicker';
 import { BOTTOM_DRAWER_KEYS } from '../constants';
 import { showSecondBottomDrawer } from '@/services/redux/reducers/app';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { changeDateEntranceDocument, sendAvrTo1C, signEntranceDocument } from '@/components/main/services';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
 import { BottomDrawerHeader } from '../BottomDrawerHeader';
 import { downloadFile } from '@/utils';
 import { instance } from '@/services/api';
 import { CustomLoader } from '@/components/common/CustomLoader';
+import { userAppState } from '@/services/redux/reducers/userApp';
 
 interface DocumentActionsProps {
   data: {
@@ -39,7 +40,8 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
     date_end: document.date_end
   });
   const [changeDateLoading, setChangeDateLoading] = useState(false);
-
+  const { userData } = useSelector(userAppState);
+  
   const handleDownload = async () => {
     if(downloading) return;
     setDownloading(true);
@@ -103,6 +105,10 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
   };
 
   const confirmSign = async () => {
+    const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${floor_map_document_id}&type=document&user=${userData?.employee_id}`)
+    const link = `https://m.egov.kz/mobileSign/?link=${apiUrl}`
+    await Linking.openURL(link);
+    return
     if (processing) return;
     setProcessing(true);
 

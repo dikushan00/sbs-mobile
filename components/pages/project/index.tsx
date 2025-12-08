@@ -20,7 +20,7 @@ import { getIsProjectSBS, getProjectInfo } from '@/components/main/services';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { Contracts } from './blocks';
 import { OKKTab } from './tabs/OkkTab';
-import { getProjectData } from "../../pages/project/services";
+import { getProjectData, tabsNames } from "../../pages/project/services";
 import { GrantTabType, ProjectType } from './services/types';
 
 interface ProjectPageProps {
@@ -40,6 +40,7 @@ const getIconForGrantCode = (grantCode: string) => {
     'M__ProjectFormRemontCostTab': 'payment',
     'M__ProjectFormDocumentTab': 'document',
     'M__ProjectFormStagesTab': 'flag',
+    'M__ProjectFormMobileAgreement': 'documentPen',
   };
   return iconMap[grantCode] || 'info';
 };
@@ -64,7 +65,13 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     setTabsFetching(false)
     if (!res) return;
     setProjectData(res?.project)
-    setTabulations(res?.grant_tabs || []);
+    setTabulations(
+      res?.grant_tabs
+        ?.filter(tab => tabsNames.includes(tab.grant_code))
+        ?.sort((a, b) => {
+          return tabsNames.indexOf(a.grant_code) - tabsNames.indexOf(b.grant_code)
+        }) || []
+    );
   };
 
   useEffect(() => {
@@ -233,10 +240,15 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
                 </View>}
               </View>}
               {tab.grant_code === 'M__ProjectFormDocumentTab' && <View style={{position: 'absolute', bottom: -23, left: 0,flexDirection: 'row', gap: 5, alignItems: 'center'}}>
-                {!!tab.doc_cnt && <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
+                {!!tab.not_signed_cnt && <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
                 backgroundColor: COLORS.background, padding: 3, borderRadius: 10, }}>
                   <Icon name='clockFilled' fill={'#FFAE4C'} width={12} height={12} />
-                  <Text style={{fontSize: 12}}>{tab.doc_cnt}</Text>
+                  <Text style={{fontSize: 12}}>{tab.not_signed_cnt}</Text>
+                </View>}
+                {!!tab.is_signed_cnt && <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
+                backgroundColor: COLORS.background, padding: 3, borderRadius: 10, }}>
+                  <Icon name='checkCircle' fill={'green'} width={12} height={12} />
+                  <Text style={{fontSize: 12}}>{tab.is_signed_cnt}</Text>
                 </View>}
               </View>}
             </View>

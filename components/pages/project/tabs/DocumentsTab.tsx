@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl, Linking } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, signEntranceDocument, getResidentialEntrances } from '@/components/main/services';
@@ -12,6 +12,8 @@ import { closeBottomDrawer, showBottomDrawer } from '@/services/redux/reducers/a
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { NotFound } from '@/components/common/NotFound';
+import { userAppState } from '@/services/redux/reducers/userApp';
+import * as ExpoLinking from 'expo-linking';
 
 interface DocumentsTabProps {
   filters: ProjectFiltersType;
@@ -21,6 +23,7 @@ interface DocumentsTabProps {
 
 export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isSBS }) => {
   const dispatch = useDispatch();
+  const { userData } = useSelector(userAppState);
   const [documentsData, setDocumentsData] = useState<ProjectMainDocumentType[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<Record<number, boolean>>({});
@@ -67,15 +70,55 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     fetchInitialData();
   }, [fetchInitialData]);
 
-  useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
-
   useFocusEffect(
     useCallback(() => {
       fetchDocuments();
     }, [fetchDocuments])
   );
+
+  // Обработка deep link вида: sbs://documents?status=success
+  useEffect(() => {
+    const handleDocumentsDeepLink = (url: string | null) => {
+      if (!url) return;
+
+      try {
+        const { path, queryParams } = ExpoLinking.parse(url);
+        const route = path || '';
+        console.log(route, queryParams)
+
+        if (queryParams?.status === 'success') {
+          // Показываем модалку/алерт об успешном подписании
+          Alert.alert(
+            'Документ подписан',
+            'Документ успешно подписан.',
+            [{ text: 'Ок', style: 'default' }],
+          );
+        }
+      } catch (error) {
+        console.error('Error handling documents deep link:', error);
+      }
+    };
+
+    // Обработка initial URL (если приложение открыто по deeplink)
+    const checkInitialUrl = async () => {
+      const initialUrl = await ExpoLinking.getInitialURL();
+      if (initialUrl) {
+        handleDocumentsDeepLink(initialUrl);
+      }
+
+    };
+
+    checkInitialUrl();
+
+    // Подписка на события deeplink, когда приложение уже открыто
+    const subscription = ExpoLinking.addEventListener('url', (event) => {
+      handleDocumentsDeepLink(event.url);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
@@ -83,17 +126,16 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
         fetchDocuments();
       }
     });
-
     return () => {
       subscription.remove();
     };
   }, [fetchDocuments]);
 
-  const getStatusColour = (isSigned: boolean) => {
+  const getStatusColour = (isSigned: boolean, userSigned?: boolean) => {
     if(isSigned) {
       return COLORS.green;
     } else {
-      return '#F6BA30';
+      return userSigned ? 'orange' : '#F6BA30';
     }
   }
 
@@ -133,6 +175,12 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
   };
 
   const confirmSign = async (floor_map_document_id: number) => {
+    const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${floor_map_document_id}&type=document&user=${userData?.employee_id}`)
+
+    const link = `https://m.egov.kz/mobileSign/?link=${apiUrl}`
+    console.log(floor_map_document_id);
+    await Linking.openURL(link);
+    return
     if (processing[floor_map_document_id]) return;
     setProcessing(prev => ({...prev, [floor_map_document_id]: true}));
 
@@ -212,7 +260,9 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
             const isExpanded = expandedItems.has(item.floor_map_document_id);
             const show1cInfo = isSBS && item.is_avr_sent_bi && (item.guid || item.esf_status || item.avr_code || item.error)
 
-            const canSign = item?.assign_signs?.find((signatory) => !signatory.is_signed && signatory.can_sign)
+            const canSign = !!item?.assign_signs?.find((signatory) => !signatory.is_signed && signatory.can_sign)
+            const userSigned = !!item?.assign_signs?.find((signatory) => signatory.is_signed && signatory.can_sign)
+
             return (
               <View key={item.floor_map_document_id} style={styles.materialContainer}>
                 <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
@@ -225,8 +275,8 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
                   </TouchableOpacity>
                 </View>
                 <View style={{flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 15, justifyContent: 'space-between'}}>
-                  <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.is_signed)}}>
-                    <Text style={{color: COLORS.white}}>{item.is_signed ? 'Подписано' : 'На подписании'}</Text>
+                  <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.is_signed, userSigned)}}>
+                    <Text style={{color: COLORS.white}}>{item.is_signed ? 'Подписано' : userSigned ? 'Ожидание других подписантов' : 'На подписании'}</Text>
                   </View>
                   {
                     item.is_avr_sent_bi 
@@ -244,6 +294,10 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
                     <TouchableOpacity onPress={() => handleSign(item)} disabled={processing[item.floor_map_document_id]} style={{backgroundColor: COLORS.primary, borderRadius: 6, padding: 7, paddingHorizontal: 10}}>
                       <Text style={{color: "#fff"}}>Подписать</Text>
                     </TouchableOpacity>
+                  }
+                  {
+                    !item.is_signed && userSigned && 
+                      <Text style={{color: "green"}}>Подписан</Text>
                   }
                 </View>
                 <View style={{marginTop: 15}}>

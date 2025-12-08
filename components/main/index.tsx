@@ -163,6 +163,7 @@ export const MainPage = () => {
           />
         }
         style={styles.container}
+        contentContainerStyle={styles.contentContainer}
       >
         {projectList.map(renderProjectCard)}
       </ScrollView>
@@ -176,10 +177,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background
   },
   container: { 
-    padding: 16, 
+    paddingHorizontal: 16, 
     paddingTop: Platform.OS === 'ios' ? 0 : 16,
     flex: 1, 
     gap: 15 
+  },
+  contentContainer: {
+    paddingBottom: 16,
   },
   projectCard: {
     backgroundColor: '#fff',

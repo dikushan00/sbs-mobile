@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Platform, Linking, AppState } from 'react-native';
+import * as ExpoLinking from 'expo-linking';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { ProjectDocumentType, ProjectFiltersType } from '@/components/main/types';
-import { getDocuments, sendAgreementTo1C, signDocument } from '@/components/main/services';
+import { ProjectDocumentType } from '@/components/main/types';
+import { getDocuments, sendAgreementTo1C } from '@/components/main/services';
 import { Block, BlockContainer } from './Block';
 import { Icon } from '@/components/Icon';
 import { CustomLoader } from '@/components/common/CustomLoader';
@@ -11,15 +12,18 @@ import { downloadFile } from '@/utils';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { NotFound } from '@/components/common/NotFound';
+import { useSelector } from 'react-redux';
+import { userAppState } from '@/services/redux/reducers/userApp';
 
 export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS: boolean }) => {
   const {showSuccessSnackbar} = useSnackbar()
+  const { userData } = useSelector(userAppState);
   const [agreements, setAgreements] = useState<ProjectDocumentType[]>([]);
   const [isFetching, setIsFetching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [sending, setSending] = useState(false);
-  const [signing, setSigning] = useState(false);
+  const [signing,] = useState(false);
 
   const getData = useCallback((refresh: boolean = false) => {
     if(project_id) {
@@ -38,13 +42,56 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
     }, [getData])
   );
 
+  // Обработка deep link вида: sbs://contracts?status=success
+  useEffect(() => {
+    const handleContractsDeepLink = (url: string | null) => {
+      if (!url) return;
+
+      try {
+        const { queryParams } = ExpoLinking.parse(url);
+
+        if (queryParams?.status === 'success') {
+          // Показываем модалку/алерт об успешном подписании
+          Alert.alert(
+            'Документ подписан',
+            'Договор успешно подписан.',
+            [{ text: 'Ок', style: 'default' }],
+          );
+
+          // Обновляем список договоров
+          getData(true);
+        }
+      } catch (error) {
+        console.error('Error handling contracts deep link:', error);
+      }
+    };
+
+    // Обработка initial URL (если приложение открыто по deeplink)
+    const checkInitialUrl = async () => {
+      const initialUrl = await ExpoLinking.getInitialURL();
+      if (initialUrl) {
+        handleContractsDeepLink(initialUrl);
+      }
+    };
+
+    checkInitialUrl();
+
+    // Подписка на события deeplink, когда приложение уже открыто
+    const subscription = ExpoLinking.addEventListener('url', (event) => {
+      handleContractsDeepLink(event.url);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [getData]);
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         getData();
       }
     });
-
     return () => {
       subscription.remove();
     };
@@ -93,7 +140,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
 
   const handleSignDocument = useCallback(async () => {
     if(signing || !agreements.length) return
-    
+
     Alert.alert(
       "Подписание документа",
       "Вы действительно хотите подписать документ?",
@@ -106,22 +153,26 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
           text: "Подписать",
           style: "default",
           onPress: async () => {
-            setSigning(true)
-            try {
-              const agreement = agreements[0];
-              const res = await signDocument({
-                project_agreement_id: agreement.project_agreement_id
-              });
+            const agreement = agreements[0];
+            const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${agreement.project_agreement_id}&type=agreement&user=${userData?.employee_id}`)
+            const link = `https://m.egov.kz/mobileSign/?link=${apiUrl}`
+            await Linking.openURL(link);
+            // setSigning(true)
+            // try {
+            //   const agreement = agreements[0];
+            //   const res = await signDocument({
+            //     project_agreement_id: agreement.project_agreement_id
+            //   });
               
-              if (res?.redirect_url) {
-                const canOpen = await Linking.canOpenURL(res.redirect_url);
-                if (canOpen) {
-                  await Linking.openURL(res.redirect_url);
-                }
-              }
-            } catch (error) {
-            }
-            setSigning(false)
+            //   if (res?.redirect_url) {
+            //     const canOpen = await Linking.canOpenURL(res.redirect_url);
+            //     if (canOpen) {
+            //       await Linking.openURL(res.redirect_url);
+            //     }
+            //   }
+            // } catch (error) {
+            // }
+            // setSigning(false)
           },
         },
       ]
@@ -249,7 +300,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
             : <NotFound title='Договоров не найдено' />
         }
       </ScrollView>
-      {agreements.length > 0 && (
+      {!!agreements.length && (
         (() => {
           const agreement = agreements[0];
           const contractorStatus = getStatusInfo(agreement.contractor_is_sign, agreement.contractor_can_sign);

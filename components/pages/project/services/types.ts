@@ -59,7 +59,8 @@ export interface GrantTabType {
   grant_name: string;
   okk_def?: number;
   okk_call?: number;
-  doc_cnt?: number;
+  is_signed_cnt?: number;
+  not_signed_cnt?: number;
 }
 
 export interface ProjectInfoDataType {

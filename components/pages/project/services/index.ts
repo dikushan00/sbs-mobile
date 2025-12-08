@@ -13,3 +13,15 @@ export const getProjectData = async (projectId:number):Promise<ProjectInfoDataTy
     return res?.data
   } catch(e) {}
 }
+
+export const tabsNames = [
+  'M__ProjectFormMobileOkk',
+  'M__ProjectFormMobileAgreement',
+  'M__ProjectFormRemontCostTab',
+  'M__ProjectFormDocumentTab',
+  'M__ProjectFormMaterialTab',
+  'M__ProjectFormStagesTab',
+  'M__ProjectFormInfoTab',
+  'M__ProjectFormMobileFloorMap',
+  'M__ProjectFormWorkTab',
+]

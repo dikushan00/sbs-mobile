@@ -92,6 +92,23 @@ const styles = StyleSheet.create({
     marginBottom: 50,
     marginTop: 20,
   },
+  inputWithIcon: {
+    width: "100%",
+    height: "100%",
+    padding: SIZES.medium,
+    paddingRight: 50,
+    backgroundColor: "#efefef",
+    borderRadius: 5,
+    color: COLORS.black,
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: 15,
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10
+  },
 });
 
 export default styles;

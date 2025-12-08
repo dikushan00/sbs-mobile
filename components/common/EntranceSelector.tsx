@@ -19,7 +19,7 @@ export const EntranceSelector = ({
   selectedData,
 }: EntranceSelectorProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
-  const entranceRefs = useRef<{ [key: number]: View | null }>({});
+  const entrancePositions = useRef<{ [key: number]: number }>({});
   const [isFetching, setIsFetching] = useState(false);
   const [entrances, setEntrances] = useState<ProjectEntranceAllInfoType[]>([]);
 
@@ -41,24 +41,15 @@ export const EntranceSelector = ({
   // Автоматическая прокрутка к выбранному подъезду
   useEffect(() => {
     if (selectedEntranceId && entrances.length > 0 && scrollViewRef.current) {
-      const selectedIndex = entrances.findIndex(
-        (entrance) => +entrance.project_entrance_id === selectedEntranceId
-      );
+      const position = entrancePositions.current[selectedEntranceId];
       
-      if (selectedIndex !== -1 && entranceRefs.current[selectedEntranceId]) {
+      if (position !== undefined) {
         // Небольшая задержка для завершения рендеринга
         setTimeout(() => {
-          entranceRefs.current[selectedEntranceId]?.measureLayout(
-            //@ts-ignore
-            scrollViewRef.current,
-            (x, y, width, height) => {
-              scrollViewRef.current?.scrollTo({
-                x: x - 20, // Отступ слева
-                animated: true,
-              });
-            },
-            () => {}
-          );
+          scrollViewRef.current?.scrollTo({
+            x: position - 20, // Отступ слева
+            animated: true,
+          });
         }, 100);
       }
     }
@@ -76,16 +67,14 @@ export const EntranceSelector = ({
         {entrances.map((entrance) => (
           <TouchableOpacity
             key={entrance.project_entrance_id}
-            //@ts-ignore
-            ref={(ref) => {
-              if (ref) {
-                entranceRefs.current[+entrance.project_entrance_id] = ref;
-              }
-            }}
             style={[
               styles.entranceButton,
               selectedEntranceId === +entrance.project_entrance_id && styles.entranceButtonSelected
             ]}
+            onLayout={(event) => {
+              const { x } = event.nativeEvent.layout;
+              entrancePositions.current[+entrance.project_entrance_id] = x;
+            }}
             onPress={() => {
               onSelectEntrance(+entrance.project_entrance_id, entrance)
             }}

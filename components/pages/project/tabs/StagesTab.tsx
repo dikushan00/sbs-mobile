@@ -145,7 +145,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
         project_id={project_id} 
         selectedStage={selectedStage}
         onBack={handleBackToStages}
-        selectedData={selectedData}
+        selectedData={entranceInfo ? {...selectedData, entrance: entranceInfo.entrance, block_name: entranceInfo.block_name} : selectedData}
       />
     );
   }

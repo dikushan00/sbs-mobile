@@ -28,6 +28,7 @@ import Materials from "@/assets/icons/materials.svg";
 import Payment from "@/assets/icons/payment.svg";
 import Document from "@/assets/icons/document.svg";
 import DocumentAlt from "@/assets/icons/document_alt.svg";
+import DocumentPen from "@/assets/icons/document_pen.svg";
 import Flag from "@/assets/icons/flag.svg";
 import FlagTime from "@/assets/icons/flat-time.svg";
 import Work from "@/assets/icons/work.svg";
@@ -44,6 +45,8 @@ import TrashLine from "@/assets/icons/trash_line.svg";
 import Search from "@/assets/icons/search.svg";
 import Calendar from "@/assets/icons/calendar.svg";
 import Profile from "@/assets/icons/profile.svg";
+import Microphone from "@/assets/icons/microphone.svg";
+import AiAssistant from "@/assets/icons/ai-assistant.svg";
 import { ViewStyle } from "react-native";
 
 const icons = {
@@ -93,6 +96,9 @@ const icons = {
   profile: Profile,
   clock: Clock,
   clockFilled: ClockFilled,
+  documentPen: DocumentPen,
+  microphone: Microphone,
+  aiAssistant: AiAssistant,
 };
 
 type IconKeysType = keyof typeof icons;
