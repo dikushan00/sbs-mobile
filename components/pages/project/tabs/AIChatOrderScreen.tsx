@@ -10,9 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-// TODO: Migrate to expo-audio when Node.js version is updated to >=18
-// import { useAudioPlayer, AudioSource } from 'expo-audio';
-import { Audio } from 'expo-av';
+import { useAudioPlayer, AudioSource } from 'expo-audio';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
 import { useVoiceAssistant } from '@/utils/useVoiceAssistant';
@@ -38,7 +36,7 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
   const {userData} = useSelector(userAppState);
   const [selectedKeyIndex] = useState(1);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const audioPlayer = useAudioPlayer();
   const [chatMessages, setChatMessages] = useState<Array<{
     id: string;
     role: 'user' | 'assistant' | 'system';
@@ -167,43 +165,40 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
 
   const playAudio = async (messageId: string, uri: string) => {
     try {
-      // Stop currently playing audio
-      if (soundRef.current) {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
-        if (playingAudioId === messageId) {
-          setPlayingAudioId(null);
-          return;
-        }
+      // If same audio is playing, stop it
+      if (playingAudioId === messageId) {
+        audioPlayer.pause();
+        setPlayingAudioId(null);
+        return;
+      }
+
+      // Stop current audio and play new one
+      if (audioPlayer.playing) {
+        audioPlayer.pause();
       }
 
       // Play new audio
-      const { sound } = await Audio.Sound.createAsync(
-        { uri },
-        { shouldPlay: true }
-      );
-      
-      soundRef.current = sound;
+      audioPlayer.replace({ uri } as AudioSource);
+      audioPlayer.play();
       setPlayingAudioId(messageId);
-
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          setPlayingAudioId(null);
-          soundRef.current = null;
-        }
-      });
     } catch (error) {
       console.error('Error playing audio:', error);
       addMessage('system', 'Ошибка воспроизведения аудио');
     }
   };
 
+  // Track audio playback status
+  useEffect(() => {
+    if (!audioPlayer.playing && playingAudioId) {
+      setPlayingAudioId(null);
+    }
+  }, [audioPlayer.playing, playingAudioId]);
+
   // Cleanup audio on unmount
   useEffect(() => {
     return () => {
-      if (soundRef.current) {
-        soundRef.current.unloadAsync();
+      if (audioPlayer.playing) {
+        audioPlayer.pause();
       }
     };
   }, []);
