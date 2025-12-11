@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl, Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import { COLORS, FONT, SIZES } from '@/constants';
+import { COLORS, FONT, mobileSignUrl, SIZES } from '@/constants';
 import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, signEntranceDocument, getResidentialEntrances } from '@/components/main/services';
-import { DocumentTypeType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectMainDocumentType, SimpleFloorType } from '@/components/main/types';
+import { DocumentTypeType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectMainDocumentType, SelectedDataType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
@@ -14,14 +14,16 @@ import { CustomSelect } from '@/components/common/CustomSelect';
 import { NotFound } from '@/components/common/NotFound';
 import { userAppState } from '@/services/redux/reducers/userApp';
 import * as ExpoLinking from 'expo-linking';
+import { EntranceSelector } from '@/components/common/EntranceSelector';
 
 interface DocumentsTabProps {
   filters: ProjectFiltersType;
   onBack: () => void;
   isSBS: boolean;
+  selectedData: SelectedDataType
 }
 
-export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isSBS }) => {
+export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isSBS, selectedData }) => {
   const dispatch = useDispatch();
   const { userData } = useSelector(userAppState);
   const [documentsData, setDocumentsData] = useState<ProjectMainDocumentType[] | null>(null);
@@ -35,12 +37,11 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     floor: null as any,
     floor_map_document_type_id: null as any
   });
-  const [entrances, setEntrances] = useState<ProjectEntranceAllInfoType[]>([]);
+  const [, setEntrances] = useState<ProjectEntranceAllInfoType[]>([]);
 
   const fetchInitialData = useCallback(async () => {
-    const [entrancesData, floors, documentTypes] = await Promise.all([
+    const [entrancesData, documentTypes] = await Promise.all([
       getResidentialEntrances(filters),
-      getEntranceDocumentFloors(filters),
       getEntranceDocumentTypes()
     ]);
     if (entrancesData) {
@@ -177,7 +178,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
   const confirmSign = async (floor_map_document_id: number) => {
     const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${floor_map_document_id}&type=document&user=${userData?.employee_id}`)
 
-    const link = `https://m.egov.kz/mobileSign/?link=${apiUrl}`
+    const link = `${mobileSignUrl}?link=${apiUrl}`
     console.log(floor_map_document_id);
     await Linking.openURL(link);
     return
@@ -210,21 +211,23 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     );
   }
 
+  const onEntranceChange = async (value: string | number | null, row: ProjectEntranceAllInfoType | null) => {
+    setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
+
+
+    const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: value as number})
+    setFloorsData(floorsData || []);
+  }
   return (
     <View style={styles.container}>
+      <EntranceSelector
+        selectedEntranceId={localFilters.project_entrance_id ? +localFilters.project_entrance_id : null}
+        onSelectEntrance={(value, data) => {
+          onEntranceChange(value, data)
+        }}
+        selectedData={selectedData}
+      />
       <View style={styles.selectsContainer}>
-        <View style={styles.selectWrapper}>
-          <CustomSelect
-            list={entrances}
-            valueKey="project_entrance_id"
-            labelKey="entrance_name"
-            onChange={(value, row) => {
-              setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
-            }}
-            value={localFilters.project_entrance_id}
-            placeholder="Подъезд" alt
-          />
-        </View>
         <View style={styles.selectWrapper}>
           <CustomSelect
             list={floorsData}
@@ -232,7 +235,9 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
             labelKey="floor_name"
             onChange={(value) => setLocalFilters(prev => ({ ...prev, floor: value }))}
             value={localFilters.floor}
-            placeholder="Этаж" alt
+            placeholder="Этаж" alt 
+            style={{height: 36, paddingVertical: 5}}
+            textStyles={{fontSize: 14}}
           />
         </View>
         <View style={styles.selectWrapper}>
@@ -243,6 +248,8 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
             onChange={(value) => setLocalFilters(prev => ({ ...prev, floor_map_document_type_id: value }))}
             value={localFilters.floor_map_document_type_id}
             placeholder="Тип" alt
+            style={{height: 36, paddingVertical: 5}}
+            textStyles={{fontSize: 14}}
           />
         </View>
       </View>
@@ -297,12 +304,14 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
                   }
                   {
                     !item.is_signed && userSigned && 
-                      <Text style={{color: "green"}}>Подписан</Text>
+                    <View style={{paddingVertical: 5, backgroundColor: COLORS.green, borderRadius: 6, paddingHorizontal: 10}}>
+                      <Text style={{color: "white"}}>Подписан</Text>
+                    </View>
                   }
                 </View>
                 <View style={{marginTop: 15}}>
                   <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
-                    <ValueDisplay label='Группа работ' value={item.work_set_check_group_name} />
+                    <ValueDisplay style={{minWidth: 40}} label='Группа работ' value={isExpanded ? item.work_set_check_group_name : item.work_set_check_group_short_name } />
                     <ValueDisplay label='Тип' value={item.placement_type_name} />
                     {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
                       style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
@@ -412,7 +421,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80,
   },
   errorContainer: {
     flex: 1,
@@ -427,7 +435,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   accordionContainer: {
-    marginTop: 20,
+    marginTop: 10,
   },
   statusContainer: {
     padding: 10,

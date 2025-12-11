@@ -59,6 +59,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    paddingRight: 7,
+    paddingTop: 10,
     width: '100%'
   },
   actionsList: {
@@ -68,6 +70,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     paddingHorizontal: 10,
+    paddingLeft: 0,
     borderRadius: 10,
   },
   actionIcon: {

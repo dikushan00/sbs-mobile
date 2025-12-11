@@ -157,9 +157,9 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       case 'M__ProjectFormMaterialTab':
         return <MaterialsTab filters={filters} onBack={backToProject} selectedData={selectedData} />;
       case 'M__ProjectFormRemontCostTab':
-        return <PaymentsTab filters={filters} onBack={backToProject} project_id={projectId} />;
+        return <PaymentsTab filters={filters} onBack={backToProject} project_id={projectId} selectedData={selectedData} />;
       case 'M__ProjectFormDocumentTab':
-        return <DocumentsTab filters={filters} onBack={backToProject} isSBS={isSBS} />;
+        return <DocumentsTab filters={filters} onBack={backToProject} isSBS={isSBS} selectedData={selectedData} />;
       case 'M__ProjectFormStagesTab':
         return <StagesTab filters={filters} onBack={backToProject} project_id={projectId} selectedData={selectedData}/>;
       default:

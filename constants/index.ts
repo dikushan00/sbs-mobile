@@ -45,3 +45,6 @@ export const PAGE_NAMES = {
 };
 
 export type PageNameKeysType = keyof typeof PAGE_NAMES;
+
+export const mobileSignUrl = "https://m.egov.kz/mobileSign/";
+export const mobileSignBusinessUrl = "https://m.egov.kz/businessSign/";

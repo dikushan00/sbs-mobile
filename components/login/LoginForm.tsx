@@ -270,7 +270,7 @@ export const LoginForm = ({ disabled = false }) => {
               onPress={() => authenticateWithBiometrics()}
             >
               <Text style={styles.buttonTextPrimary}>
-                {loading ? "Загрузка" : "Войти через отпечаток"}
+                {loading ? "Загрузка" : "Использовать биометрию"}
               </Text>
             </TouchableOpacity>
           )}

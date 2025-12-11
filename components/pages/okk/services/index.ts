@@ -108,28 +108,43 @@ export const updateOkkData = async (
 
 export const downloadSchemaImage = async (file_url: string) => {
   if (!file_url) return;
+
   try {
-    const fileName = file_url.split("/").reverse()[0];
+    const fileName = file_url.split('/').reverse()[0];
+
+    // проверяем, существует ли файл
     const fileInfo = await getFileInfo(fileName);
-    if (!!fileInfo?.exists) return;
-    const uri: string = `${apiUrl}${file_url}`;
-    const fileUri = FileSystem.documentDirectory + fileName;
-    const response = uri && (await FileSystem.downloadAsync(uri, fileUri));
-    if (!response) return;
-    if (typeof response !== "string" && response?.status !== 200)
+    if (fileInfo?.exists) return;
+
+    const url = `${apiUrl}${file_url}`;
+
+    // НЕ создаём documentsDir - она уже существует
+    const documentsDir = new FileSystem.Directory(FileSystem.Paths.document);
+
+    // сразу создаём File объект (он сам проверит/создаст путь)
+    const file = new FileSystem.File(documentsDir, fileName);
+
+    // скачиваем напрямую в файл
+    const result = await FileSystem.File.downloadFileAsync(url, file);
+
+    if (!result.exists) {
       return Toast.show({
-        type: "error",
-        text1: "Не удалось загрузить изображения схемы этажа",
-        position: "top",
+        type: 'error',
+        text1: 'Не удалось загрузить изображения схемы этажа',
+        position: 'top',
         visibilityTime: 3000,
         autoHide: true,
         topOffset: 50,
       });
-  } catch (error: any) {
+    }
+
+    return result.uri;
+  } catch (error) {
+    
     Toast.show({
-      type: "error",
-      text1: "Не удалось загрузить изображения схемы этажа",
-      position: "top",
+      type: 'error',
+      text1: 'Не удалось загрузить изображения схемы этажа',
+      position: 'top',
       visibilityTime: 3000,
       autoHide: true,
       topOffset: 50,

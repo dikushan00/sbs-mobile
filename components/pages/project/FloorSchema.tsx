@@ -11,13 +11,12 @@ import {
   View,
 } from "react-native";
 import {
-  PanGestureHandler,
-  PinchGestureHandler,
-  PinchGestureHandlerGestureEvent,
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
 } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
@@ -62,6 +61,10 @@ export const FloorSchema = ({
   const pinchScale = useSharedValue(1);
   const isPinching = useSharedValue(false);
   
+  // helpers to store gesture start positions
+  const startX = useSharedValue(0);
+  const startY = useSharedValue(0);
+
   const [imageSize, setImageSize] = useState<{
     width: number;
     height: number;
@@ -93,7 +96,7 @@ export const FloorSchema = ({
   useEffect(() => {
     if (!data?.floor_map.image_url) return;
     const uri = downloaded
-      ? `${FileSystem.documentDirectory}${schemaFileName}`
+      ? `${FileSystem.Paths.document.uri}${schemaFileName}`
       : `${apiUrl}${data?.floor_map.image_url}`;
 
     const getSize = async () => {
@@ -141,37 +144,43 @@ export const FloorSchema = ({
   }, [imageSize]);
 
   const totalScale = useDerivedValue(() => baseScale.value * pinchScale.value);
-  const panHandler = useAnimatedGestureHandler({
-    onStart: (_, ctx: any) => {
-      ctx.startX = translateX.value;
-      ctx.startY = translateY.value;
-    },
-    onActive: (event, ctx: any) => {
-      translateX.value = ctx.startX + event.translationX / totalScale.value;
-      translateY.value = ctx.startY + event.translationY / totalScale.value;
-    },
-  });
 
-  const pinchHandler =
-    useAnimatedGestureHandler<PinchGestureHandlerGestureEvent>({
-      onStart: () => {
-        isPinching.value = true;
-      },
-      onActive: (event) => {
-        pinchScale.value = event.scale;
-      },
-      onEnd: () => {
-        const zoom = baseScale.value * pinchScale.value;
-        baseScale.value = zoom;
-        let clampedZoom = Math.max(1, Math.min(zoom, 15));
-        runOnJS(setZoomValue)(clampedZoom);
-
-        pinchScale.value = 1;
-        baseScale.value = clampedZoom;
-
-        isPinching.value = false;
-      },
+  // Pan gesture using new Gesture API
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      startX.value = translateX.value;
+      startY.value = translateY.value;
+    })
+    .onUpdate((e) => {
+      // divide by totalScale so pan distance respects current zoom
+      translateX.value = startX.value + e.translationX / totalScale.value;
+      translateY.value = startY.value + e.translationY / totalScale.value;
+    })
+    .onEnd(() => {
+      // Optional: clamp translation so image doesn't go too far
+      // You can implement bounds here if needed.
     });
+
+  // Pinch gesture using new Gesture API
+  const pinchGesture = Gesture.Pinch()
+    .onStart(() => {
+      isPinching.value = true;
+    })
+    .onUpdate((e) => {
+      pinchScale.value = e.scale;
+    })
+    .onEnd(() => {
+      const zoom = baseScale.value * pinchScale.value;
+      const clampedZoom = Math.max(1, Math.min(zoom, 15)); // keep between 1 and 15
+      baseScale.value = clampedZoom;
+      pinchScale.value = 1;
+
+      runOnJS(setZoomValue)(clampedZoom);
+      isPinching.value = false;
+    });
+
+  // Combine gestures — allow simultaneous pan + pinch
+  const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -182,6 +191,7 @@ export const FloorSchema = ({
   }));
 
   const onZoomChange = (zoom: number, zoomWithTiming: any) => {
+    // zoomWithTiming previously was a reanimated value; here we directly set baseScale if needed
     baseScale.value = zoomWithTiming;
     const timeout = setTimeout(() => {
       setZoomValue(zoom);
@@ -276,33 +286,26 @@ export const FloorSchema = ({
   };
 
   return (
-    <View
-      pointerEvents="box-none"
-      style={{
-        height: schemaHeight,
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      <SchemaZoomControl
-        onZoomChange={onZoomChange}
-        scale={totalScale}
-        zoomValue={zoomValue}
-        setZoomValue={setZoomValue}
-      />
-      <PanGestureHandler
-        ref={panRef}
-        onGestureEvent={panHandler}
-        simultaneousHandlers={[tapRef, pinchRef]}
+    <GestureHandlerRootView style={{height: schemaHeight - 40}}>
+      <View
+        pointerEvents="box-none"
+        style={{
+          height: schemaHeight,
+          overflow: "hidden",
+          position: "relative",
+        }}
       >
-        <Animated.View
-          pointerEvents={"box-none"}
-          style={[styles.container, animatedStyle]}
-        >
-          <PinchGestureHandler
-            ref={pinchRef}
-            onGestureEvent={pinchHandler}
-            simultaneousHandlers={panRef}
+        <SchemaZoomControl
+          onZoomChange={onZoomChange}
+          scale={totalScale}
+          zoomValue={zoomValue}
+          setZoomValue={setZoomValue}
+        />
+
+        <GestureDetector gesture={composedGesture}>
+          <Animated.View
+            pointerEvents={"box-none"}
+            style={[styles.container, animatedStyle]}
           >
             <Animated.View style={{ flex: 1 }}>
               <Pressable
@@ -325,7 +328,7 @@ export const FloorSchema = ({
                   <Image
                     source={{
                       uri: downloaded
-                        ? `${FileSystem.documentDirectory}${schemaFileName}`
+                        ? `${FileSystem.Paths.document.uri}${schemaFileName}`
                         : `${apiUrl}${data?.floor_map.image_url}`,
                     }}
                     style={styles.image}
@@ -334,7 +337,13 @@ export const FloorSchema = ({
                   <Svg
                     width={width}
                     height={schemaHeight}
-                    style={[StyleSheet.absoluteFill, { zIndex: 10 }]}
+                    style={[StyleSheet.absoluteFill, { zIndex: 10 },
+                    //   {
+                    //   position: "absolute",
+                    //   top: displayedSize?.offsetY,
+                    //   left: displayedSize?.offsetX,
+                    // }
+                  ]}
                   >
                     {displayedSize && (
                       <>
@@ -407,10 +416,10 @@ export const FloorSchema = ({
                 </View>
               </Pressable>
             </Animated.View>
-          </PinchGestureHandler>
-        </Animated.View>
-      </PanGestureHandler>
-    </View>
+          </Animated.View>
+        </GestureDetector>
+      </View>
+    </GestureHandlerRootView>
   );
 };
 

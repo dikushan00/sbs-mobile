@@ -125,14 +125,14 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     }))
   };
 
-  if (showAIChat) {
-    return (
-      <AIChatOrderScreen
-        onBack={handleBackToMaterials}
-        projectId={selectedData?.project_id}
-      />
-    );
-  }
+  // if (showAIChat) {
+  //   return (
+  //     <AIChatOrderScreen
+  //       onBack={handleBackToMaterials}
+  //       projectId={selectedData?.project_id}
+  //     />
+  //   );
+  // }
 
   if (showOrderForm) {
     return (
@@ -271,7 +271,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
           type='contained'
           onClick={handleOrderMaterial}
           stylesProps={styles.orderButton}
-          wrapperStyles={{height: 52}}
+          wrapperStyles={{height: 46}}
         />
       </View>
             </>
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80, // Отступ снизу для кнопки
+    paddingBottom: 60, // Отступ снизу для кнопки
   },
   loadingContainer: {
     flex: 1,
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   accordionContainer: {
-    marginTop: 20,
+    marginTop: 10,
   },
   accordionTitle: {
     fontSize: 17,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 15,
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingVertical: 7,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.grayLight,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   summaryItem: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 5,
     backgroundColor: COLORS.background,
     borderRadius: 8,
   },
@@ -398,10 +398,9 @@ const styles = StyleSheet.create({
     fontSize: SIZES.small,
     fontFamily: FONT.regular,
     color: COLORS.gray,
-    marginBottom: 5,
   },
   summaryValue: {
-    fontSize: SIZES.medium,
+    fontSize: SIZES.regular,
     fontFamily: FONT.medium,
     color: COLORS.black,
   },

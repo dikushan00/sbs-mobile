@@ -1,8 +1,9 @@
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
 import * as Sharing from "expo-sharing";
 import { Alert, Linking, Platform } from "react-native";
 import { apiUrl, FILE_URL_MAIN } from "../constants";
+import { Directory, Paths, File } from "expo-file-system";
 
 export const getFullUrl = (url = "", api = false) => {
   try {
@@ -127,10 +128,17 @@ export const saveFile = async (
 
 export const getFileInfo = async (fileName: string) => {
   try {
-    const filePath = `${FileSystem.documentDirectory}${fileName}`;
-    const fileInfo = await FileSystem.getInfoAsync(filePath);
-    return fileInfo;
-  } catch (e) {}
+    const documentsDir = new Directory(Paths.document);
+    const file = new File(documentsDir, fileName);
+    
+    return {
+      exists: file.exists,
+      uri: file.uri,
+      size: file.size,
+      isDirectory: false,
+    };
+  } catch (e) {
+  }
 };
 
 export const openFile = async (fileName: string) => {

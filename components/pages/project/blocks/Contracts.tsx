@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Platform, Linking, AppState } from 'react-native';
 import * as ExpoLinking from 'expo-linking';
-import { COLORS, FONT, SIZES } from '@/constants';
+import { COLORS, FONT, mobileSignBusinessUrl, SIZES } from '@/constants';
 import { ProjectDocumentType } from '@/components/main/types';
 import { getDocuments, sendAgreementTo1C } from '@/components/main/services';
 import { Block, BlockContainer } from './Block';
@@ -155,7 +155,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
           onPress: async () => {
             const agreement = agreements[0];
             const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${agreement.project_agreement_id}&type=agreement&user=${userData?.employee_id}`)
-            const link = `https://m.egov.kz/mobileSign/?link=${apiUrl}`
+            const link = `${mobileSignBusinessUrl}?link=${apiUrl}`
             await Linking.openURL(link);
             // setSigning(true)
             // try {
@@ -185,6 +185,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
     } else if (!contractor_can_sign) {
       return { text: 'На подписании', color: '#F6BA30' };
     } else {
+      return { text: 'Подписать', color: COLORS.primary };
       return { text: 'Подписать', color: COLORS.primary };
     }
   };

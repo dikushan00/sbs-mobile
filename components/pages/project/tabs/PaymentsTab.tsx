@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getEntranceDocumentFloors, getPlacementTypes, getResidentialEntrances, getEntrancePayments } from '@/components/main/services';
-import { PlacementType, ProjectFiltersType, ProjectPaymentType, SimpleFloorType } from '@/components/main/types';
+import { PlacementType, ProjectFiltersType, ProjectPaymentType, SelectedDataType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
@@ -12,14 +12,16 @@ import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { numberWithCommas } from '@/utils';
 import { NotFound } from '@/components/common/NotFound';
+import { EntranceSelector } from '@/components/common/EntranceSelector';
 
 interface PaymentsTabProps {
   filters: ProjectFiltersType;
   onBack: () => void;
   project_id: number | null;
+  selectedData: SelectedDataType
 }
 
-export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, project_id }) => {
+export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, project_id, selectedData }) => {
   const dispatch = useDispatch();
   const [paymentsData, setPaymentsData] = useState<ProjectPaymentType[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,18 +35,17 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
     project_entrance_id: 'ALL' as number | string | null,
   });
 
+  console.log(localFilters)
   useEffect(() => {
     const fetchInitialData = async () => {
-      const [entrancesData, placementTypesData, floorsData] = await Promise.all([
+      const [entrancesData, placementTypesData] = await Promise.all([
         getResidentialEntrances(filters),
         getPlacementTypes(),
-        getEntranceDocumentFloors(filters),
       ]);
       if (entrancesData) {
         setEntrances([{project_entrance_id: 'ALL', entrance_name: 'Все' }, ...entrancesData]);
       }
       setPlacementTypes(placementTypesData || []);
-      setFloors(floorsData || []);
     };
     fetchInitialData();
   }, []);
@@ -107,19 +108,24 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
     );
   }
 
+  const onEntranceChange = async (value: string | number | null) => {
+    setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
+
+    const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: value as number})
+    setFloors(floorsData || []);
+  }
+
   return (
     <View style={styles.container}>
+      <EntranceSelector
+        selectedEntranceId={localFilters.project_entrance_id ? +localFilters.project_entrance_id : null}
+        onSelectEntrance={(value) => {
+          onEntranceChange(value)
+        }}
+        selectedData={selectedData}
+        selectDefaultEntrance={false}
+      />
       <View style={styles.selectsContainer}>
-        <View style={styles.selectWrapper}>
-          <CustomSelect
-            list={entrances}
-            valueKey="project_entrance_id"
-            labelKey="entrance_name"
-            onChange={(value) => setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))}
-            value={localFilters.project_entrance_id}
-            placeholder="Подъезд" alt
-          />
-        </View>
         <View style={styles.selectWrapper}>
           <CustomSelect
             list={floors}
@@ -267,7 +273,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   accordionContainer: {
-    marginTop: 20,
+    marginTop: 10,
   },
   statusContainer: {
     padding: 10,
@@ -306,7 +312,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 15,
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingVertical: 5,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.grayLight,
@@ -314,7 +320,7 @@ const styles = StyleSheet.create({
   summaryItem: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 5,
     backgroundColor: COLORS.background,
     borderRadius: 8,
   },
@@ -322,10 +328,9 @@ const styles = StyleSheet.create({
     fontSize: SIZES.small,
     fontFamily: FONT.regular,
     color: COLORS.gray,
-    marginBottom: 5,
   },
   summaryValue: {
-    fontSize: SIZES.medium,
+    fontSize: SIZES.regular,
     fontFamily: FONT.medium,
     color: COLORS.black,
   },

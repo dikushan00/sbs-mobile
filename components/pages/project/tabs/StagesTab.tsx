@@ -15,6 +15,7 @@ import { CommentsView } from './CommentsView';
 import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 import { FloorDetail } from './FloorDetail';
 import { NotFound } from '@/components/common/NotFound';
+import { EntranceSelector } from '@/components/common/EntranceSelector';
 
 interface StagesTabProps {
   filters: ProjectFiltersType;
@@ -37,6 +38,8 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     placement_type_id: null as number | null,
     floor: null as number | null,
   });
+
+  console.log(project_id);
 
   const [viewMode, setViewMode] = useState<'stages' | 'comments' | 'schema'>('stages');
   const [selectedStage, setSelectedStage] = useState<ProjectStageType | null>(null);
@@ -141,7 +144,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
   if (viewMode === 'comments') {
     return (
       <CommentsView
-        filters={filters}
+        filters={{...filters, project_entrance_id: localFilters.project_entrance_id}}
         project_id={project_id} 
         selectedStage={selectedStage}
         onBack={handleBackToStages}
@@ -169,22 +172,24 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     );
   }
 
+  const onEntranceChange = async (value: string | number | null, row: ProjectEntranceAllInfoType | null) => {
+    setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
+    setEntranceInfo(row)
+
+    const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: value as number})
+    setFloors(floorsData || []);
+  }
+
   return (
     <View style={styles.container}>
+      <EntranceSelector
+        selectedEntranceId={localFilters.project_entrance_id ? +localFilters.project_entrance_id : null}
+        onSelectEntrance={(id, data) => {
+          onEntranceChange(id, data)
+        }}
+        selectedData={selectedData}
+      />
       <View style={styles.selectsContainer}>
-        <View style={styles.selectWrapper}>
-          <CustomSelect
-            list={entrances}
-            valueKey="project_entrance_id"
-            labelKey="entrance_name"
-            onChange={(value, row) => {
-              setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
-              setEntranceInfo(row)
-            }}
-            value={localFilters.project_entrance_id}
-            placeholder="Подъезд" alt
-          />
-        </View>
         <View style={styles.selectWrapper}>
           <CustomSelect
             list={floors}
@@ -316,8 +321,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   accordionContainer: {
-    marginTop: 20,
-  },
+    marginTop: 10,
+  },  
   statusContainer: {
     padding: 10,
     paddingVertical: 5,
