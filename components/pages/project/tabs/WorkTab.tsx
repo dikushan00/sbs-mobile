@@ -63,6 +63,7 @@ export const WorkTab: React.FC<WorkTabProps> = ({ filters, selectedData }) => {
                         style={styles.placementHeader}
                         onPress={() => togglePlacement(placement.placement_type_id)}
                       >
+                        <View style={[styles.progressOverlay, { width: `${placement.percent}%` }]} />
                         <View style={styles.placementHeaderLeft}>
                           <Icon
                             name={isPlacementExpanded ? "arrowDown" : "arrowRightBlack"}
@@ -93,6 +94,7 @@ export const WorkTab: React.FC<WorkTabProps> = ({ filters, selectedData }) => {
                                       group.work_set_check_group_percent === 100 && styles.groupHeaderCompleted
                                     ]}
                                   >
+                                    <View style={[styles.progressOverlay, { width: `${group.work_set_check_group_percent}%` }]} />
                                     <View style={styles.groupHeaderLeft}>
                                       <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Text style={[
@@ -150,11 +152,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     paddingVertical: 12,
     paddingHorizontal: 16,
+    position: 'relative',
+    overflow: 'hidden',
   },
   placementHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    zIndex: 1,
   },
   placementTitle: {
     fontSize: 16,
@@ -171,6 +176,7 @@ const styles = StyleSheet.create({
     fontSize: SIZES.medium,
     fontFamily: FONT.medium,
     color: COLORS.primary,
+    zIndex: 1,
   },
   placementTotalCompleted: {
     color: COLORS.green,
@@ -189,11 +195,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
+    position: 'relative',
+    overflow: 'hidden',
   },
   groupHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    zIndex: 1,
   },
   groupTitle: {
     fontSize: 15,
@@ -221,5 +230,13 @@ const styles = StyleSheet.create({
   },
   groupPercentCompleted: {
     color: COLORS.white,
+  },
+  progressOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(25, 166, 25, 0.25)',
+    zIndex: 0,
   },
 });

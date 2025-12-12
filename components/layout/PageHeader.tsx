@@ -33,12 +33,14 @@ export const PageHeader = ({
     if (navigation.canGoBack()) navigation.goBack();
   };
 
+  const showBackBtn = (navigation.canGoBack() && route?.params?.backBtn !== false) || pageSettings.backBtn
   return (
     <View
       style={{
         ...styles.header,
         justifyContent: "space-between",
         position: "relative",
+        paddingLeft: showBackBtn ? 0 : 15,
         paddingTop:
           Platform.OS === "ios" ? (newVersionBannerShowed ? 0 : insets.top) : 0,
       }}
@@ -47,9 +49,8 @@ export const PageHeader = ({
         <View />
       ) : (
         <TouchableOpacity onPress={() => isOkk && navigation.openDrawer()}>
-          {(navigation.canGoBack() && route?.params?.backBtn !== false) ||
-          pageSettings.backBtn ? (
-            <TouchableOpacity onPress={handleBack} style={{ padding: 10 }}>
+          {showBackBtn ? (
+            <TouchableOpacity onPress={handleBack} style={{ padding: 20 }}>
               <Icon name="back" />
             </TouchableOpacity>
           ) : (

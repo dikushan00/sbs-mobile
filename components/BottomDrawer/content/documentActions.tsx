@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
-import { COLORS, FONT, SIZES } from '@/constants';
+import { COLORS, FONT, mobileSignUrl, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ProjectMainDocumentType, ProjectFiltersType } from '@/components/main/types';
@@ -106,7 +106,7 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
 
   const confirmSign = async () => {
     const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${floor_map_document_id}&type=document&user=${userData?.employee_id}`)
-    const link = `https://m.egov.kz/mobileSign/?link=${apiUrl}`
+    const link = `${mobileSignUrl}?link=${apiUrl}`
     await Linking.openURL(link);
     return
     if (processing) return;
@@ -226,7 +226,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    width: '100%'
+    width: '100%',
+    paddingRight: 7,
+    paddingTop: 10
   },
   header: {
     marginBottom: 20,
@@ -244,6 +246,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     paddingHorizontal: 10,
+    paddingLeft: 0,
     borderRadius: 10,
   },
   actionIcon: {

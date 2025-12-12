@@ -9,7 +9,7 @@ import {
 } from "@/services/redux/reducers/app";
 import { onSuccessOkkCheck } from "@/services/redux/reducers/userApp";
 import FontAwesome5 from "@expo/vector-icons/build/FontAwesome5";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import { useDispatch } from "react-redux";
 import { CheckListType, sendCheckListCheck } from "./services";
 
@@ -153,9 +153,10 @@ export const CheckListSubmitBtns = ({
         color={COLORS.success}
         onClick={() => confirmCheck(true)}
         small
-        disabled={disabled || loading}
+        disabled={disabled || loading} btnContentStyles={{gap: 1}}
       >
         <FontAwesome5 name="thumbs-up" size={18} color={COLORS.white} />
+        <Text style={{width: 0}}></Text>
       </CustomButton>
       <CustomButton
         type="contained"

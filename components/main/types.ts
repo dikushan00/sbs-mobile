@@ -445,6 +445,7 @@ export interface ProjectMainDocumentType {
     floor_map_document_type_name: string;
     master_url: string;
     work_set_check_group_name: string;
+    work_set_check_group_short_name: string;
     placement_type_name: string;
     is_signed: boolean;
     floor: string;

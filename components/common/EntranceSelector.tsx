@@ -9,6 +9,7 @@ interface EntranceSelectorProps {
   selectedEntranceId: number | null;
   onSelectEntrance: (entranceId: number, e: ProjectEntranceAllInfoType, init?: boolean) => void;
   containerStyle?: any;
+  selectDefaultEntrance?: boolean;
   selectedData: SelectedDataType;
 }
 
@@ -17,6 +18,7 @@ export const EntranceSelector = ({
   onSelectEntrance, 
   containerStyle,
   selectedData,
+  selectDefaultEntrance = true,
 }: EntranceSelectorProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
   const entrancePositions = useRef<{ [key: number]: number }>({});
@@ -29,10 +31,12 @@ export const EntranceSelector = ({
     .then((res) => {
       setIsFetching(false)
       if(!res) return
-      onSelectEntrance(+res[0].project_entrance_id, res[0], true)
+      if(selectDefaultEntrance) {
+        onSelectEntrance(+res[0].project_entrance_id, res[0], true)
+      }
       setEntrances(res || [])
     });
-  }, [selectedData])
+  }, [selectedData, selectDefaultEntrance])
 
   useEffect(() => {
     getEntrances()

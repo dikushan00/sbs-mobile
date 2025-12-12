@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { CustomButton } from '@/components/common/CustomButton';
 import { ProjectMainDocumentType } from '@/components/main/types';
 import { BottomDrawerHeader } from '../BottomDrawerHeader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
@@ -94,15 +93,43 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
         ))}
       </ScrollView>
 
-      {!!signDocument && <View style={styles.fixedActionContainer}>
-        <CustomButton
-          title="Подписать" loading={loading}
-          onClick={handleSign}
-          type="contained"
-          stylesProps={{ backgroundColor: COLORS.primary }}
-          wrapperStyles={styles.signButton}
-        />
-      </View>}
+      {!!signDocument && (
+        <View style={styles.fixedActionContainer}>
+          <TouchableOpacity
+            style={[
+              styles.signButton,
+              {
+                backgroundColor: COLORS.primary,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 8,
+              },
+            ]}
+            onPress={handleSign}
+            disabled={loading}
+            activeOpacity={0.7}
+          >
+            {loading && (
+              <ActivityIndicator
+                size="small"
+                color={COLORS.white}
+                style={{ marginRight: 4 }}
+              />
+            )}
+            <Text
+              style={{
+                color: COLORS.white,
+                fontFamily: FONT.medium,
+                fontSize: SIZES.medium,
+              }}
+            >
+              Подписать
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };

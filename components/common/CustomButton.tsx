@@ -1,8 +1,6 @@
 import { COLORS, FONT } from "@/constants";
 import { useMemo } from "react";
-import { StyleSheet, Text, ViewStyle, ActivityIndicator } from "react-native";
-import { Button } from "react-native-paper";
-import { View } from "../Themed";
+import { StyleSheet, Text, ViewStyle, ActivityIndicator, View, TouchableOpacity } from "react-native";
 
 type PropsType = {
   title?: string;
@@ -18,6 +16,7 @@ type PropsType = {
   children?: any;
   stylesProps?: ViewStyle;
   textStyles?: ViewStyle;
+  btnContentStyles?: ViewStyle;
   wrapperStyles?: ViewStyle;
   loading?: boolean;
 };
@@ -30,6 +29,7 @@ export const CustomButton = ({
   childrenRight = false,
   stylesProps = {},
   wrapperStyles = {},
+  btnContentStyles = {},
   textStyles = {},
   autoHeight = false,
   disabled = false,
@@ -81,13 +81,14 @@ export const CustomButton = ({
     <View
       style={{
         height: small ? (autoHeight ? "auto" : 44) : 64,
-        backgroundColor: "none",
+        backgroundColor: "transparent",
         borderRadius: small ? 8 : 12,
-        ...wrapperStyles,
+        minHeight: 30,
+        ...wrapperStyles, 
       }}
     >
-      <Button
-        mode={"outlined"}
+      <TouchableOpacity
+        activeOpacity={disabled || loading ? 1 : 0.7}
         disabled={disabled || loading}
         style={
           {
@@ -100,45 +101,44 @@ export const CustomButton = ({
             ...stylesProps,
           } as ViewStyle
         }
-        labelStyle={{
-          marginHorizontal: 0,
-          marginVertical: 8,
-        }}
         onPress={handleClick}
-        contentStyle={{
-          ...styles.buttonContent,
-          paddingHorizontal: 10,
-          backgroundColor: 'transparent',
-          width: small ? "auto" : "100%",
-        }}
       >
-        <View style={styles.btnContent} >
-          {loading ? (
-            <ActivityIndicator 
-              size="small" 
-              color={type === "contained" ? COLORS.white : COLORS.primary} 
-            />
-          ) : (
-            <>
-              {children && !childrenRight && children}
-              {!!title && (
-                <Text
-                  style={{
-                    ...styles.buttonText,
-                    fontSize: small ? 14 : 16,
-                    fontFamily: FONT.medium,
-                    color: textColor,
-                    ...textStyles,
-                  }}
-                >
-                  {title || ""}
-                </Text>
-              )}
-              {children && childrenRight && children}
-            </>
-          )}
+        <View
+          style={{
+            ...styles.buttonContent,
+            paddingHorizontal: 10,
+            backgroundColor: "transparent",
+            width: small ? "auto" : "100%",
+          }}
+        >
+          <View style={[styles.btnContent, btnContentStyles || {}]}>
+            {loading ? (
+              <ActivityIndicator
+                size="small"
+                color={type === "contained" ? COLORS.white : COLORS.primary}
+              />
+            ) : (
+              <>
+                {children && !childrenRight && children}
+                {!!title && (
+                  <Text
+                    style={{
+                      ...styles.buttonText,
+                      fontSize: small ? 14 : 16,
+                      fontFamily: FONT.medium,
+                      color: textColor,
+                      ...textStyles,
+                    }}
+                  >
+                    {title || ""}
+                  </Text>
+                )}
+                {children && childrenRight && children}
+              </>
+            )}
+          </View>
         </View>
-      </Button>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -163,5 +163,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     gap: 7,
     minWidth: 10,
+    height: "100%",
   },
 });

@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   accordionContainer: {
-    marginTop: 20,
+    marginTop: 10,
   },
   commentCard: {
     backgroundColor: COLORS.white,

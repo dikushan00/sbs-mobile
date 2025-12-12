@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Buffer } from "buffer";
 import AudioRecord from "react-native-audio-record";
 import * as FileSystem from "expo-file-system";
+import * as FileSystemLegacy from "expo-file-system/legacy";
 
 interface VoiceAssistantConfig {
   apiKey: string;
@@ -31,10 +32,10 @@ export interface ServerMessage {
 const saveAudioToFile = async (base64Audio: string): Promise<string> => {
   const timestamp = Date.now();
   const fileName = `vac_audio_${timestamp}.wav`;
-  const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+  const fileUri = `${FileSystem.Paths.document.uri}${fileName}`;
   
-  await FileSystem.writeAsStringAsync(fileUri, base64Audio, {
-    encoding: FileSystem.EncodingType.Base64,
+  await FileSystemLegacy.writeAsStringAsync(fileUri, base64Audio, {
+    encoding: FileSystemLegacy.EncodingType.Base64,
   });
   
   return fileUri;
@@ -50,11 +51,48 @@ export const useVoiceAssistant = ({
 }: VoiceAssistantConfig) => {
   const wsRef = useRef<WebSocket | null>(null);
   const recordingRef = useRef<any | null>(null);
+  
+  // Audio buffer for collecting chunks
+  const audioBufferRef = useRef<string[]>([]);
+  const audioTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [messages, setMessages] = useState<ServerMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  // ============================================================
+  // Helper: Process buffered audio chunks
+  // ============================================================
+  const processAudioBuffer = useCallback(async () => {
+    if (audioBufferRef.current.length === 0) return;
+    
+    console.log(`[VAC] Processing ${audioBufferRef.current.length} audio chunks`);
+    
+    try {
+      // Combine all base64 chunks
+      const combinedBase64 = audioBufferRef.current.join('');
+      
+      // Save combined audio to file
+      const audioUri = await saveAudioToFile(combinedBase64);
+      
+      // Create a single message with combined audio
+      const audioMessage: ServerMessage = {
+        type: 'audio',
+        role: 'assistant',
+        audio: combinedBase64,
+        audioUri: audioUri,
+      };
+      
+      setMessages((prev) => [...prev, audioMessage]);
+      console.log(`[VAC] Combined audio saved to: ${audioUri}`);
+      
+      // Clear buffer
+      audioBufferRef.current = [];
+    } catch (err) {
+      console.error("[VAC] Failed to process audio buffer:", err);
+    }
+  }, []);
 
   // ============================================================
   // CONNECT to VAC backend
@@ -81,7 +119,6 @@ export const useVoiceAssistant = ({
         try {
           if (typeof event.data === "string") {
             const msg = JSON.parse(event.data);
-            // console.log(msg);
             console.log('[VAC] msg.type', msg.type)
             
             // Skip empty audio buffer errors
@@ -89,26 +126,36 @@ export const useVoiceAssistant = ({
               return;
             }
             
-            // Log non-audio messages
-            if(msg.type !== 'audio') {
-              // console.log("[VAC] message", msg);
-            }
-            
-            console.log("[VAC] msg", msg.type, !!msg?.audio);
-            // Handle audio messages from assistant
-            if (msg.type === 'audio') {
-              console.log("[VAC] Audio message received", msg.audio);
-              try {
-                // Save base64 audio to file
-                const audioUri = await saveAudioToFile(msg.audio);
-                msg.audioUri = audioUri;
-                msg.role = 'assistant';
-                console.log("[VAC] Audio saved to:", audioUri);
-              } catch (err) {
-                console.error("[VAC] Failed to save audio:", err);
+            // Handle audio chunks - buffer them instead of immediate save
+            if (msg.type === 'audio' && msg.audio) {
+              console.log(`[VAC] Audio chunk received (${msg.audio.length} chars)`);
+              
+              // Add chunk to buffer
+              audioBufferRef.current.push(msg.audio);
+              
+              // Reset timer - wait for more chunks
+              if (audioTimerRef.current) {
+                clearTimeout(audioTimerRef.current);
               }
+              
+              // Set timer to process buffer after 300ms of no new chunks
+              audioTimerRef.current = setTimeout(() => {
+                processAudioBuffer();
+              }, 300);
+              
+              // Don't add individual chunks to messages
+              return;
             }
             
+            // For non-audio messages, if there's buffered audio, process it first
+            if (audioBufferRef.current.length > 0) {
+              if (audioTimerRef.current) {
+                clearTimeout(audioTimerRef.current);
+              }
+              await processAudioBuffer();
+            }
+            
+            // Handle non-audio messages normally
             setMessages((prev) => [...prev, msg]);
             handleServerMessage(msg);
           }
@@ -160,6 +207,17 @@ export const useVoiceAssistant = ({
   // ============================================================
   const disconnect = useCallback(async () => {
     try {
+      // Process any remaining buffered audio
+      if (audioBufferRef.current.length > 0) {
+        await processAudioBuffer();
+      }
+      
+      // Clear audio timer
+      if (audioTimerRef.current) {
+        clearTimeout(audioTimerRef.current);
+        audioTimerRef.current = null;
+      }
+      
       // Stop recording if active
       if (isRecording) {
         await AudioRecord.stop();
@@ -177,23 +235,19 @@ export const useVoiceAssistant = ({
       // Reset states
       setIsConnected(false);
       setError(null);
+      audioBufferRef.current = [];
       
       console.log("[VAC] Disconnected");
     } catch (err) {
       console.error("[VAC] disconnect error", err);
     }
-  }, [isRecording]);
+  }, [isRecording, processAudioBuffer]);
 
   // ============================================================
   // SEND TEXT MESSAGE
   // ============================================================
   const sendTextMessage = useCallback((text: string) => {
     return
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      setError("WebSocket not connected");
-      return;
-    }
-    wsRef.current.send(JSON.stringify({ type: "text_message", text }));
   }, []);
 
   // ============================================================
@@ -201,11 +255,6 @@ export const useVoiceAssistant = ({
   // ============================================================
   const sendMessage = useCallback((message: any) => {
     return
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      setError("WebSocket not connected");
-      return;
-    }
-    wsRef.current.send(JSON.stringify(message));
   }, []);
 
   // ============================================================
@@ -235,6 +284,19 @@ export const useVoiceAssistant = ({
     }
   };
 
+  // ============================================================
+  // CLEAR MESSAGES
+  // ============================================================
+  const clearMessages = useCallback(() => {
+    // Clear any pending audio buffer
+    if (audioTimerRef.current) {
+      clearTimeout(audioTimerRef.current);
+      audioTimerRef.current = null;
+    }
+    audioBufferRef.current = [];
+    setMessages([]);
+  }, []);
+
   return {
     isConnected,
     isRecording,
@@ -246,6 +308,6 @@ export const useVoiceAssistant = ({
     stopRecording,
     sendTextMessage,
     sendMessage,
-    clearMessages: () => setMessages([]),
+    clearMessages,
   };
 };

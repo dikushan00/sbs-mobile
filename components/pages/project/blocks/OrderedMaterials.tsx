@@ -4,6 +4,7 @@ import { COLORS, FONT, SIZES } from '@/constants';
 import { ProjectMaterialsType } from '@/components/main/types';
 import { Block, BlockContainer } from './Block';
 import { Icon } from '@/components/Icon';
+import { numberWithCommas } from '@/utils';
 
 export const OrderedMaterials = ({data}: {data: ProjectMaterialsType[]}) => {
   const [expandedEntrances, setExpandedEntrances] = useState<Set<number>>(new Set());
@@ -32,7 +33,7 @@ export const OrderedMaterials = ({data}: {data: ProjectMaterialsType[]}) => {
           <Text style={styles.sumTitle}>Итого</Text>
           <View style={styles.sumRow}>
             <Text style={styles.sumLabel}>Общая сумма:</Text>
-            <Text style={styles.sumValue}>{totalSum.toLocaleString()} ₸</Text>
+            <Text style={styles.sumValue}>{numberWithCommas(totalSum)} ₸</Text>
           </View>
         </View>
       </Block>
@@ -67,7 +68,7 @@ export const OrderedMaterials = ({data}: {data: ProjectMaterialsType[]}) => {
                   <View style={styles.materialRow}>
                     <Text style={styles.materialLabel}>Сумма:</Text>
                     <Text style={styles.materialValue}>
-                      {material.material_sum.toLocaleString()} ₸
+                      {numberWithCommas(material.material_sum)} ₸
                     </Text>
                   </View>
                 </View>

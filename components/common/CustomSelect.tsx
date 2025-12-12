@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
 import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/constants";
 import { showBottomDrawer } from "@/services/redux/reducers/app";
-import { Pressable, View } from "react-native";
+import { Pressable, TextStyle, View } from "react-native";
 import { Text } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { COLORS } from "@/constants";
@@ -22,11 +22,12 @@ export type CustomSelectProps = {
   placeholder?: string;
   style?: any
   showResetBtn?: boolean
+  textStyles?: TextStyle
 };
 export const CustomSelect = (props: CustomSelectProps) => {
   const dispatch = useDispatch();
 
-  const {label, style} = props
+  const {label, style, textStyles} = props
   const openList = async () => {
     if (props.disabled || !props.list?.length) return;
     dispatch(
@@ -81,7 +82,7 @@ export const CustomSelect = (props: CustomSelectProps) => {
         <Text 
           style={{ 
             color: isPlaceholder ? COLORS.darkGray : "#000",
-            fontSize: 16 
+            fontSize: 16, ...textStyles
           }}
           numberOfLines={1}
           ellipsizeMode="middle"
