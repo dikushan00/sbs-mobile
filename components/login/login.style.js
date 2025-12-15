@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     padding: SIZES.medium,
     paddingRight: 50,
     backgroundColor: "#efefef",
-    borderRadius: 5,
+    borderRadius: 12,
     color: COLORS.black,
   },
   eyeIcon: {
