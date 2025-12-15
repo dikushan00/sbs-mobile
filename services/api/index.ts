@@ -100,7 +100,6 @@ export const instance = (
             //@ts-ignore
           } else if (!res?.errNetwork) {
             await storageService.resetAllData();
-            console.log('delete')
             await SecureStore.deleteItemAsync(STORE_KEYS.auth);
             await Updates.reloadAsync();
           }

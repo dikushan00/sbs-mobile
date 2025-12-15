@@ -24,7 +24,7 @@ export const BottomDrawerHeader = ({
       <Text style={styles.title}>{title || ""}</Text>
       <Pressable onPress={onClose}>
         <View style={styles.close}>
-          <Icon name="close" stroke={COLORS.darkGray} width={22} height={22} />
+          <Icon name="close" stroke={COLORS.darkGray} width={25} height={25} />
         </View>
       </Pressable>
     </View>

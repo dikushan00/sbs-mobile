@@ -8,7 +8,7 @@ export interface AppStateType {
   networkWasOff: boolean;
   newVersionBannerShowed: boolean;
   shouldPageDataReload: boolean;
-  webViewMode: { active: boolean; loading: boolean };
+  webViewMode: { active: boolean; loading: boolean; url?: string | null };
   bottomDrawerData: BottomDrawerDataType;
   secondBottomDrawerData: BottomDrawerDataType;
   modal: ModalDataType;

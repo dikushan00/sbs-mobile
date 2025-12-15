@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceDocumentFloors, getPlacementTypes, getResidentialEntrances, getEntrancePayments } from '@/components/main/services';
+import { getEntranceDocumentFloors, getPlacementTypes, getEntrancePayments } from '@/components/main/services';
 import { PlacementType, ProjectFiltersType, ProjectPaymentType, SelectedDataType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
@@ -27,24 +27,18 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [placementTypes, setPlacementTypes] = useState<PlacementType[]>([]);
-  const [entrances, setEntrances] = useState<{project_entrance_id: number | string | null, entrance_name: string}[]>([]);
   const [floors, setFloors] = useState<SimpleFloorType[]>([]);
   const [localFilters, setLocalFilters] = useState({
     placement_type_id: null as number | null,
     floor: null as number | null,
-    project_entrance_id: 'ALL' as number | string | null,
+    project_entrance_id: 'ALL' as number | 'ALL' | null,
   });
 
-  console.log(localFilters)
   useEffect(() => {
     const fetchInitialData = async () => {
-      const [entrancesData, placementTypesData] = await Promise.all([
-        getResidentialEntrances(filters),
+      const [placementTypesData] = await Promise.all([
         getPlacementTypes(),
       ]);
-      if (entrancesData) {
-        setEntrances([{project_entrance_id: 'ALL', entrance_name: 'Все' }, ...entrancesData]);
-      }
       setPlacementTypes(placementTypesData || []);
     };
     fetchInitialData();
@@ -52,14 +46,18 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
 
   useEffect(() => {
     const fetchPayments = async () => {
-      const params = {...localFilters, project_entrance_id: localFilters.project_entrance_id === 'ALL' ? '' : localFilters.project_entrance_id};
+      const project_entrance_id =
+        localFilters.project_entrance_id && localFilters.project_entrance_id !== 'ALL'
+          ? localFilters.project_entrance_id
+          : '';
+      const params = { ...localFilters, project_entrance_id };
       setLoading(true);
       const payments = await getEntrancePayments({...filters, ...params, project_id});
       setLoading(false);
       setPaymentsData(payments || []);
     };
     fetchPayments();
-  }, [localFilters, filters]);
+  }, [localFilters, filters, project_id]);
 
   const getStatusColour = (status_code: string) => {
     switch (status_code) {
@@ -108,20 +106,24 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
     );
   }
 
-  const onEntranceChange = async (value: string | number | null) => {
-    setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
+  const onEntranceChange = async (value: number | 'ALL' | null) => {
+    // When selecting "ALL" we don't have a concrete entrance to load floors for
+    if (value === 'ALL' || value === null) {
+      setLocalFilters(prev => ({ ...prev, project_entrance_id: value, floor: null }))
+      setFloors([]);
+      return;
+    }
 
-    const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: value as number})
+    setLocalFilters(prev => ({ ...prev, project_entrance_id: value, floor: null }))
+    const floorsData = await getEntranceDocumentFloors({ ...filters, project_entrance_id: value })
     setFloors(floorsData || []);
   }
 
   return (
     <View style={styles.container}>
       <EntranceSelector
-        selectedEntranceId={localFilters.project_entrance_id ? +localFilters.project_entrance_id : null}
-        onSelectEntrance={(value) => {
-          onEntranceChange(value)
-        }}
+        selectedEntranceId={localFilters.project_entrance_id}
+        onSelectEntrance={(value) => onEntranceChange(value)}
         selectedData={selectedData}
         selectDefaultEntrance={false}
       />
@@ -134,6 +136,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
             onChange={(value) => setLocalFilters(prev => ({ ...prev, floor: value }))}
             value={localFilters.floor}
             placeholder="Этаж" alt
+            emptyListMessage={!localFilters.project_entrance_id || localFilters.project_entrance_id === 'ALL' ? 'Выберите подъезд' : 'Этажи не найдены'}
           />
         </View>
         <View style={styles.selectWrapper}>

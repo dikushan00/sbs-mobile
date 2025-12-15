@@ -92,29 +92,31 @@ export const PointInfo: React.FC<PointInfoProps> = ({ data, handleClose }) => {
   return (
     <View style={styles.container}>
       <BottomDrawerHeader title="Информация о замечании" handleClose={handleClose} />
-      <View style={styles.header}>
-        <Text style={styles.title}>{pointInfo.check_name}</Text>
-      </View>
-      <View style={[styles.statusBadge, { backgroundColor: getStatusColor(pointInfo.is_accepted) }]}>
-          <Text style={styles.statusText}>{getStatusText(pointInfo.is_accepted)}</Text>
-      </View>
-      {pointInfo.comments && (
-        <View style={styles.commentsSection}>
-          <Text style={styles.commentsTitle}>Комментарии:</Text>
-          <Text style={styles.commentsText}>{pointInfo.comments}</Text>
+      <View style={styles.contentContainer}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{pointInfo.check_name}</Text>
         </View>
-      )}
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(pointInfo.is_accepted) }]}>
+            <Text style={styles.statusText}>{getStatusText(pointInfo.is_accepted)}</Text>
+        </View>
+        {pointInfo.comments && (
+          <View style={styles.commentsSection}>
+            <Text style={styles.commentsTitle}>Комментарии:</Text>
+            <Text style={styles.commentsText}>{pointInfo.comments}</Text>
+          </View>
+        )}
 
-      {pointInfo.file_urls && pointInfo.file_urls.length > 0 && (
-        <View style={styles.filesSection}>
-          <Text style={styles.filesTitle}>Прикрепленные файлы:</Text>
-          
-          <FileList
-            files={pointInfo.file_urls?.map(item => ({uri: `${getFullUrl(item)}`, name: '', type: ''})) || []}
-            galleryMode
-          />
-        </View>
-      )}
+        {pointInfo.file_urls && pointInfo.file_urls.length > 0 && (
+          <View style={styles.filesSection}>
+            <Text style={styles.filesTitle}>Прикрепленные файлы:</Text>
+            
+            <FileList
+              files={pointInfo.file_urls?.map(item => ({uri: `${getFullUrl(item)}`, name: '', type: ''})) || []}
+              galleryMode
+            />
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -122,6 +124,10 @@ export const PointInfo: React.FC<PointInfoProps> = ({ data, handleClose }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.white,
+    paddingHorizontal: 16
+  },
+  contentContainer: {
+    paddingRight: 7,
   },
   header: {
     flexDirection: "row",

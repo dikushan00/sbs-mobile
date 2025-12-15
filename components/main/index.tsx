@@ -1,7 +1,18 @@
 import { setPageHeaderData } from "@/services/redux/reducers/userApp";
-import { setHideFooterNav } from "@/services/redux/reducers/app";
-import React, { useEffect, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import { setHideFooterNav, showCustomWebViewMode } from "@/services/redux/reducers/app";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Animated,
+  Easing,
+  Image,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useDispatch } from "react-redux";
 import { ProjectPage } from "../pages/project";
 import { COLORS, FONT, SIZES } from "@/constants";
@@ -10,9 +21,11 @@ import { setPageSettings } from "@/services/redux/reducers/app";
 import { getProjects } from "../pages/project/services";
 import { ProjectType } from "../pages/project/services/types";
 import { CustomLoader } from "../common/CustomLoader";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export const MainPage = () => {
   const dispatch = useDispatch();
+  const insets = useSafeAreaInsets();
   const [isFetching, setIsFetching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null);
@@ -24,6 +37,42 @@ export const MainPage = () => {
   });
   const [showProjectPage, setShowProjectPage] = useState(false);
   const [projectList, setProjectList] = useState<ProjectType[]>([]);
+
+  const ouraFabAnim = useRef(new Animated.Value(0)).current;
+  const AnimatedTouchableOpacity = useMemo(
+    () => Animated.createAnimatedComponent(TouchableOpacity),
+    []
+  );
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(ouraFabAnim, {
+          toValue: 1,
+          duration: 900,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(ouraFabAnim, {
+          toValue: 0,
+          duration: 900,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [ouraFabAnim]);
+
+  const ouraFabScale = ouraFabAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.06],
+  });
+  const ouraFabTranslateY = ouraFabAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -6],
+  });
 
   useEffect(() => {
     dispatch(
@@ -127,7 +176,7 @@ export const MainPage = () => {
         <View style={styles.blocksContainer}>
           <Text style={styles.detailText}>Подъезды: </Text>
           <View style={styles.blocksList}>
-            {project.blocks.split(' / ').map((block, index) => (
+            {project.blocks?.split(' / ').map((block, index) => (
               <View key={index} style={styles.blockBadge}>
                 <Text style={styles.blockText}>{block.trim()}</Text>
               </View>
@@ -167,6 +216,22 @@ export const MainPage = () => {
       >
         {projectList.map(renderProjectCard)}
       </ScrollView>
+
+      <AnimatedTouchableOpacity
+        style={[
+          styles.ouraFab,
+          { bottom: 20 },
+          { transform: [{ translateY: ouraFabTranslateY }, { scale: ouraFabScale }] },
+        ]}
+        onPress={() => dispatch(showCustomWebViewMode({ url: "https://oura.bi.group/" }))}
+        activeOpacity={0.9}
+      >
+        <Image
+          source={require("@/assets/images/oura.png")}
+          style={styles.ouraFabImage}
+          resizeMode="cover"
+        />
+      </AnimatedTouchableOpacity>
     </View>
   );
 };
@@ -276,5 +341,24 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 16,
     backgroundColor: '#fff',
+  },
+  ouraFab: {
+    position: "absolute",
+    right: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 8,
+    zIndex: 50,
+    overflow: "hidden",
+  },
+  ouraFabImage: {
+    width: "100%",
+    height: "100%",
   },
 });

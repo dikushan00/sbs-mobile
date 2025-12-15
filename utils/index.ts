@@ -85,6 +85,152 @@ export const downloadFile = async (response: any, fileName: string) => {
   }
 }
 
+const sanitizeFileName = (fileName: string) => {
+  try {
+    // Android/iOS file systems are generally fine, but we still remove clearly unsafe chars.
+    return fileName.replace(/[\\/:*?"<>|]+/g, "_").trim();
+  } catch (e) {
+    return fileName;
+  }
+};
+
+const getMimeTypeByFileName = (fileName: string) => {
+  const lower = (fileName || "").toLowerCase();
+  const ext = lower.split("?")[0].split("#")[0].split(".").pop();
+  switch (ext) {
+    case "pdf":
+      return "application/pdf";
+    case "png":
+      return "image/png";
+    case "jpg":
+    case "jpeg":
+      return "image/jpeg";
+    case "webp":
+      return "image/webp";
+    case "gif":
+      return "image/gif";
+    case "txt":
+      return "text/plain";
+    case "doc":
+      return "application/msword";
+    case "docx":
+      return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    case "xls":
+      return "application/vnd.ms-excel";
+    case "xlsx":
+      return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+    default:
+      return "*/*";
+  }
+};
+
+const extractBase64FromApiResponse = (response: any) => {
+  // Обрабатываем разные типы ответов от API
+  if (typeof response === "string") return response;
+
+  if (response?.data) {
+    if (response.data instanceof ArrayBuffer) {
+      const uint8Array = new Uint8Array(response.data);
+      const binaryString = Array.from(uint8Array, (byte) =>
+        String.fromCharCode(byte)
+      ).join("");
+      return btoa(binaryString);
+    }
+    return response.data;
+  }
+
+  if (response?.file || response?.content) {
+    return response.file || response.content;
+  }
+
+  return btoa(JSON.stringify(response));
+};
+
+export const getLocalFileUri = (fileName: string) => {
+  const safeName = sanitizeFileName(fileName);
+  const baseDir = FileSystem.cacheDirectory || FileSystem.documentDirectory;
+  return `${baseDir}${safeName}`;
+};
+
+export const openFileUri = async (uri: string, mimeType?: string) => {
+  try {
+    if (!uri) return;
+    const type = mimeType || "*/*";
+
+    if (Platform.OS === "android") {
+      const cUri = await FileSystem.getContentUriAsync(uri);
+      return await IntentLauncher.startActivityAsync(
+        "android.intent.action.VIEW",
+        {
+          data: cUri,
+          flags: 1,
+          type,
+        }
+      );
+    }
+
+    // iOS/web: try direct open first (QuickLook/preview), fallback to Sharing
+    try {
+      const supported = await Linking.canOpenURL(uri);
+      if (supported) {
+        return await Linking.openURL(uri);
+      }
+    } catch (e) {}
+
+    return await Sharing.shareAsync(uri);
+  } catch (e) {}
+};
+
+export const openLocalFileIfExists = async (fileName: string) => {
+  try {
+    const uri = getLocalFileUri(fileName);
+    const info = await FileSystem.getInfoAsync(uri);
+    if (info.exists && (info.size ?? 0) > 0) {
+      const mimeType = getMimeTypeByFileName(fileName);
+      await openFileUri(uri, mimeType);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+};
+
+// Скачивает (из axios arraybuffer/base64 ответа), сохраняет локально и сразу открывает
+export const downloadAndOpenFile = async (response: any, fileName: string) => {
+  if (!response) {
+    Alert.alert("Ошибка", "Не удалось получить документ");
+    return;
+  }
+
+  try {
+    const safeName = sanitizeFileName(fileName);
+    const mimeType = getMimeTypeByFileName(safeName);
+
+    const fileUri = getLocalFileUri(safeName);
+
+    // Если уже скачан — просто открываем, без повторного скачивания/записи
+    try {
+      const info = await FileSystem.getInfoAsync(fileUri);
+      if (info.exists && (info.size ?? 0) > 0) {
+        await openFileUri(fileUri, mimeType);
+        return fileUri;
+      }
+    } catch (e) {}
+
+    const base64 = extractBase64FromApiResponse(response);
+
+    await FileSystem.writeAsStringAsync(fileUri, base64, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    await openFileUri(fileUri, mimeType);
+    return fileUri;
+  } catch (e) {
+    Alert.alert("Ошибка", "Не удалось скачать документ");
+  }
+};
+
 export const saveFile = async (
   uri: string,
   fileName: string,

@@ -58,9 +58,7 @@ export const Schema = ({
 }: PropsType) => {
   const [downloaded, setDownloaded] = useState(false);
   const [zoomValue, setZoomValue] = useState(1);
-  const panRef = useRef(null);
   const tapRef = useRef(null);
-  const pinchRef = useRef(null);
 
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -83,43 +81,101 @@ export const Schema = ({
     return fileName;
   }, [data]);
 
-  const checkIfFileExist = useCallback(async () => {
-    if (!schemaFileName) return;
+  const localUri = useMemo(() => {
+    if (!schemaFileName) return null;
+    return `${FileSystem.Paths.document.uri}${schemaFileName}`;
+  }, [schemaFileName]);
+
+  const remoteUri = useMemo(() => {
+    if (!data?.file_url) return null;
+    return `${apiUrl}${data.file_url}`;
+  }, [data?.file_url]);
+
+  const ensureSchemaDownloaded = useCallback(async () => {
+    if (!schemaFileName || !data?.file_url) return false;
+
     const fileInfo = await getFileInfo(schemaFileName);
-    setDownloaded(!!fileInfo?.exists);
-    if (!fileInfo?.exists && data?.file_url)
-      downloadSchemaImage(data?.file_url);
-  }, [schemaFileName, data]);
+    if (fileInfo?.exists) {
+      setDownloaded(true);
+      return true;
+    }
 
-  useEffect(() => {
-    if (!data?.file_url) return;
-    const uri = downloaded
-      ? `${FileSystem.Paths.document.uri}${schemaFileName}`
-      : `${apiUrl}${data?.file_url}`;
+    const downloadedUri = await downloadSchemaImage(data.file_url);
+    if (downloadedUri) {
+      setDownloaded(true);
+      return true;
+    }
 
-    const getSize = async () => {
-      if (downloaded && Platform.OS === "android") {
+    // In case downloadSchemaImage didn't return uri but file still ended up existing
+    const fileInfoAfter = await getFileInfo(schemaFileName);
+    const ok = !!fileInfoAfter?.exists;
+    setDownloaded(ok);
+    return ok;
+  }, [schemaFileName, data?.file_url]);
+
+  const getImageSizeForUri = useCallback(
+    async (uri: string, isLocal: boolean) => {
+      if (isLocal && Platform.OS === "android") {
         const res = await getImageSize(uri);
-        if (!res) {
-          Image.getSize(
-            uri,
-            (w, h) => setImageSize({ width: w, height: h }),
-            (err) => console.log('error', err)
-          );
-          return;
-        }
-        setImageSize(res);
-      } else {
+        if (res) return res;
+      }
+
+      return await new Promise<{ width: number; height: number }>((resolve, reject) => {
         Image.getSize(
           uri,
-          (w, h) => setImageSize({ width: w, height: h }),
-          (err) => console.log('error2', err)
+          (w, h) => resolve({ width: w, height: h }),
+          (err) => reject(err)
         );
+      });
+    },
+    []
+  );
+
+  // When schema changes, reset cached values so we always re-calc on first open
+  useEffect(() => {
+    setImageSize(null);
+    setDownloaded(false);
+  }, [schemaFileName, data?.file_url]);
+
+  useEffect(() => {
+    ensureSchemaDownloaded();
+  }, [ensureSchemaDownloaded]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!schemaFileName || !remoteUri) return;
+
+      const uriToMeasure = downloaded && localUri ? localUri : remoteUri;
+
+      try {
+        const res = await getImageSizeForUri(uriToMeasure, !!(downloaded && localUri));
+        if (!cancelled) setImageSize(res);
+      } catch (e) {
+        // Remote getSize can fail (e.g. protected URL). Fallback: download and measure local file.
+        if (cancelled) return;
+        const ok = await ensureSchemaDownloaded();
+        if (!ok || !localUri) return;
+        try {
+          const res2 = await getImageSizeForUri(localUri, true);
+          if (!cancelled) setImageSize(res2);
+        } catch (e2) {}
       }
     };
 
-    getSize();
-  }, [data, downloaded, schemaFileName]);
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    schemaFileName,
+    remoteUri,
+    localUri,
+    downloaded,
+    ensureSchemaDownloaded,
+    getImageSizeForUri,
+  ]);
 
   const displayedSize = useMemo(() => {
     if (!imageSize || imageSize.width === 0) return null;
@@ -197,10 +253,6 @@ export const Schema = ({
       return;
     }, 300);
   };
-
-  useEffect(() => {
-    checkIfFileExist();
-  }, [checkIfFileExist]);
 
   const handleSchemaClick = (e: any) => {
     if (!isEditable) return;

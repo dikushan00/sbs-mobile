@@ -29,7 +29,6 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
   const [stagesData, setStagesData] = useState<ProjectStageType[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-  const [entrances, setEntrances] = useState<{project_entrance_id: number | string | null, entrance_name: string}[]>([]);
   const [entranceInfo, setEntranceInfo] = useState<ProjectEntranceAllInfoType | null>(null);
   const [placementTypes, setPlacementTypes] = useState<PlacementType[]>([]);
   const [floors, setFloors] = useState<SimpleFloorType[]>([]);
@@ -38,8 +37,6 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     placement_type_id: null as number | null,
     floor: null as number | null,
   });
-
-  console.log(project_id);
 
   const [viewMode, setViewMode] = useState<'stages' | 'comments' | 'schema'>('stages');
   const [selectedStage, setSelectedStage] = useState<ProjectStageType | null>(null);
@@ -57,7 +54,6 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
           const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: entrancesData[0].project_entrance_id})
           setFloors(floorsData || []);
         }
-        setEntrances(entrancesData);
       }
       setPlacementTypes(placementTypesData || []);
     };
@@ -138,7 +134,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
   };
 
   const getUniqId = (item: ProjectStageType) => {
-    return item.call_date + '_' + item.floor + '_' + item.work_set_check_group_id;
+    return item.call_date + '_' + item.floor + '_' + item.work_set_check_group_id + '_' + item.placement_type_name;
   }
 
   if (viewMode === 'comments') {
@@ -188,6 +184,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
           onEntranceChange(id, data)
         }}
         selectedData={selectedData}
+        defaultEntranceId={localFilters.project_entrance_id ? +localFilters.project_entrance_id : null}
       />
       <View style={styles.selectsContainer}>
         <View style={styles.selectWrapper}>

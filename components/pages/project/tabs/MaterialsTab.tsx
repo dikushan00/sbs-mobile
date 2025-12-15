@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
+import { Animated, Easing, View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getEntranceMaterialRequests } from '@/components/main/services';
@@ -34,6 +34,38 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
   const [showAIChat, setShowAIChat] = useState(false);
   const [orderData, setOrderData] = useState<NewMaterialRequestData | null>(null);
   const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
+
+  const aiBgAnim = useRef(new Animated.Value(0)).current;
+  const AnimatedTouchableOpacity = useMemo(
+    () => Animated.createAnimatedComponent(TouchableOpacity),
+    []
+  );
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(aiBgAnim, {
+          toValue: 1,
+          duration: 5000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: false, // backgroundColor не поддерживает native driver
+        }),
+        Animated.timing(aiBgAnim, {
+          toValue: 0,
+          duration: 5000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: false,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [aiBgAnim]);
+
+  const aiBgColor = aiBgAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [COLORS.primaryLight, COLORS.primary, COLORS.primaryLight],
+  });
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -119,7 +151,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
           if(!res) return
           setMaterialsData(res);
         },
-        params: filters,
+        params: {...filters, project_entrance_id: projectEntranceId},
         provider_request_item_id: material.provider_request_item_id
       }
     }))
@@ -164,6 +196,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
         selectedEntranceId={projectEntranceId}
         onSelectEntrance={setProjectEntranceId}
         selectedData={selectedData}
+        defaultEntranceId={projectEntranceId}
       />
       {
         loading 
@@ -258,13 +291,12 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
             : !loading && <NotFound title='Данные не найдены' />
         }
       </ScrollView>
-      <TouchableOpacity
-        style={styles.aiFloatingButton}
+      {/* <AnimatedTouchableOpacity
+        style={[styles.aiFloatingButton, { backgroundColor: aiBgColor }]}
         onPress={handleOpenAIChat}
       >
-        <Icon name="aiAssistant" width={28} height={28} fill={COLORS.white} />
-        {/* <Text style={{color: COLORS.white, fontSize: 20, fontFamily: FONT.bold}}>AI</Text> */}
-      </TouchableOpacity>
+        <Icon name="aiAssistant" width={28} height={28} fill={COLORS.lightWhite} />
+      </AnimatedTouchableOpacity> */}
       <View style={styles.fixedButtonContainer}>
         <CustomButton
           title="Заказать материал"
@@ -358,7 +390,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

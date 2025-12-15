@@ -8,7 +8,7 @@ import { Block, BlockContainer } from './Block';
 import { Icon } from '@/components/Icon';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { residentialSettingsAPI } from '@/components/main/services/api';
-import { downloadFile } from '@/utils';
+import { downloadAndOpenFile } from '@/utils';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { NotFound } from '@/components/common/NotFound';
@@ -105,7 +105,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
         project_agreement_id: agreement.project_agreement_id
       });
       const fileName = `${agreement.doc_name?.replaceAll('/', '_')}.pdf`;
-      await downloadFile(response, fileName)
+      await downloadAndOpenFile(response, fileName)
     } catch (error) {
     }
     setDownloading(false)

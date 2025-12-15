@@ -154,6 +154,7 @@ export const CheckListSubmitBtns = ({
         onClick={() => confirmCheck(true)}
         small
         disabled={disabled || loading} btnContentStyles={{gap: 1}}
+        wrapperStyles={{ minWidth: 55 }}
       >
         <FontAwesome5 name="thumbs-up" size={18} color={COLORS.white} />
         <Text style={{width: 0}}></Text>
@@ -164,6 +165,7 @@ export const CheckListSubmitBtns = ({
         small
         color={COLORS.error}
         disabled={disabled || loading}
+        wrapperStyles={{ minWidth: 55 }}
       >
         <FontAwesome5 name="thumbs-down" size={18} color={COLORS.white} />
       </CustomButton>

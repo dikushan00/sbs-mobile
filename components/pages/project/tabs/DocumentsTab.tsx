@@ -159,7 +159,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
           if(!res) return
           setDocumentsData(res);
         },
-        params: filters,
+        params: {...filters, ...localFilters},
         floor_map_document_id: document.floor_map_document_id
       }
     }))
@@ -179,7 +179,6 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${floor_map_document_id}&type=document&user=${userData?.employee_id}`)
 
     const link = `${mobileSignUrl}?link=${apiUrl}`
-    console.log(floor_map_document_id);
     await Linking.openURL(link);
     return
     if (processing[floor_map_document_id]) return;

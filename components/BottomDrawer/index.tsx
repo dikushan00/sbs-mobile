@@ -1,14 +1,14 @@
 import { appState, closeBottomDrawer } from "@/services/redux/reducers/app";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { BottomSheetMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
-import React, { useEffect, useMemo, useRef } from "react";
-import { Animated, Pressable, StyleSheet, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
 import { getBottomDrawerContent } from "./services";
 import { userAppState } from "@/services/redux/reducers/userApp";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const snapPoints = ["40%"];
 export const BottomDrawer = () => {
   const dispatch = useDispatch();
   const bottomSheetRef = useRef<BottomSheetMethods>(null);
@@ -17,6 +17,9 @@ export const BottomDrawer = () => {
   } = useSelector(appState);
   const { isOkk } = useSelector(userAppState);
   const animatedOpacity = useRef(new Animated.Value(0)).current;
+  const { height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const [measuredContentHeight, setMeasuredContentHeight] = useState<number>(0);
 
   useEffect(() => {
     if (bottomSheetRef.current) {
@@ -51,6 +54,31 @@ export const BottomDrawer = () => {
     bottomSheetRef.current?.close();
   };
 
+  const onContentSizeChange = useCallback((_: number, height: number) => {
+    setMeasuredContentHeight(height);
+  }, []);
+
+  const disableDrag = (data as any)?.disableDrag ?? false;
+  const useContentHeight = (data as any)?.useContentHeight ?? true;
+  const maxDynamicContentSize =
+    (data as any)?.maxDynamicContentSize ??
+    Math.max(0, windowHeight - insets.top - 16);
+
+  const resolvedSnapPoints = useMemo(() => {
+    if (!useContentHeight) {
+      return (data as any)?.snapPoints || contentData?.snapPoints || ["40%"];
+    }
+
+    // v5.2.x doesn't support 'CONTENT_HEIGHT' string snap point; compute numeric snap point.
+    // Include some room for the handle/header area.
+    const HANDLE_ESTIMATE = 56;
+    const desired = Math.min(
+      maxDynamicContentSize,
+      Math.max(1, measuredContentHeight + HANDLE_ESTIMATE)
+    );
+    return [desired];
+  }, [useContentHeight, data, contentData?.snapPoints, measuredContentHeight, maxDynamicContentSize]);
+
   const Component = contentData?.component;
   return (
     <React.Fragment>
@@ -70,10 +98,13 @@ export const BottomDrawer = () => {
         ref={bottomSheetRef}
         index={-1}
         style={styles.bottomSheet}
-        snapPoints={contentData?.snapPoints || snapPoints}
-        enablePanDownToClose={true}
+        snapPoints={resolvedSnapPoints}
+        enablePanDownToClose={!disableDrag}
         enableOverDrag={false}
-        enableDynamicSizing={data?.enableDynamicSizing || true}
+        activeOffsetY={!disableDrag ? [-9999, 8] : undefined}
+        bottomInset={insets.bottom}
+        enableHandlePanningGesture={!disableDrag}
+        enableContentPanningGesture={!disableDrag}
         handleComponent={() => (
           <View style={styles.handleContainer}>
             <View style={styles.dragLineContainer}>
@@ -85,10 +116,12 @@ export const BottomDrawer = () => {
         onChange={handleSnapChange}
         onClose={() => show && dispatch(closeBottomDrawer())}
       >
-        <BottomSheetScrollView nestedScrollEnabled>
-          <View style={styles.content}>
-            {!!Component && <Component data={data} handleClose={handleClose} />}
-          </View>
+        <BottomSheetScrollView
+          nestedScrollEnabled
+          contentContainerStyle={styles.contentContainer}
+          onContentSizeChange={onContentSizeChange}
+        >
+          {!!Component && <Component data={data} handleClose={handleClose} />}
         </BottomSheetScrollView>
       </BottomSheet>
     </React.Fragment>
@@ -114,10 +147,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     overflow: "hidden",
   },
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+  contentContainer: {
     backgroundColor: "#fff",
   },
   handleContainer: {

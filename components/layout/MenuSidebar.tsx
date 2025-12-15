@@ -47,7 +47,7 @@ export const MenuSidebar = ({ navigation }: { navigation: any }) => {
             ? newVersionBannerShowed
               ? 0
               : insets.top
-            : insets.top + 10,
+            : 15,
         flex: 1,
         backgroundColor: "#f5f5f5",
       }}

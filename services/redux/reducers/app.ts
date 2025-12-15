@@ -10,7 +10,7 @@ import { checkUserAuth } from "./userApp";
 
 const initialState: AppStateType = {
   init: false,
-  webViewMode: { active: false, loading: false },
+  webViewMode: { active: false, loading: false, url: null },
   networkWasOff: false,
   newVersionBannerShowed: false,
   bottomDrawerData: { show: false, data: null, type: null, loading: false },
@@ -28,13 +28,16 @@ const appSlice = createSlice({
       state.init = true;
     },
     showWebViewMode: (state) => {
-      state.webViewMode = { active: true, loading: true };
+      state.webViewMode = { active: true, loading: true, url: null };
+    },
+    showCustomWebViewMode: (state, { payload }: PayloadAction<{ url: string }>) => {
+      state.webViewMode = { active: true, loading: true, url: payload?.url || null };
     },
     closeWebViewMode: (state) => {
-      state.webViewMode = { active: false, loading: false };
+      state.webViewMode = { active: false, loading: false, url: null };
     },
     endWebViewModeLoading: (state) => {
-      state.webViewMode = { active: true, loading: false };
+      state.webViewMode = { ...state.webViewMode, active: true, loading: false };
     },
     setNetworkStatus: (state, { payload }) => {
       state.networkWasOff = !!payload;
@@ -106,6 +109,7 @@ const appSlice = createSlice({
 export const {
   setInit,
   showWebViewMode,
+  showCustomWebViewMode,
   closeWebViewMode,
   endWebViewModeLoading,
   setShowNewVersionBanner,

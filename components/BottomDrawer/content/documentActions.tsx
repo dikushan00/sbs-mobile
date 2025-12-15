@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { changeDateEntranceDocument, sendAvrTo1C, signEntranceDocument } from '@/components/main/services';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
 import { BottomDrawerHeader } from '../BottomDrawerHeader';
-import { downloadFile } from '@/utils';
+import { downloadAndOpenFile, openLocalFileIfExists } from '@/utils';
 import { instance } from '@/services/api';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { userAppState } from '@/services/redux/reducers/userApp';
@@ -46,9 +46,18 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
     if(downloading) return;
     setDownloading(true);
     try {
+      const fileName = document.floor_map_document_type_name + '.pdf';
+
+      // Если файл уже скачан — открываем локальный и не делаем повторный запрос
+      const openedFromCache = await openLocalFileIfExists(fileName);
+      if (openedFromCache) {
+        handleClose();
+        return;
+      }
+
       const res = await instance().get(document.master_url, { responseType: 'arraybuffer' })
       
-      await downloadFile(res, document.floor_map_document_type_name + '.pdf')
+      await downloadAndOpenFile(res, fileName)
       handleClose();
     } catch (error) {
       Alert.alert('Ошибка', 'Не удалось скачать документ');
@@ -201,7 +210,6 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
             <Text style={styles.actionText}>Скачать</Text>
           </TouchableOpacity>
         )}
-        
         
         {!document.is_avr_sent_bi && document.can_sent_1c && (
           <TouchableOpacity 

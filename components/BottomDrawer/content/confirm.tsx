@@ -3,6 +3,7 @@ import { COLORS, FONT } from "@/constants";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ConfirmDrawerType } from "../types";
+import { BottomDrawerHeader } from "../BottomDrawerHeader";
 
 type PropsType = { data: ConfirmDrawerType; handleClose: () => void };
 export const ConfirmBlock = ({ data, handleClose }: PropsType) => {
@@ -15,8 +16,10 @@ export const ConfirmBlock = ({ data, handleClose }: PropsType) => {
   };
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{data?.title || ""}</Text>
-
+      <BottomDrawerHeader
+        handleClose={handleClose}
+        title={data?.title || ""}
+      />
       <CustomButton
         type="contained"
         color={data?.cancelMode ? COLORS.error : COLORS.primary}

@@ -110,6 +110,7 @@ export const useVoiceAssistant = ({
       ws.binaryType = "arraybuffer";
       wsRef.current = ws;
 
+      console.log("[VAC] Connecting to", url);
       ws.onopen = () => {
         console.log("[VAC] Connected");
         setIsConnected(true);

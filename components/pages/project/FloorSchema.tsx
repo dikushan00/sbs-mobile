@@ -85,43 +85,98 @@ export const FloorSchema = ({
     }
   }, [data?.floor_map]);
 
-  const checkIfFileExist = useCallback(async () => {
-    if (!schemaFileName) return;
+  const localUri = useMemo(() => {
+    if (!schemaFileName) return null;
+    return `${FileSystem.Paths.document.uri}${schemaFileName}`;
+  }, [schemaFileName]);
+
+  const remoteUri = useMemo(() => {
+    if (!data?.floor_map.image_url) return null;
+    return `${apiUrl}${data.floor_map.image_url}`;
+  }, [data?.floor_map.image_url]);
+
+  const ensureSchemaDownloaded = useCallback(async () => {
+    if (!schemaFileName || !data?.floor_map.image_url) return false;
+
     const fileInfo = await getFileInfo(schemaFileName);
-    setDownloaded(!!fileInfo?.exists);
-    if (!fileInfo?.exists && data?.floor_map.image_url)
-      downloadSchemaImage(data?.floor_map.image_url);
-  }, [schemaFileName, data]);
+    if (fileInfo?.exists) {
+      setDownloaded(true);
+      return true;
+    }
 
-  useEffect(() => {
-    if (!data?.floor_map.image_url) return;
-    const uri = downloaded
-      ? `${FileSystem.Paths.document.uri}${schemaFileName}`
-      : `${apiUrl}${data?.floor_map.image_url}`;
+    const downloadedUri = await downloadSchemaImage(data.floor_map.image_url);
+    if (downloadedUri) {
+      setDownloaded(true);
+      return true;
+    }
 
-    const getSize = async () => {
-      if (downloaded && Platform.OS === "android") {
+    const fileInfoAfter = await getFileInfo(schemaFileName);
+    const ok = !!fileInfoAfter?.exists;
+    setDownloaded(ok);
+    return ok;
+  }, [schemaFileName, data?.floor_map.image_url]);
+
+  const getImageSizeForUri = useCallback(
+    async (uri: string, isLocal: boolean) => {
+      if (isLocal && Platform.OS === "android") {
         const res = await getImageSize(uri);
-        if (!res) {
-          Image.getSize(
-            uri,
-            (w, h) => setImageSize({ width: w, height: h }),
-            (err) => console.log(err)
-          );
-          return;
-        }
-        setImageSize(res);
-      } else {
+        if (res) return res;
+      }
+
+      return await new Promise<{ width: number; height: number }>((resolve, reject) => {
         Image.getSize(
           uri,
-          (w, h) => setImageSize({ width: w, height: h }),
-          (err) => console.log(err)
+          (w, h) => resolve({ width: w, height: h }),
+          (err) => reject(err)
         );
+      });
+    },
+    []
+  );
+
+  useEffect(() => {
+    setImageSize(null);
+    setDownloaded(false);
+  }, [schemaFileName, data?.floor_map.image_url]);
+
+  useEffect(() => {
+    ensureSchemaDownloaded();
+  }, [ensureSchemaDownloaded]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!schemaFileName || !remoteUri) return;
+
+      const uriToMeasure = downloaded && localUri ? localUri : remoteUri;
+
+      try {
+        const res = await getImageSizeForUri(uriToMeasure, !!(downloaded && localUri));
+        if (!cancelled) setImageSize(res);
+      } catch (e) {
+        if (cancelled) return;
+        const ok = await ensureSchemaDownloaded();
+        if (!ok || !localUri) return;
+        try {
+          const res2 = await getImageSizeForUri(localUri, true);
+          if (!cancelled) setImageSize(res2);
+        } catch (e2) {}
       }
     };
 
-    getSize();
-  }, [data, downloaded, schemaFileName]);
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    schemaFileName,
+    remoteUri,
+    localUri,
+    downloaded,
+    ensureSchemaDownloaded,
+    getImageSizeForUri,
+  ]);
 
   const displayedSize = useMemo(() => {
     if (!imageSize || imageSize.width === 0) return null;
@@ -199,10 +254,6 @@ export const FloorSchema = ({
       return;
     }, 300);
   };
-
-  useEffect(() => {
-    checkIfFileExist();
-  }, [checkIfFileExist]);
 
   const workSetParamIds = useMemo(() => {
     if (!workSetParams || workSetParams.length === 0) return new Set();

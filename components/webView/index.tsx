@@ -6,8 +6,8 @@ import {
   endWebViewModeLoading,
 } from "@/services/redux/reducers/app";
 import { userAppState } from "@/services/redux/reducers/userApp";
-import { useEffect, useRef } from "react";
-import { BackHandler } from "react-native";
+import React, { useRef } from "react";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -15,6 +15,7 @@ import {
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { useDispatch, useSelector } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
+import { Icon } from "../Icon";
 
 export const WebViewBlock = () => {
   const webViewRef = useRef(null);
@@ -23,21 +24,7 @@ export const WebViewBlock = () => {
   const { webViewMode } = useSelector(appState);
   const insets = useSafeAreaInsets();
 
-  const handleBackButton = () => {
-    if (webViewRef.current) {
-      //@ts-ignore
-      webViewRef.current.goBack();
-      return true;
-    }
-    return false;
-  };
-
-  useEffect(() => {
-    BackHandler.addEventListener("hardwareBackPress", handleBackButton);
-    return () => {
-      BackHandler.removeEventListener("hardwareBackPress", handleBackButton);
-    };
-  }, []);
+  const uri = webViewMode?.url ? webViewMode.url : loginData ? getWebViewUrl(loginData) : "";
 
   const onMessage = (e: WebViewMessageEvent) => {
     if (e.nativeEvent.data === "logout") dispatch(closeWebViewMode());
@@ -49,15 +36,24 @@ export const WebViewBlock = () => {
         height: "100%",
         flex: 1,
         backgroundColor: COLORS.lightWhite,
-        paddingTop: insets.top,
+        paddingTop: 0,
       }}
     >
       {webViewMode.loading && <CustomLoader />}
+      <View style={[styles.header, { backgroundColor: webViewMode.loading ? COLORS.backgroundWhite : '#162031' }]}>
+        <TouchableOpacity
+          onPress={() => dispatch(closeWebViewMode())}
+          style={styles.closeBtn}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Icon name="close" width={20} height={20} stroke={COLORS.black} />
+        </TouchableOpacity>
+      </View>
       <WebView
         ref={webViewRef}
         sharedCookiesEnabled={true}
         source={{
-          uri: loginData ? getWebViewUrl(loginData) : "",
+          uri,
         }}
         onLoad={() => dispatch(endWebViewModeLoading())}
         setSupportMultipleWindows={false}
@@ -69,3 +65,22 @@ export const WebViewBlock = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  header: {
+    height: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingHorizontal: 16,
+    backgroundColor: COLORS.backgroundWhite,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

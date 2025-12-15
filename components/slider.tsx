@@ -1,7 +1,14 @@
-import React, { Fragment, useState } from "react";
-import { View, Image, Dimensions, StyleSheet, Pressable } from "react-native";
-import { useSharedValue } from "react-native-reanimated";
-import Carousel, { ICarouselInstance } from "react-native-reanimated-carousel";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import {
+  View,
+  Image,
+  Dimensions,
+  StyleSheet,
+  Pressable,
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from "react-native";
 import { VideoView as Video, useVideoPlayer } from "expo-video";
 import { useSelector } from "react-redux";
 import { appState } from "@/services/redux/reducers/app";
@@ -11,33 +18,55 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { COLORS } from "@/constants";
 
 type PropsType = {
-  files: { file_url?: string }[];
+  files?: { file_url?: string }[];
 };
 
 export const Slider = ({ files }: PropsType) => {
   const { modal } = useSelector(appState);
-  const ref = React.useRef<ICarouselInstance>(null);
+  const listRef = useRef<FlatList<{ file_url?: string }>>(null);
+  const data = useMemo(() => files ?? [], [files]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const progress = useSharedValue<number>(0);
+
+  const defaultIndexRaw = modal.data?.activeIndex ?? 0;
+  const defaultIndex =
+    data.length > 0 ? Math.min(Math.max(defaultIndexRaw, 0), data.length - 1) : 0;
+
+  useEffect(() => {
+    if (!data.length) return;
+    setActiveIndex(defaultIndex);
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToIndex({ index: defaultIndex, animated: false });
+    });
+  }, [defaultIndex, data.length]);
+
+  const onMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const x = e.nativeEvent.contentOffset.x;
+    const nextIndex = Math.round(x / width);
+    setActiveIndex(nextIndex);
+  };
 
   return (
     <View style={{ height: "80%" }}>
-      <Carousel
-        loop
-        width={width}
-        autoPlay={false}
-        defaultIndex={modal.data?.activeIndex || 0}
-        onProgressChange={(_, index) => setActiveIndex(index)}
-        data={files}
-        renderItem={({ index, item }) => {
+      <FlatList
+        ref={listRef}
+        data={data}
+        keyExtractor={(item, index) => `${item?.file_url ?? "file"}-${index}`}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        getItemLayout={(_, index) => ({ length: width, offset: width * index, index })}
+        renderItem={({ item }) => {
           return (
-            <Fragment>
-              {getMediaTypeByExtension(item.file_url) === "video" ? (
-                <VideoComponent src={item.file_url || ""} />
-              ) : (
-                <Image source={{ uri: item.file_url }} style={styles.image} />
-              )}
-            </Fragment>
+            <View style={{ width }}>
+              <Fragment>
+                {getMediaTypeByExtension(item.file_url) === "video" ? (
+                  <VideoComponent src={item.file_url || ""} />
+                ) : (
+                  <Image source={{ uri: item.file_url }} style={styles.image} />
+                )}
+              </Fragment>
+            </View>
           );
         }}
       />

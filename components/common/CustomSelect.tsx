@@ -7,6 +7,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import { COLORS } from "@/constants";
 import { useMemo } from "react";
 import { Icon } from "../Icon";
+import { useSnackbar } from "../snackbar/SnackbarContext";
 
 export type CustomSelectProps = {
   list: any[];
@@ -20,16 +21,23 @@ export type CustomSelectProps = {
   required?: boolean;
   alt?: boolean;
   placeholder?: string;
+  emptyListMessage?: string;
   style?: any
   showResetBtn?: boolean
   textStyles?: TextStyle
 };
 export const CustomSelect = (props: CustomSelectProps) => {
   const dispatch = useDispatch();
+  const { showErrorSnackbar } = useSnackbar();
 
   const {label, style, textStyles} = props
   const openList = async () => {
-    if (props.disabled || !props.list?.length) return;
+    if (props.disabled || !props.list?.length) {
+      if(!props.list?.length) {
+        return showErrorSnackbar(props.emptyListMessage || 'Список пуст')
+      }
+      return
+    }
     dispatch(
       showBottomDrawer({
         type: BOTTOM_DRAWER_KEYS.customSelectList,
