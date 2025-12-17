@@ -36,7 +36,7 @@ export const WebViewBlock = () => {
         height: "100%",
         flex: 1,
         backgroundColor: COLORS.lightWhite,
-        paddingTop: 0,
+        paddingTop: Platform.OS === 'ios' ? 0 : -1 * insets.top,
       }}
     >
       {webViewMode.loading && <CustomLoader />}

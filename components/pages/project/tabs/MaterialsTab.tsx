@@ -157,14 +157,14 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     }))
   };
 
-  // if (showAIChat) {
-  //   return (
-  //     <AIChatOrderScreen
-  //       onBack={handleBackToMaterials}
-  //       projectId={selectedData?.project_id}
-  //     />
-  //   );
-  // }
+  if (showAIChat) {
+    return (
+      <AIChatOrderScreen
+        onBack={handleBackToMaterials}
+        projectId={selectedData?.project_id}
+      />
+    );
+  }
 
   if (showOrderForm) {
     return (
@@ -291,12 +291,12 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
             : !loading && <NotFound title='Данные не найдены' />
         }
       </ScrollView>
-      {/* <AnimatedTouchableOpacity
+      <AnimatedTouchableOpacity
         style={[styles.aiFloatingButton, { backgroundColor: aiBgColor }]}
         onPress={handleOpenAIChat}
       >
         <Icon name="aiAssistant" width={28} height={28} fill={COLORS.lightWhite} />
-      </AnimatedTouchableOpacity> */}
+      </AnimatedTouchableOpacity>
       <View style={styles.fixedButtonContainer}>
         <CustomButton
           title="Заказать материал"

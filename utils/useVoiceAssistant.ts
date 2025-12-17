@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Buffer } from "buffer";
 import AudioRecord from "react-native-audio-record";
+import { PermissionsAndroid, Platform } from "react-native";
 import * as FileSystem from "expo-file-system";
 import * as FileSystemLegacy from "expo-file-system/legacy";
 
@@ -27,13 +28,55 @@ export interface ServerMessage {
 }
 
 // ============================================================
-// Helper: Save base64 audio to file
+// Audio helpers
 // ============================================================
-const saveAudioToFile = async (base64Audio: string): Promise<string> => {
+const DEFAULT_SAMPLE_RATE = 24000;
+const DEFAULT_CHANNELS = 1;
+const DEFAULT_BITS_PER_SAMPLE = 16;
+
+const isWavBuffer = (buf: Buffer) => {
+  if (buf.length < 12) return false;
+  return (
+    buf.subarray(0, 4).toString("ascii") === "RIFF" &&
+    buf.subarray(8, 12).toString("ascii") === "WAVE"
+  );
+};
+
+const createWavFromPcm16 = (
+  pcmData: Buffer,
+  sampleRate = DEFAULT_SAMPLE_RATE,
+  channels = DEFAULT_CHANNELS,
+  bitsPerSample = DEFAULT_BITS_PER_SAMPLE
+) => {
+  const byteRate = (sampleRate * channels * bitsPerSample) / 8;
+  const blockAlign = (channels * bitsPerSample) / 8;
+  const dataSize = pcmData.length;
+  const chunkSize = 36 + dataSize;
+
+  const header = Buffer.alloc(44);
+  header.write("RIFF", 0);
+  header.writeUInt32LE(chunkSize, 4);
+  header.write("WAVE", 8);
+  header.write("fmt ", 12);
+  header.writeUInt32LE(16, 16); // PCM header size
+  header.writeUInt16LE(1, 20); // PCM format
+  header.writeUInt16LE(channels, 22);
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(byteRate, 28);
+  header.writeUInt16LE(blockAlign, 32);
+  header.writeUInt16LE(bitsPerSample, 34);
+  header.write("data", 36);
+  header.writeUInt32LE(dataSize, 40);
+
+  return Buffer.concat([header, pcmData]);
+};
+
+const saveAudioToFile = async (audioBuf: Buffer): Promise<string> => {
   const timestamp = Date.now();
   const fileName = `vac_audio_${timestamp}.wav`;
   const fileUri = `${FileSystem.Paths.document.uri}${fileName}`;
-  
+
+  const base64Audio = audioBuf.toString("base64");
   await FileSystemLegacy.writeAsStringAsync(fileUri, base64Audio, {
     encoding: FileSystemLegacy.EncodingType.Base64,
   });
@@ -51,15 +94,36 @@ export const useVoiceAssistant = ({
 }: VoiceAssistantConfig) => {
   const wsRef = useRef<WebSocket | null>(null);
   const recordingRef = useRef<any | null>(null);
+  const audioDataListenerAttachedRef = useRef(false);
   
   // Audio buffer for collecting chunks
-  const audioBufferRef = useRef<string[]>([]);
-  const audioTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const audioBufferRef = useRef<Buffer[]>([]);
 
   const [isConnected, setIsConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [messages, setMessages] = useState<ServerMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const ensureMicrophonePermission = useCallback(async () => {
+    if (Platform.OS !== "android") return true;
+
+    const hasPermission = await PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
+    );
+    if (hasPermission) return true;
+
+    const result = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+      {
+        title: "Доступ к микрофону",
+        message: "Нужен доступ к микрофону для голосового ввода.",
+        buttonPositive: "Разрешить",
+        buttonNegative: "Отмена",
+      }
+    );
+
+    return result === PermissionsAndroid.RESULTS.GRANTED;
+  }, []);
 
   // ============================================================
   // Helper: Process buffered audio chunks
@@ -67,20 +131,21 @@ export const useVoiceAssistant = ({
   const processAudioBuffer = useCallback(async () => {
     if (audioBufferRef.current.length === 0) return;
     
-    console.log(`[VAC] Processing ${audioBufferRef.current.length} audio chunks`);
+    console.log(`[VAC] Processing ${audioBufferRef.current.length} audio chunks (bytes)`);
     
     try {
-      // Combine all base64 chunks
-      const combinedBase64 = audioBufferRef.current.join('');
-      
-      // Save combined audio to file
-      const audioUri = await saveAudioToFile(combinedBase64);
+      const combined = Buffer.concat(audioBufferRef.current);
+      const wavBuf = isWavBuffer(combined)
+        ? combined
+        : createWavFromPcm16(combined, DEFAULT_SAMPLE_RATE, DEFAULT_CHANNELS, DEFAULT_BITS_PER_SAMPLE);
+
+      // Save to file
+      const audioUri = await saveAudioToFile(wavBuf);
       
       // Create a single message with combined audio
       const audioMessage: ServerMessage = {
         type: 'audio',
         role: 'assistant',
-        audio: combinedBase64,
         audioUri: audioUri,
       };
       
@@ -129,20 +194,10 @@ export const useVoiceAssistant = ({
             
             // Handle audio chunks - buffer them instead of immediate save
             if (msg.type === 'audio' && msg.audio) {
-              console.log(`[VAC] Audio chunk received (${msg.audio.length} chars)`);
+              console.log(`[VAC] Audio chunk received (${msg.audio.length} chars base64)`);
               
               // Add chunk to buffer
-              audioBufferRef.current.push(msg.audio);
-              
-              // Reset timer - wait for more chunks
-              if (audioTimerRef.current) {
-                clearTimeout(audioTimerRef.current);
-              }
-              
-              // Set timer to process buffer after 300ms of no new chunks
-              audioTimerRef.current = setTimeout(() => {
-                processAudioBuffer();
-              }, 300);
+              audioBufferRef.current.push(Buffer.from(msg.audio, "base64"));
               
               // Don't add individual chunks to messages
               return;
@@ -150,9 +205,6 @@ export const useVoiceAssistant = ({
             
             // For non-audio messages, if there's buffered audio, process it first
             if (audioBufferRef.current.length > 0) {
-              if (audioTimerRef.current) {
-                clearTimeout(audioTimerRef.current);
-              }
               await processAudioBuffer();
             }
             
@@ -174,33 +226,55 @@ export const useVoiceAssistant = ({
   }, [apiKey, wsUrl, sessionId, contractorId, employeeId, projectId]);
 
   const startRecording = useCallback(async () => {
-    AudioRecord.init({
-      sampleRate: 24000,
-      channels: 1,
-      bitsPerSample: 16,
-      wavFile: 'audio_mateirals.wav',
-      audioSource: 6, // voice recognition
-    });
+    try {
+      setError(null);
 
-    AudioRecord.on("data", (base64PCM) => {
-      if (wsRef.current?.readyState !== WebSocket.OPEN) return;
+      const granted = await ensureMicrophonePermission();
+      if (!granted) {
+        setError("Нет доступа к микрофону (RECORD_AUDIO).");
+        return;
+      }
 
-      const rawBytes = Buffer.from(base64PCM, "base64");
-      wsRef.current.send(rawBytes);
-    });
+      AudioRecord.init({
+        sampleRate: 24000,
+        channels: 1,
+        bitsPerSample: 16,
+        wavFile: "audio_mateirals.wav",
+        audioSource: 6, // voice recognition
+      });
 
-    await AudioRecord.start();
-    console.log('[VAC] startRecording');
-    wsRef.current?.send(JSON.stringify({ type: "audio_start" }));
+      if (!audioDataListenerAttachedRef.current) {
+        AudioRecord.on("data", (base64PCM) => {
+          if (wsRef.current?.readyState !== WebSocket.OPEN) return;
 
-    setIsRecording(true);
-  }, []);
+          const rawBytes = Buffer.from(base64PCM, "base64");
+          wsRef.current.send(rawBytes);
+        });
+        audioDataListenerAttachedRef.current = true;
+      }
+
+      await AudioRecord.start();
+      console.log("[VAC] startRecording");
+      wsRef.current?.send(JSON.stringify({ type: "audio_start" }));
+
+      setIsRecording(true);
+    } catch (err) {
+      console.error("[VAC] startRecording error", err);
+      setIsRecording(false);
+      setError("Не удалось начать запись аудио. Проверьте разрешение микрофона и настройки эмулятора.");
+    }
+  }, [ensureMicrophonePermission]);
   
   const stopRecording = useCallback(async () => {
-    await AudioRecord.stop();
-    wsRef.current?.send(JSON.stringify({ type: "audio_end" }));
-    setIsRecording(false);
-    console.log('[VAC] stopRecording');
+    try {
+      await AudioRecord.stop();
+      wsRef.current?.send(JSON.stringify({ type: "audio_end" }));
+      setIsRecording(false);
+      console.log("[VAC] stopRecording");
+    } catch (err) {
+      console.error("[VAC] stopRecording error", err);
+      setIsRecording(false);
+    }
   }, []);
 
   // ============================================================
@@ -211,12 +285,6 @@ export const useVoiceAssistant = ({
       // Process any remaining buffered audio
       if (audioBufferRef.current.length > 0) {
         await processAudioBuffer();
-      }
-      
-      // Clear audio timer
-      if (audioTimerRef.current) {
-        clearTimeout(audioTimerRef.current);
-        audioTimerRef.current = null;
       }
       
       // Stop recording if active
@@ -289,11 +357,6 @@ export const useVoiceAssistant = ({
   // CLEAR MESSAGES
   // ============================================================
   const clearMessages = useCallback(() => {
-    // Clear any pending audio buffer
-    if (audioTimerRef.current) {
-      clearTimeout(audioTimerRef.current);
-      audioTimerRef.current = null;
-    }
     audioBufferRef.current = [];
     setMessages([]);
   }, []);

@@ -31,6 +31,8 @@ const API_KEYS = [
 export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, projectId }) => {
   const dispatch = useDispatch();
   const scrollViewRef = useRef<ScrollView>(null);
+  const lastProcessedServerMsgIndexRef = useRef(0);
+  const chatIdSeqRef = useRef(0);
   const [inputText, setInputText] = useState('');
   const {userData} = useSelector(userAppState);
   const [selectedKeyIndex] = useState(1);
@@ -87,42 +89,11 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
     };
   }, [onBack]);
 
-  // console.log("[VAC] messages", messages);
-  // Handle new messages from server
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      
-      // console.log("[VAC] lastMessage", lastMessage);
-      
-      // Audio message from assistant
-        // console.log("[VAC] lastMessage.audioUri", lastMessage);
-      if (lastMessage.type === 'audio' && lastMessage.role === 'assistant' && lastMessage.audioUri) {
-        addMessage('assistant', '🔊 Голосовое сообщение', lastMessage.audioUri);
-      }
-      // Text transcript from assistant
-      else if (lastMessage.type === 'transcript' && lastMessage.role === 'assistant' && lastMessage.text) {
-        addMessage('assistant', lastMessage.text);
-      } 
-      // Text transcript from user
-      else if (lastMessage.type === 'transcript' && lastMessage.role === 'user' && lastMessage.text) {
-        addMessage('user', lastMessage.text);
-      }
-      // Material matched
-      else if (lastMessage.type === 'material_matched' && lastMessage.data) {
-        const materialInfo = `Найден материал: ${lastMessage.data.material_name}\nЦена: ${lastMessage.data.price || 'уточняется'}`;
-        addMessage('assistant', materialInfo);
-      } 
-      // Error
-      else if (lastMessage.type === 'error' && lastMessage.error) {
-        addMessage('system', `Ошибка: ${lastMessage.error.message}`);
-      }
-    }
-  }, [messages]);
-
   const addMessage = (role: 'user' | 'assistant' | 'system', text: string, audioUri?: string) => {
+    chatIdSeqRef.current += 1;
+    const id = `${Date.now()}_${chatIdSeqRef.current}`;
     const newMessage = {
-      id: Date.now().toString(),
+      id,
       role,
       text,
       timestamp: new Date(),
@@ -134,7 +105,40 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
+
+    return id;
   };
+
+  // Handle new messages from server (process ALL new events, not only the last one)
+  useEffect(() => {
+    if (!messages.length) return;
+
+    const startIdx = lastProcessedServerMsgIndexRef.current;
+    const newMessages = messages.slice(startIdx);
+    if (!newMessages.length) return;
+
+    for (const msg of newMessages) {
+      if (msg.type === 'audio' && msg.role === 'assistant' && msg.audioUri) {
+        const chatId = addMessage('assistant', '🔊 Голосовое сообщение', msg.audioUri);
+        if (!isRecording) {
+          setTimeout(() => {
+            playAudio(chatId, msg.audioUri!);
+          }, 0);
+        }
+      } else if (msg.type === 'transcript' && msg.role === 'assistant' && msg.text) {
+        addMessage('assistant', msg.text);
+      } else if (msg.type === 'transcript' && msg.role === 'user' && msg.text) {
+        addMessage('user', msg.text);
+      } else if (msg.type === 'material_matched' && msg.data) {
+        const materialInfo = `Найден материал: ${msg.data.material_name}\nЦена: ${msg.data.price || 'уточняется'}`;
+        addMessage('assistant', materialInfo);
+      } else if (msg.type === 'error' && msg.error) {
+        addMessage('system', `Ошибка: ${msg.error.message}`);
+      }
+    }
+
+    lastProcessedServerMsgIndexRef.current = messages.length;
+  }, [messages, isRecording]);
 
   const handleSendText = () => {
     if (inputText.trim() === '') return;
@@ -166,14 +170,20 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
     try {
       // If same audio is playing, stop it
       if (playingAudioId === messageId) {
-        audioPlayer.pause();
+        try {
+          audioPlayer.pause();
+        } catch (e) {
+          // no-op: player might already be disposed during fast refresh/unmount
+        }
         setPlayingAudioId(null);
         return;
       }
 
       // Stop current audio and play new one
-      if (audioPlayer.playing) {
+      try {
         audioPlayer.pause();
+      } catch (e) {
+        // no-op: player might not be initialized/playing
       }
 
       // Play new audio
@@ -186,18 +196,31 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
     }
   };
 
-  // Track audio playback status
+  // Track audio playback end to toggle pause/play icon
   useEffect(() => {
-    if (!audioPlayer.playing && playingAudioId) {
-      setPlayingAudioId(null);
-    }
-  }, [audioPlayer.playing, playingAudioId]);
+    if (!playingAudioId) return;
+
+    const interval = setInterval(() => {
+      try {
+        const isPlaying = (audioPlayer as any)?.playing;
+        if (!isPlaying) {
+          setPlayingAudioId(null);
+        }
+      } catch (e) {
+        // no-op: native object might not be available momentarily
+      }
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [playingAudioId]);
 
   // Cleanup audio on unmount
   useEffect(() => {
     return () => {
-      if (audioPlayer.playing) {
+      try {
         audioPlayer.pause();
+      } catch (e) {
+        // no-op: native shared object may already be released
       }
     };
   }, []);
