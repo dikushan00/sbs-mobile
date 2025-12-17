@@ -2,7 +2,7 @@
   "expo": {
     "name": "Smart Build System",
     "slug": "smart-build-system",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon-sbs.png",
     "scheme": "sbs",
@@ -58,7 +58,8 @@
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT"
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.RECORD_AUDIO"
       ],
       "intentFilters": [
         {

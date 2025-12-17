@@ -93,7 +93,6 @@ export const useVoiceAssistant = ({
   projectId,
 }: VoiceAssistantConfig) => {
   const wsRef = useRef<WebSocket | null>(null);
-  const recordingRef = useRef<any | null>(null);
   const audioDataListenerAttachedRef = useRef(false);
   
   // Audio buffer for collecting chunks
@@ -185,7 +184,6 @@ export const useVoiceAssistant = ({
         try {
           if (typeof event.data === "string") {
             const msg = JSON.parse(event.data);
-            console.log('[VAC] msg.type', msg.type)
             
             // Skip empty audio buffer errors
             if(msg.error?.code === 'input_audio_buffer_commit_empty') {

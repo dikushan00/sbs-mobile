@@ -2,12 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
+  Modal,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
 import { useAudioPlayer, AudioSource } from 'expo-audio';
 import { COLORS, FONT, SIZES } from '@/constants';
@@ -16,6 +18,7 @@ import { useVoiceAssistant } from '@/utils/useVoiceAssistant';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
 import { setPageHeaderData, userAppState } from '@/services/redux/reducers/userApp';
+import { formatDate } from '@/utils';
 
 interface AIChatOrderScreenProps {
   onBack: () => void;
@@ -33,11 +36,20 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
   const scrollViewRef = useRef<ScrollView>(null);
   const lastProcessedServerMsgIndexRef = useRef(0);
   const chatIdSeqRef = useRef(0);
+  const lastConfirmedKeyRef = useRef<string | null>(null);
   const [inputText, setInputText] = useState('');
   const {userData} = useSelector(userAppState);
   const [selectedKeyIndex] = useState(1);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
   const audioPlayer = useAudioPlayer();
+  const [confirmedOrder, setConfirmedOrder] = useState<null | {
+    date?: string;
+    material_id?: string;
+    material_name?: string;
+    quantity?: number;
+    unit?: string;
+    [key: string]: any;
+  }>(null);
   const [chatMessages, setChatMessages] = useState<Array<{
     id: string;
     role: 'user' | 'assistant' | 'system';
@@ -53,7 +65,6 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
     },
   ]);
 
-  console.log("[VAC] chatMessages", chatMessages);
   const {
     isConnected,
     isRecording,
@@ -88,6 +99,28 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
       disconnect();
     };
   }, [onBack]);
+
+  const closeSuccessModal = () => {
+    setConfirmedOrder(null);
+  };
+
+  const continueAfterSuccess = async () => {
+    try {
+      if (isRecording) {
+        await stopRecording();
+      }
+    } catch (e) {
+      // no-op
+    }
+
+    try {
+      audioPlayer.pause();
+    } catch (e) {
+      // no-op
+    }
+
+    setConfirmedOrder(null);
+  };
 
   const addMessage = (role: 'user' | 'assistant' | 'system', text: string, audioUri?: string) => {
     chatIdSeqRef.current += 1;
@@ -132,6 +165,31 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
       } else if (msg.type === 'material_matched' && msg.data) {
         const materialInfo = `Найден материал: ${msg.data.material_name}\nЦена: ${msg.data.price || 'уточняется'}`;
         addMessage('assistant', materialInfo);
+      } else if (msg.type === 'material_confirmed' && msg.data) {
+        setConfirmedOrder(msg.data);
+        try {
+          const key = JSON.stringify(msg.data);
+          if (lastConfirmedKeyRef.current !== key) {
+            lastConfirmedKeyRef.current = key;
+
+            const materialName = msg.data.material_name || 'Материал';
+            const qty = msg.data.quantity != null ? String(msg.data.quantity) : '';
+            const unit = msg.data.unit ? String(msg.data.unit) : '';
+            const dateStr = msg.data.date ? String(msg.data.date) : '';
+            const formattedDate = dateStr ? (formatDate(new Date(dateStr)) || dateStr) : '';
+
+            const parts = [
+              `✅ Заявка создана`,
+              `Материал: ${materialName}`,
+              qty || unit ? `Количество: ${[qty, unit].filter(Boolean).join(' ')}` : '',
+              formattedDate ? `Дата: ${formattedDate}` : '',
+            ].filter(Boolean);
+
+            addMessage('assistant', parts.join('\n'));
+          }
+        } catch (e) {
+          // no-op
+        }
       } else if (msg.type === 'error' && msg.error) {
         addMessage('system', `Ошибка: ${msg.error.message}`);
       }
@@ -294,13 +352,13 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
     );
   };
 
-  console.log(chatMessages?.map(item => !!item.audioUri));
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
+    <View style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
       {/* Connection Status */}
       {!isConnected && (
         <View style={styles.statusBar}>
@@ -362,7 +420,82 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
           )}
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+
+      <Modal
+        transparent
+        visible={!!confirmedOrder}
+        animationType="fade"
+        onRequestClose={closeSuccessModal}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', padding: 16 }}>
+          <View style={{ backgroundColor: COLORS.white, borderRadius: 16, padding: 20 }}>
+
+            <View style={{ alignItems: 'flex-end', marginBottom: 10 }}>
+              <Pressable onPress={closeSuccessModal}>
+                <View style={{
+                    width: 40,
+                    height: 40,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 20,
+                  }}>
+                  <Icon name="close" stroke={COLORS.darkGray} width={25} height={25} />
+                </View>
+              </Pressable>
+            </View>
+            <View style={{ alignItems: 'center', marginBottom: 16 }}>
+              <Icon name="success" width={100} height={100} />
+            </View>
+            <Text style={{ fontFamily: FONT.medium, fontSize: 20, color: COLORS.black, marginBottom: 20, textAlign: 'center' }}>
+              Заявка успешно создана
+            </Text>
+
+            <View style={{ gap: 10 }}>
+              <View>
+                <Text style={{ fontFamily: FONT.regular, fontSize: 12, color: COLORS.gray }}>Материал</Text>
+                <Text style={{ fontFamily: FONT.medium, fontSize: 14, color: COLORS.black }}>
+                  {confirmedOrder?.material_name || '—'}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 16 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: FONT.regular, fontSize: 12, color: COLORS.gray }}>Количество</Text>
+                  <Text style={{ fontFamily: FONT.medium, fontSize: 14, color: COLORS.black }}>
+                    {confirmedOrder?.quantity ?? '—'} {confirmedOrder?.unit || ''}
+                  </Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: FONT.regular, fontSize: 12, color: COLORS.gray }}>Дата</Text>
+                  <Text style={{ fontFamily: FONT.medium, fontSize: 14, color: COLORS.black }}>
+                    {confirmedOrder?.date
+                      ? (formatDate(new Date(confirmedOrder.date)) || confirmedOrder.date)
+                      : '—'}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={{ marginTop: 18 }}>
+              <TouchableOpacity
+                style={{
+                  height: 46,
+                  borderRadius: 12,
+                  backgroundColor: COLORS.primary,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={continueAfterSuccess}
+              >
+                <Text style={{ fontFamily: FONT.medium, fontSize: 14, color: COLORS.white }}>
+                  Продолжить
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
