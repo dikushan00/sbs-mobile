@@ -124,7 +124,7 @@ export const PointInfo: React.FC<PointInfoProps> = ({ data, handleClose }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.white,
-    paddingHorizontal: 16
+    paddingHorizontal: 6
   },
   contentContainer: {
     paddingRight: 7,

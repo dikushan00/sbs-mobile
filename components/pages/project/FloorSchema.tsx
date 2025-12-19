@@ -1,12 +1,11 @@
 import { apiUrl, COLORS } from "@/constants";
 import { getFileInfo } from "@/utils";
 import * as FileSystem from "expo-file-system";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Dimensions,
   Image,
   Platform,
-  Pressable,
   StyleSheet,
   View,
 } from "react-native";
@@ -20,14 +19,15 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import Svg, { Circle, Line, Text as SvgText } from "react-native-svg";
 import { FloorSchemaResRefactorType, FlatType, WorkSetFloorParamType, FloorCheckPoint } from "@/components/main/types";
-import { downloadSchemaImage, getCircleRadius, getCircleStrokeWidth, getImageSize, PointType } from "../okk/services";
+import { downloadSchemaImage, getCircleRadius, getCircleStrokeWidth, getImageSize, schemaMaxZoom, schemaMinZoom } from "../okk/services";
 import { SchemaZoomControl } from "../okk/SchemaZoomControl";
 import { getFloorMapPoints } from "@/components/main/services";
-import { useDispatch } from "react-redux";
-import { showBottomDrawer } from "@/services/redux/reducers/app";
+import { useDispatch, useSelector } from "react-redux";
+import { showBottomDrawer, appState } from "@/services/redux/reducers/app";
 import { BOTTOM_DRAWER_KEYS } from "@/components/BottomDrawer/constants";
 
 const { width } = Dimensions.get("window");
@@ -48,12 +48,18 @@ export const FloorSchema = ({
   handlePress,
 }: PropsType) => {
   const dispatch = useDispatch();
+  const { bottomDrawerData } = useSelector(appState);
   const [checkPoints, setCheckPoints] = useState<FloorCheckPoint[]>([]);
   const [downloaded, setDownloaded] = useState(false);
   const [zoomValue, setZoomValue] = useState(1);
-  const panRef = useRef(null);
-  const tapRef = useRef(null);
-  const pinchRef = useRef(null);
+  const [activePointId, setActivePointId] = useState<number | null>(null);
+
+  // Reset active point when bottom drawer closes
+  useEffect(() => {
+    if (!bottomDrawerData.show) {
+      setActivePointId(null);
+    }
+  }, [bottomDrawerData.show]);
 
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -64,6 +70,13 @@ export const FloorSchema = ({
   // helpers to store gesture start positions
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
+
+  // pinch helpers (keep focal point stable while zooming)
+  const pinchStartScale = useSharedValue(1);
+  const pinchStartTranslateX = useSharedValue(0);
+  const pinchStartTranslateY = useSharedValue(0);
+  const pinchFocalContentX = useSharedValue(0);
+  const pinchFocalContentY = useSharedValue(0);
 
   const [imageSize, setImageSize] = useState<{
     width: number;
@@ -200,59 +213,213 @@ export const FloorSchema = ({
 
   const totalScale = useDerivedValue(() => baseScale.value * pinchScale.value);
 
-  // Pan gesture using new Gesture API
+  // Transform origin is at center of view by default in RN.
+  // Formulas with center origin:
+  //   screen = (content - center) * scale + center + translate
+  //   content = (screen - center - translate) / scale + center
+  const centerX = width / 2;
+  const centerY = schemaHeight / 2;
+
+  // Pan gesture
   const panGesture = Gesture.Pan()
+    .minDistance(6)
     .onStart(() => {
       startX.value = translateX.value;
       startY.value = translateY.value;
     })
     .onUpdate((e) => {
-      // divide by totalScale so pan distance respects current zoom
-      translateX.value = startX.value + e.translationX / totalScale.value;
-      translateY.value = startY.value + e.translationY / totalScale.value;
-    })
-    .onEnd(() => {
-      // Optional: clamp translation so image doesn't go too far
-      // You can implement bounds here if needed.
+      // translate is in screen coords
+      translateX.value = startX.value + e.translationX;
+      translateY.value = startY.value + e.translationY;
     });
 
-  // Pinch gesture using new Gesture API
+  // Track if we've initialized focal point (first onUpdate frame is more reliable than onStart)
+  const pinchInitialized = useSharedValue(false);
+  const lastFocalX = useSharedValue(0);
+  const lastFocalY = useSharedValue(0);
+
+  // Pinch gesture - zoom towards focal point (like maps/gallery)
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
       isPinching.value = true;
+      pinchInitialized.value = false;
+      pinchStartScale.value = baseScale.value;
+      pinchStartTranslateX.value = translateX.value;
+      pinchStartTranslateY.value = translateY.value;
     })
     .onUpdate((e) => {
-      pinchScale.value = e.scale;
+      // Initialize focal point on first update frame (more stable than onStart)
+      if (!pinchInitialized.value) {
+        pinchInitialized.value = true;
+        lastFocalX.value = e.focalX;
+        lastFocalY.value = e.focalY;
+        // content = (screen - center - translate) / scale + center
+        pinchFocalContentX.value =
+          (e.focalX - centerX - translateX.value) / baseScale.value + centerX;
+        pinchFocalContentY.value =
+          (e.focalY - centerY - translateY.value) / baseScale.value + centerY;
+        return;
+      }
+
+      // Calculate delta focal movement (when user moves fingers while zooming)
+      const focalDeltaX = e.focalX - lastFocalX.value;
+      const focalDeltaY = e.focalY - lastFocalY.value;
+      lastFocalX.value = e.focalX;
+      lastFocalY.value = e.focalY;
+
+      const currentTotalScale = baseScale.value * pinchScale.value;
+      const nextScale = Math.max(
+        schemaMinZoom,
+        Math.min(pinchStartScale.value * e.scale, schemaMaxZoom)
+      );
+
+      // Update content focal point if fingers moved
+      if (Math.abs(focalDeltaX) > 0.5 || Math.abs(focalDeltaY) > 0.5) {
+        pinchFocalContentX.value =
+          (e.focalX - centerX - translateX.value) / currentTotalScale + centerX;
+        pinchFocalContentY.value =
+          (e.focalY - centerY - translateY.value) / currentTotalScale + centerY;
+      }
+
+      pinchScale.value = nextScale / pinchStartScale.value;
+
+      // translate = screen - center - (content - center) * scale
+      translateX.value = e.focalX - centerX - (pinchFocalContentX.value - centerX) * nextScale;
+      translateY.value = e.focalY - centerY - (pinchFocalContentY.value - centerY) * nextScale;
     })
     .onEnd(() => {
-      const zoom = baseScale.value * pinchScale.value;
-      const clampedZoom = Math.max(1, Math.min(zoom, 15)); // keep between 1 and 15
-      baseScale.value = clampedZoom;
+      // Normalize: merge pinchScale into baseScale without visual change
+      const finalZoom = baseScale.value * pinchScale.value;
+      baseScale.value = finalZoom;
       pinchScale.value = 1;
+      pinchInitialized.value = false;
 
-      runOnJS(setZoomValue)(clampedZoom);
+      runOnJS(setZoomValue)(finalZoom);
       isPinching.value = false;
     });
 
-  // Combine gestures — allow simultaneous pan + pinch
-  const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture);
+  const handleTap = useCallback(
+    (payload: { x: number; y: number; tx: number; ty: number; s: number }) => {
+      if (!displayedSize || !imageSize) return;
+
+      // Undo current transform applied to the content
+      // With center origin: screen = (content - center) * scale + center + translate
+      // => content = (screen - center - translate) / scale + center
+      const tapX = (payload.x - centerX - payload.tx) / payload.s + centerX;
+      const tapY = (payload.y - centerY - payload.ty) / payload.s + centerY;
+
+      // 1) First: hit-test existing checkPoints so "tap on circle" always wins
+      if (showCheckPoints && checkPoints && checkPoints.length > 0) {
+        const extraHit = 14 / Math.max(1, payload.s);
+        const hitRadius = Math.max(getCircleRadius(zoomValue), 3) + extraHit;
+        const hitRadius2 = hitRadius * hitRadius;
+
+        const hitPoint = checkPoints.find((pt) => {
+          const cx = pt.x * displayedSize.scale + displayedSize.offsetX;
+          const cy = pt.y * displayedSize.scale + displayedSize.offsetY;
+          const dx = tapX - cx;
+          const dy = tapY - cy;
+          return dx * dx + dy * dy <= hitRadius2;
+        });
+
+        if (hitPoint) {
+          showPointData(hitPoint);
+          return;
+        }
+      }
+
+      // 2) Otherwise: treat as schema click
+      const xOnImage = (tapX - displayedSize.offsetX) / displayedSize.scale;
+      const yOnImage = (tapY - displayedSize.offsetY) / displayedSize.scale;
+
+      if (
+        xOnImage < 0 ||
+        yOnImage < 0 ||
+        xOnImage > imageSize.width ||
+        yOnImage > imageSize.height
+      ) {
+        return;
+      }
+
+      handlePress({ x: xOnImage, y: yOnImage });
+    },
+    [
+      checkPoints,
+      displayedSize,
+      imageSize,
+      showCheckPoints,
+      handlePress,
+      zoomValue,
+    ]
+  );
+
+  const showPointData = (pt: FloorCheckPoint) => {
+    if (!data?.floor_map.floor_map_id) {
+      return;
+    }
+    
+    // Set active point to highlight it
+    setActivePointId(pt.call_check_list_point_id);
+    
+    dispatch(showBottomDrawer({
+      type: BOTTOM_DRAWER_KEYS.pointInfo,
+      data: {
+        floor_map_id: data.floor_map.floor_map_id,
+        point: pt
+      }
+    }));
+  };
+
+  const tapGesture = Gesture.Tap()
+    .maxDistance(10)
+    .onEnd((e) => {
+      runOnJS(handleTap)({
+        x: e.x,
+        y: e.y,
+        tx: translateX.value,
+        ty: translateY.value,
+        s: totalScale.value,
+      });
+    });
+
+  // Combine gestures — allow simultaneous pan + pinch + tap
+  const composedGesture = Gesture.Simultaneous(
+    panGesture,
+    pinchGesture,
+    tapGesture
+  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { scale: totalScale.value },
       { translateX: translateX.value },
       { translateY: translateY.value },
+      { scale: totalScale.value },
     ],
   }));
 
-  const onZoomChange = (zoom: number, zoomWithTiming: any) => {
-    // zoomWithTiming previously was a reanimated value; here we directly set baseScale if needed
-    baseScale.value = zoomWithTiming;
-    const timeout = setTimeout(() => {
+  const onZoomChange = (zoom: number, animated: boolean) => {
+    // Zoom from center of the screen (like maps/gallery)
+    const currentScale = baseScale.value;
+    const contentAtCenterX = -translateX.value / currentScale + centerX;
+    const contentAtCenterY = -translateY.value / currentScale + centerY;
+
+    // New translate: tx = -(contentAtCenter - centerX) * newScale
+    const newTranslateX = -(contentAtCenterX - centerX) * zoom;
+    const newTranslateY = -(contentAtCenterY - centerY) * zoom;
+
+    if (animated) {
+      // Use same timing config for all animations to keep them in sync
+      const timingConfig = { duration: 250 };
+      translateX.value = withTiming(newTranslateX, timingConfig);
+      translateY.value = withTiming(newTranslateY, timingConfig);
+      baseScale.value = withTiming(zoom, timingConfig);
+      setTimeout(() => setZoomValue(zoom), 250);
+    } else {
+      translateX.value = newTranslateX;
+      translateY.value = newTranslateY;
+      baseScale.value = zoom;
       setZoomValue(zoom);
-      clearTimeout(timeout);
-      return;
-    }, 300);
+    }
   };
 
   const workSetParamIds = useMemo(() => {
@@ -286,58 +453,29 @@ export const FloorSchema = ({
     }
     return texts;
   }, [data?.texts, selectedFlat]);
-
-  const handleSchemaClick = (e: any) => {
-    if (!displayedSize || !imageSize) return;
-
-    const { locationX, locationY } = e.nativeEvent;
-
-    const xOnImage = (locationX - displayedSize.offsetX) / displayedSize.scale;
-    const yOnImage = (locationY - displayedSize.offsetY) / displayedSize.scale;
-
-    if (
-      xOnImage < 0 ||
-      yOnImage < 0 ||
-      xOnImage > imageSize.width ||
-      yOnImage > imageSize.height
-    ) {
-      return;
-    }
-
-    const newPoint = { x: xOnImage, y: yOnImage };
-    handlePress(newPoint);
-  };
     
-  const getCircleStrokeColor = (
-    pt: FloorCheckPoint,
-  ) => {
+  const getCircleStrokeColor = (pt: FloorCheckPoint) => {
+    // Active point gets primary color stroke
+    if (pt.call_check_list_point_id === activePointId) {
+      return COLORS.primary;
+    }
     if (pt.is_accepted) return "#006600";
     if (pt.is_accepted === false) return "red";
     return COLORS.primary;
   };
 
   const getPointBackground = (pt: FloorCheckPoint) => {
+    // Active point gets primary color fill
+    if (pt.call_check_list_point_id === activePointId) {
+      return COLORS.primary;
+    }
     if (pt.is_accepted) return "green";
     if (pt.is_accepted === false) return "red";
     return COLORS.primary;
   };
 
-  const showPointData = (pt: FloorCheckPoint) => {
-    if (!data?.floor_map.floor_map_id) {
-      return;
-    }
-    
-    dispatch(showBottomDrawer({
-      type: BOTTOM_DRAWER_KEYS.pointInfo,
-      data: {
-        floor_map_id: data.floor_map.floor_map_id,
-        point: pt
-      }
-    }));
-  };
-
   return (
-    <GestureHandlerRootView style={{height: schemaHeight - 40}}>
+    <GestureHandlerRootView style={{ height: schemaHeight }}>
       <View
         pointerEvents="box-none"
         style={{
@@ -348,26 +486,21 @@ export const FloorSchema = ({
       >
         <SchemaZoomControl
           onZoomChange={onZoomChange}
-          scale={totalScale}
+          scale={baseScale}
           zoomValue={zoomValue}
           setZoomValue={setZoomValue}
         />
 
         <GestureDetector gesture={composedGesture}>
-          <Animated.View
-            pointerEvents={"box-none"}
-            style={[styles.container, animatedStyle]}
+          <View
+            collapsable={false}
+            style={{ width, height: schemaHeight }}
           >
-            <Animated.View style={{ flex: 1 }}>
-              <Pressable
-                ref={tapRef}
-                onPress={handleSchemaClick}
-                style={{
-                  zIndex: 11,
-                  width,
-                  height: schemaHeight,
-                }}
-              >
+            <Animated.View
+              pointerEvents={"box-none"}
+              style={[styles.container, animatedStyle]}
+            >
+              <Animated.View style={{ flex: 1 }}>
                 <View
                   style={{
                     zIndex: 11,
@@ -388,13 +521,8 @@ export const FloorSchema = ({
                   <Svg
                     width={width}
                     height={schemaHeight}
-                    style={[StyleSheet.absoluteFill, { zIndex: 10 },
-                    //   {
-                    //   position: "absolute",
-                    //   top: displayedSize?.offsetY,
-                    //   left: displayedSize?.offsetX,
-                    // }
-                  ]}
+                    pointerEvents="none"
+                    style={[StyleSheet.absoluteFill, { zIndex: 10 }]}
                   >
                     {displayedSize && (
                       <>
@@ -436,7 +564,7 @@ export const FloorSchema = ({
                             {text.frame_name}
                           </SvgText>
                         ))}
-                        {displayedSize && showCheckPoints && checkPoints && checkPoints.length > 0 && (
+                        {showCheckPoints && checkPoints && checkPoints.length > 0 && (
                           <>
                             {checkPoints.map((pt: FloorCheckPoint) => {
                               const circleX = pt.x * displayedSize.scale + displayedSize.offsetX;
@@ -452,10 +580,6 @@ export const FloorSchema = ({
                                   fill={getPointBackground(pt)}
                                   stroke={getCircleStrokeColor(pt)}
                                   strokeWidth={Math.max(getCircleStrokeWidth(zoomValue), 1)}
-                                  onPressIn={() => {
-                                    showPointData(pt);
-                                  }}
-                                  pointerEvents="auto"
                                 />
                               );
                             })}
@@ -465,9 +589,9 @@ export const FloorSchema = ({
                     )}
                   </Svg>
                 </View>
-              </Pressable>
+              </Animated.View>
             </Animated.View>
-          </Animated.View>
+          </View>
         </GestureDetector>
       </View>
     </GestureHandlerRootView>
@@ -477,8 +601,6 @@ export const FloorSchema = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
-    gap: 10,
     height: schemaHeight,
   },
   image: {
