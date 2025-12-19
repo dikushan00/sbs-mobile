@@ -234,25 +234,53 @@ export const Schema = ({
       translateY.value = startY.value + e.translationY;
     });
 
+  // Track if we've initialized focal point (first onUpdate frame is more reliable than onStart)
+  const pinchInitialized = useSharedValue(false);
+  const lastFocalX = useSharedValue(0);
+  const lastFocalY = useSharedValue(0);
+
   // Pinch gesture - zoom towards focal point (like maps/gallery)
   const pinchGesture = Gesture.Pinch()
-    .onStart((e) => {
+    .onStart(() => {
       isPinching.value = true;
+      pinchInitialized.value = false;
       pinchStartScale.value = baseScale.value;
       pinchStartTranslateX.value = translateX.value;
       pinchStartTranslateY.value = translateY.value;
-
-      // content = (screen - center - translate) / scale + center
-      pinchFocalContentX.value =
-        (e.focalX - centerX - pinchStartTranslateX.value) / pinchStartScale.value + centerX;
-      pinchFocalContentY.value =
-        (e.focalY - centerY - pinchStartTranslateY.value) / pinchStartScale.value + centerY;
     })
     .onUpdate((e) => {
+      // Initialize focal point on first update frame (more stable than onStart)
+      if (!pinchInitialized.value) {
+        pinchInitialized.value = true;
+        lastFocalX.value = e.focalX;
+        lastFocalY.value = e.focalY;
+        // content = (screen - center - translate) / scale + center
+        pinchFocalContentX.value =
+          (e.focalX - centerX - translateX.value) / baseScale.value + centerX;
+        pinchFocalContentY.value =
+          (e.focalY - centerY - translateY.value) / baseScale.value + centerY;
+        return;
+      }
+
+      // Calculate delta focal movement (when user moves fingers while zooming)
+      const focalDeltaX = e.focalX - lastFocalX.value;
+      const focalDeltaY = e.focalY - lastFocalY.value;
+      lastFocalX.value = e.focalX;
+      lastFocalY.value = e.focalY;
+
+      const currentTotalScale = baseScale.value * pinchScale.value;
       const nextScale = Math.max(
         schemaMinZoom,
         Math.min(pinchStartScale.value * e.scale, schemaMaxZoom)
       );
+
+      // Update content focal point if fingers moved
+      if (Math.abs(focalDeltaX) > 0.5 || Math.abs(focalDeltaY) > 0.5) {
+        pinchFocalContentX.value =
+          (e.focalX - centerX - translateX.value) / currentTotalScale + centerX;
+        pinchFocalContentY.value =
+          (e.focalY - centerY - translateY.value) / currentTotalScale + centerY;
+      }
 
       pinchScale.value = nextScale / pinchStartScale.value;
 
@@ -261,12 +289,13 @@ export const Schema = ({
       translateY.value = e.focalY - centerY - (pinchFocalContentY.value - centerY) * nextScale;
     })
     .onEnd(() => {
-      const zoom = baseScale.value * pinchScale.value;
-      const clampedZoom = Math.max(schemaMinZoom, Math.min(zoom, schemaMaxZoom));
-      baseScale.value = clampedZoom;
+      // Normalize: merge pinchScale into baseScale without visual change
+      const finalZoom = baseScale.value * pinchScale.value;
+      baseScale.value = finalZoom;
       pinchScale.value = 1;
+      pinchInitialized.value = false;
 
-      runOnJS(setZoomValue)(clampedZoom);
+      runOnJS(setZoomValue)(finalZoom);
       isPinching.value = false;
     });
 
