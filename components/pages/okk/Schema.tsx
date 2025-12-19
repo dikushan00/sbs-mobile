@@ -383,7 +383,7 @@ export const Schema = ({
     ],
   }));
 
-  const onZoomChange = (zoom: number, zoomWithTiming: any) => {
+  const onZoomChange = (zoom: number, animated: boolean) => {
     // Zoom from center of the screen (like maps/gallery)
     // The focal point is screen center: (centerX, centerY)
     // content at center = (centerX - centerX - tx) / oldScale + centerX = -tx / oldScale + centerX
@@ -391,27 +391,23 @@ export const Schema = ({
     const contentAtCenterX = -translateX.value / currentScale + centerX;
     const contentAtCenterY = -translateY.value / currentScale + centerY;
 
-    // New translate: tx = centerX - centerX - (contentAtCenter - centerX) * newScale
-    //              = -(contentAtCenter - centerX) * newScale
+    // New translate: tx = -(contentAtCenter - centerX) * newScale
     const newTranslateX = -(contentAtCenterX - centerX) * zoom;
     const newTranslateY = -(contentAtCenterY - centerY) * zoom;
 
-    // Check if zoomWithTiming has animation (from buttons) or is just a number (from slider)
-    const isAnimated = typeof zoomWithTiming === "object";
-
-    if (isAnimated) {
-      translateX.value = withTiming(newTranslateX, { duration: 300 });
-      translateY.value = withTiming(newTranslateY, { duration: 300 });
+    if (animated) {
+      // Use same timing config for all animations to keep them in sync
+      const timingConfig = { duration: 250 };
+      translateX.value = withTiming(newTranslateX, timingConfig);
+      translateY.value = withTiming(newTranslateY, timingConfig);
+      baseScale.value = withTiming(zoom, timingConfig);
+      setTimeout(() => setZoomValue(zoom), 250);
     } else {
       translateX.value = newTranslateX;
       translateY.value = newTranslateY;
-    }
-    baseScale.value = zoomWithTiming;
-
-    const timeout = setTimeout(() => {
+      baseScale.value = zoom;
       setZoomValue(zoom);
-      clearTimeout(timeout);
-    }, 300);
+    }
   };
 
   const getPointBackground = (pt: PointType) => {

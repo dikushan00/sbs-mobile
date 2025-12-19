@@ -3,11 +3,10 @@ import FontAwesome5 from "@expo/vector-icons/build/FontAwesome5";
 import Slider from "@react-native-community/slider";
 import { StyleSheet } from "react-native";
 import { TouchableOpacity, View } from "react-native";
-import { withTiming } from "react-native-reanimated";
 import { schemaMaxZoom, schemaMinZoom } from "./services";
 
 type PropsType = {
-  onZoomChange: (zoom: number, a: any) => void;
+  onZoomChange: (zoom: number, animated: boolean) => void;
   scale: any;
   zoomValue: number;
   setZoomValue: (zoom: number) => void;
@@ -20,12 +19,12 @@ export const SchemaZoomControl = ({
 }: PropsType) => {
   const zoomIn = () => {
     const zoom = Math.min(scale.value * 1.5, schemaMaxZoom);
-    onZoomChange && onZoomChange(zoom, withTiming(zoom));
+    onZoomChange && onZoomChange(zoom, true); // animated
   };
 
   const zoomOut = () => {
     const zoom = Math.max(scale.value / 1.7, schemaMinZoom);
-    onZoomChange && onZoomChange(zoom, withTiming(zoom));
+    onZoomChange && onZoomChange(zoom, true); // animated
   };
   return (
     <>
@@ -51,8 +50,8 @@ export const SchemaZoomControl = ({
           step={0.01}
           value={zoomValue}
           onValueChange={(val) => {
-            scale.value = val;
-            setZoomValue(val);
+            // Use onZoomChange to properly adjust translate for center-based zoom
+            onZoomChange && onZoomChange(val, false); // instant, no animation
           }}
           vertical
           minimumTrackTintColor="#ccc"
