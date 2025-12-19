@@ -23,7 +23,7 @@ export const appAPI = {
   },
   async getAppLastVersion(): Promise<{ data: { version_name: string } }> {
     return await instance(false, { showSnackbar: false }, apiUrl)
-      .get("/partner/commons/mobile_app/version/get/")
+      .get("/common/mobile_app/version/get/")
       .then((res) => res?.data);
   },
   async getCities(): Promise<ReqResponse<CityType[] | undefined>> {
