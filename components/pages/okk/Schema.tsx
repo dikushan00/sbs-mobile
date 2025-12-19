@@ -20,6 +20,7 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { SchemaZoomControl } from "./SchemaZoomControl";
@@ -31,6 +32,8 @@ import {
   getImageSize,
   PointType,
   OkkTaskType,
+  schemaMaxZoom,
+  schemaMinZoom,
 } from "./services";
 
 const { width } = Dimensions.get("window");
@@ -58,7 +61,6 @@ export const Schema = ({
 }: PropsType) => {
   const [downloaded, setDownloaded] = useState(false);
   const [zoomValue, setZoomValue] = useState(1);
-  const tapRef = useRef(null);
 
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -69,6 +71,13 @@ export const Schema = ({
   // helpers to store gesture start positions
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
+
+  // pinch helpers (keep focal point stable while zooming)
+  const pinchStartScale = useSharedValue(1);
+  const pinchStartTranslateX = useSharedValue(0);
+  const pinchStartTranslateY = useSharedValue(0);
+  const pinchFocalContentX = useSharedValue(0);
+  const pinchFocalContentY = useSharedValue(0);
 
   const [imageSize, setImageSize] = useState<{
     width: number;
@@ -197,35 +206,63 @@ export const Schema = ({
     };
   }, [imageSize]);
 
+  const computedPoints = useMemo(() => {
+    if (isEditable === false) return points;
+    if (showAllPoints) return points;
+    return points?.filter((item) => item.is_accepted !== true);
+  }, [points, showAllPoints, isEditable]);
+
   const totalScale = useDerivedValue(() => baseScale.value * pinchScale.value);
 
-  // Pan gesture using new Gesture API
+  // Transform origin is at center of view by default in RN.
+  // Formulas with center origin:
+  //   screen = (content - center) * scale + center + translate
+  //   content = (screen - center - translate) / scale + center
+  const centerX = width / 2;
+  const centerY = schemaHeight / 2;
+
+  // Pan gesture
   const panGesture = Gesture.Pan()
+    .minDistance(6)
     .onStart(() => {
       startX.value = translateX.value;
       startY.value = translateY.value;
     })
     .onUpdate((e) => {
-      // divide by totalScale so pan distance respects current zoom
-      translateX.value = startX.value + e.translationX / totalScale.value;
-      translateY.value = startY.value + e.translationY / totalScale.value;
-    })
-    .onEnd(() => {
-      // Optional: clamp translation so image doesn't go too far
-      // You can implement bounds here if needed.
+      // translate is in screen coords
+      translateX.value = startX.value + e.translationX;
+      translateY.value = startY.value + e.translationY;
     });
 
-  // Pinch gesture using new Gesture API
+  // Pinch gesture - zoom towards focal point (like maps/gallery)
   const pinchGesture = Gesture.Pinch()
-    .onStart(() => {
+    .onStart((e) => {
       isPinching.value = true;
+      pinchStartScale.value = baseScale.value;
+      pinchStartTranslateX.value = translateX.value;
+      pinchStartTranslateY.value = translateY.value;
+
+      // content = (screen - center - translate) / scale + center
+      pinchFocalContentX.value =
+        (e.focalX - centerX - pinchStartTranslateX.value) / pinchStartScale.value + centerX;
+      pinchFocalContentY.value =
+        (e.focalY - centerY - pinchStartTranslateY.value) / pinchStartScale.value + centerY;
     })
     .onUpdate((e) => {
-      pinchScale.value = e.scale;
+      const nextScale = Math.max(
+        schemaMinZoom,
+        Math.min(pinchStartScale.value * e.scale, schemaMaxZoom)
+      );
+
+      pinchScale.value = nextScale / pinchStartScale.value;
+
+      // translate = screen - center - (content - center) * scale
+      translateX.value = e.focalX - centerX - (pinchFocalContentX.value - centerX) * nextScale;
+      translateY.value = e.focalY - centerY - (pinchFocalContentY.value - centerY) * nextScale;
     })
     .onEnd(() => {
       const zoom = baseScale.value * pinchScale.value;
-      const clampedZoom = Math.max(1, Math.min(zoom, 15)); // keep between 1 and 15
+      const clampedZoom = Math.max(schemaMinZoom, Math.min(zoom, schemaMaxZoom));
       baseScale.value = clampedZoom;
       pinchScale.value = 1;
 
@@ -233,48 +270,119 @@ export const Schema = ({
       isPinching.value = false;
     });
 
-  // Combine gestures — allow simultaneous pan + pinch
-  const composedGesture = Gesture.Simultaneous(panGesture, pinchGesture);
+  const handleTap = useCallback(
+    (payload: { x: number; y: number; tx: number; ty: number; s: number }) => {
+      if (!displayedSize || !imageSize) return;
+
+      // Undo current transform applied to the content
+      // With center origin: screen = (content - center) * scale + center + translate
+      // => content = (screen - center - translate) / scale + center
+      const tapX = (payload.x - centerX - payload.tx) / payload.s + centerX;
+      const tapY = (payload.y - centerY - payload.ty) / payload.s + centerY;
+
+      // 1) First: hit-test existing points so "tap on circle" always wins
+      // keep extra hit slop ~constant in screen pixels
+      const extraHit = 14 / Math.max(1, payload.s);
+      const hitRadius = getCircleRadius(zoomValue) + extraHit;
+      const hitRadius2 = hitRadius * hitRadius;
+
+      const hitPoint = computedPoints?.find((pt) => {
+        const cx = pt.x * displayedSize.scale + displayedSize.offsetX;
+        const cy = pt.y * displayedSize.scale + displayedSize.offsetY;
+        const dx = tapX - cx;
+        const dy = tapY - cy;
+        return dx * dx + dy * dy <= hitRadius2;
+      });
+
+      if (hitPoint) {
+        showPointData(hitPoint);
+        return;
+      }
+
+      // 2) Otherwise: if editable, treat as adding a new point on the schema
+      if (!isEditable) return;
+
+      const xOnImage = (tapX - displayedSize.offsetX) / displayedSize.scale;
+      const yOnImage = (tapY - displayedSize.offsetY) / displayedSize.scale;
+
+      if (
+        xOnImage < 0 ||
+        yOnImage < 0 ||
+        xOnImage > imageSize.width ||
+        yOnImage > imageSize.height
+      ) {
+        return;
+      }
+
+      handlePress({ x: xOnImage, y: yOnImage });
+    },
+    [
+      computedPoints,
+      displayedSize,
+      imageSize,
+      isEditable,
+      showPointData,
+      handlePress,
+      zoomValue,
+    ]
+  );
+
+  const tapGesture = Gesture.Tap()
+    .maxDistance(10)
+    .onEnd((e) => {
+      runOnJS(handleTap)({
+        x: e.x,
+        y: e.y,
+        tx: translateX.value,
+        ty: translateY.value,
+        s: totalScale.value,
+      });
+    });
+
+  // Combine gestures — allow simultaneous pan + pinch + tap
+  const composedGesture = Gesture.Simultaneous(
+    panGesture,
+    pinchGesture,
+    tapGesture
+  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { scale: totalScale.value },
       { translateX: translateX.value },
       { translateY: translateY.value },
+      { scale: totalScale.value },
     ],
   }));
 
   const onZoomChange = (zoom: number, zoomWithTiming: any) => {
-    // zoomWithTiming previously was a reanimated value; here we directly set baseScale if needed
+    // Zoom from center of the screen (like maps/gallery)
+    // The focal point is screen center: (centerX, centerY)
+    // content at center = (centerX - centerX - tx) / oldScale + centerX = -tx / oldScale + centerX
+    const currentScale = baseScale.value;
+    const contentAtCenterX = -translateX.value / currentScale + centerX;
+    const contentAtCenterY = -translateY.value / currentScale + centerY;
+
+    // New translate: tx = centerX - centerX - (contentAtCenter - centerX) * newScale
+    //              = -(contentAtCenter - centerX) * newScale
+    const newTranslateX = -(contentAtCenterX - centerX) * zoom;
+    const newTranslateY = -(contentAtCenterY - centerY) * zoom;
+
+    // Check if zoomWithTiming has animation (from buttons) or is just a number (from slider)
+    const isAnimated = typeof zoomWithTiming === "object";
+
+    if (isAnimated) {
+      translateX.value = withTiming(newTranslateX, { duration: 300 });
+      translateY.value = withTiming(newTranslateY, { duration: 300 });
+    } else {
+      translateX.value = newTranslateX;
+      translateY.value = newTranslateY;
+    }
     baseScale.value = zoomWithTiming;
+
     const timeout = setTimeout(() => {
       setZoomValue(zoom);
       clearTimeout(timeout);
-      return;
     }, 300);
-  };
-
-  const handleSchemaClick = (e: any) => {
-    if (!isEditable) return;
-
-    if (!displayedSize || !imageSize) return;
-
-    const { locationX, locationY } = e.nativeEvent;
-
-    const xOnImage = (locationX - displayedSize.offsetX) / displayedSize.scale;
-    const yOnImage = (locationY - displayedSize.offsetY) / displayedSize.scale;
-
-    if (
-      xOnImage < 0 ||
-      yOnImage < 0 ||
-      xOnImage > imageSize.width ||
-      yOnImage > imageSize.height
-    ) {
-      return;
-    }
-
-    const newPoint = { x: xOnImage, y: yOnImage };
-    handlePress(newPoint);
   };
 
   const getPointBackground = (pt: PointType) => {
@@ -293,15 +401,9 @@ export const Schema = ({
     return "red";
   };
 
-  const computedPoints = useMemo(() => {
-    if (isEditable === false) return points;
-    if (showAllPoints) return points;
-    return points?.filter((item) => item.is_accepted !== true);
-  }, [points, showAllPoints, isEditable]);
-
   return (
     // GestureHandlerRootView is recommended wrapper for gesture handler
-    <GestureHandlerRootView style={{height: schemaHeight - 40}}>
+    <GestureHandlerRootView style={{ height: schemaHeight }}>
       <View
         pointerEvents="box-none"
         style={{
@@ -312,26 +414,21 @@ export const Schema = ({
       >
         <SchemaZoomControl
           onZoomChange={onZoomChange}
-          scale={totalScale}
+          scale={baseScale}
           zoomValue={zoomValue}
           setZoomValue={setZoomValue}
         />
 
         <GestureDetector gesture={composedGesture}>
-          <Animated.View
-            pointerEvents={"box-none"}
-            style={[styles.container, animatedStyle]}
+          <View
+            collapsable={false}
+            style={{ width, height: schemaHeight }}
           >
-            <Animated.View style={{ flex: 1 }}>
-              <Pressable
-                ref={tapRef}
-                onPress={handleSchemaClick}
-                style={{
-                  zIndex: 11,
-                  width,
-                  height: schemaHeight,
-                }}
-              >
+            <Animated.View
+              pointerEvents={"box-none"}
+              style={[styles.container, animatedStyle]}
+            >
+              <Animated.View style={{ flex: 1 }}>
                 <View
                   style={{
                     zIndex: 11,
@@ -352,13 +449,8 @@ export const Schema = ({
                   <Svg
                     width={width}
                     height={schemaHeight}
-                    style={[StyleSheet.absoluteFill, { zIndex: 10 },
-                    //   {
-                    //   position: "absolute",
-                    //   top: displayedSize?.offsetY,
-                    //   left: displayedSize?.offsetX,
-                    // }
-                  ]}
+                    pointerEvents="none"
+                    style={[StyleSheet.absoluteFill, { zIndex: 10 }]}
                   >
                     {displayedSize &&
                       computedPoints?.map((pt: PointType) => (
@@ -368,8 +460,6 @@ export const Schema = ({
                               ? String(pt.call_check_list_point_id)
                               : pt.id
                           }
-                          // cx={pt.x}
-                          // cy={pt.y}
                           cx={
                             pt.x * displayedSize.scale + displayedSize.offsetX
                           }
@@ -380,8 +470,6 @@ export const Schema = ({
                           fill={getPointBackground(pt)}
                           stroke={getCircleStrokeColor(pt, activePointId)}
                           strokeWidth={getCircleStrokeWidth(zoomValue)}
-                          onPress={() => showPointData(pt)}
-                          pointerEvents="auto"
                         />
                       ))}
 
@@ -399,14 +487,13 @@ export const Schema = ({
                         fill="#ed6879"
                         stroke={COLORS.primary}
                         strokeWidth={getCircleStrokeWidth(zoomValue)}
-                        pointerEvents="auto"
                       />
                     )}
                   </Svg>
                 </View>
-              </Pressable>
+              </Animated.View>
             </Animated.View>
-          </Animated.View>
+          </View>
         </GestureDetector>
       </View>
     </GestureHandlerRootView>
@@ -416,8 +503,6 @@ export const Schema = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 10,
-    gap: 10,
     height: schemaHeight,
   },
   image: {

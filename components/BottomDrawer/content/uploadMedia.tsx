@@ -257,7 +257,7 @@ export const UploadMedia = ({ data, handleClose }: PropsType) => {
                 type={accepted === true ? "contained" : "outlined"}
                 color={accepted === true ? COLORS.green : COLORS.gray2}
                 onClick={() => handleAcceptedChange(true)}
-                small
+                small wrapperStyles={{ minWidth: 55 }}
               >
                 <View
                   style={{

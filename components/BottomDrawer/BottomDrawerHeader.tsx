@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "../Icon";
-import { COLORS } from "@/constants";
+import { COLORS, FONT } from "@/constants";
 import { useSelector } from "react-redux";
 import { appState } from "@/services/redux/reducers/app";
 
@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     width: "83%",
+    fontFamily: FONT.medium,
   },
   header: {
     marginTop: -10,
