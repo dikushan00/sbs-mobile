@@ -165,11 +165,12 @@ export const LoginForm = ({ disabled = false }) => {
     let body: BodyType | null =
       isBiometric === true ? data || biometricData : formData;
     if (!body) body = { login: "", password: "" };
-    const pushToken = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log(pushToken)
-    body.mobile_token = pushToken;
-    body.is_mobile = true;
-
+    if(!__DEV__) {
+      const pushToken = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log(pushToken)
+      body.mobile_token = pushToken;
+      body.is_mobile = true;
+    }
     if (!isBiometric) {
       if (!body?.login || !body.password)
         return showErrorSnackbar("Заполните обязательные поля!");

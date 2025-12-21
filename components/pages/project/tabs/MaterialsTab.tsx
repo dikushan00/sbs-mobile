@@ -1,5 +1,7 @@
-import React, { useMemo, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useMemo, useEffect, useRef, useState, useCallback } from 'react';
+import { Animated, Easing, View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, Dimensions } from 'react-native';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getEntranceMaterialRequests } from '@/components/main/services';
@@ -28,6 +30,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
   const dispatch = useDispatch();
   const [materialsData, setMaterialsData] = useState<MaterialRequestType[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [showSuccessPage, setShowSuccessPage] = useState(false);
@@ -36,6 +39,8 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
   const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
 
   const aiBgAnim = useRef(new Animated.Value(0)).current;
+  const aiChatAnim = useRef(new Animated.Value(0)).current; // 0 = hidden, 1 = visible
+  const [aiChatVisible, setAiChatVisible] = useState(false);
   const AnimatedTouchableOpacity = useMemo(
     () => Animated.createAnimatedComponent(TouchableOpacity),
     []
@@ -67,18 +72,30 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     outputRange: [COLORS.primaryLight, COLORS.primary, COLORS.primaryLight],
   });
 
+  const fetchMaterials = useCallback(async () => {
+    if (!projectEntranceId) return;
+    setLoading(true);
+    const data = await getEntranceMaterialRequests({...filters, project_entrance_id: projectEntranceId});
+    setLoading(false);
+    if (data) {
+      setMaterialsData(data);
+    }
+  }, [filters, projectEntranceId]);
+
+  const onRefresh = useCallback(async () => {
+    if (!projectEntranceId) return;
+    setRefreshing(true);
+    const data = await getEntranceMaterialRequests({...filters, project_entrance_id: projectEntranceId});
+    setRefreshing(false);
+    if (data) {
+      setMaterialsData(data);
+    }
+  }, [filters, projectEntranceId]);
+
   useEffect(() => {
-    const fetchMaterials = async () => {
-      setLoading(true);
-      const data = await getEntranceMaterialRequests({...filters, project_entrance_id: projectEntranceId});
-      setLoading(false);
-      if (data) {
-        setMaterialsData(data);
-      }
-    };
     if(!!projectEntranceId)
       fetchMaterials();
-  }, [filters, projectEntranceId]);
+  }, [filters, projectEntranceId, fetchMaterials]);
   
   useEffect(() => {
     if(!showOrderForm && !showSuccessPage && !showAIChat) {
@@ -121,6 +138,23 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
   };
 
   const handleBackToMaterials = () => {
+    const wasAIChat = showAIChat;
+    
+    // If closing AI Chat, animate out first
+    if (wasAIChat) {
+      Animated.timing(aiChatAnim, {
+        toValue: 0,
+        duration: 250,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => {
+        setAiChatVisible(false);
+        setShowAIChat(false);
+        fetchMaterials();
+      });
+      return;
+    }
+    
     setShowOrderForm(false);
     setShowSuccessPage(false);
     setShowAIChat(false);
@@ -129,6 +163,14 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
 
   const handleOpenAIChat = () => {
     setShowAIChat(true);
+    setAiChatVisible(true);
+    aiChatAnim.setValue(0);
+    Animated.timing(aiChatAnim, {
+      toValue: 1,
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
   };
 
   const handleSubmitOrder = (res: MaterialRequestType[]) => {
@@ -156,15 +198,6 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
       }
     }))
   };
-
-  if (showAIChat) {
-    return (
-      <AIChatOrderScreen
-        onBack={handleBackToMaterials}
-        projectId={selectedData?.project_id}
-      />
-    );
-  }
 
   if (showOrderForm) {
     return (
@@ -221,6 +254,14 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
         style={styles.scrollContainer} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
       >
         {
           materialsData?.length
@@ -291,12 +332,12 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
             : !loading && <NotFound title='Данные не найдены' />
         }
       </ScrollView>
-      <AnimatedTouchableOpacity
+      {/* <AnimatedTouchableOpacity
         style={[styles.aiFloatingButton, { backgroundColor: aiBgColor }]}
         onPress={handleOpenAIChat}
       >
         <Icon name="aiAssistant" width={28} height={28} fill={COLORS.lightWhite} />
-      </AnimatedTouchableOpacity>
+      </AnimatedTouchableOpacity> */}
       <View style={styles.fixedButtonContainer}>
         <CustomButton
           title="Заказать материал"
@@ -311,6 +352,31 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
             <Text style={styles.errorText}>Не удалось загрузить данные о материалах</Text>
           </View>
       }
+
+      {/* Animated AI Chat Overlay */}
+      {aiChatVisible && (
+        <Animated.View 
+          style={[
+            styles.aiChatOverlay,
+            {
+              opacity: aiChatAnim,
+              transform: [
+                {
+                  translateX: aiChatAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [SCREEN_WIDTH, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <AIChatOrderScreen
+            onBack={handleBackToMaterials}
+            projectId={selectedData?.project_id}
+          />
+        </Animated.View>
+      )}
     </View>
   );
 };
@@ -400,6 +466,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
+  },
+  aiChatOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.background,
+    zIndex: 100,
   },
   materialName: {
     flex: 1,

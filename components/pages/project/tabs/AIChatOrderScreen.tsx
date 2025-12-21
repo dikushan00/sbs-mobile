@@ -153,11 +153,10 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
     for (const msg of newMessages) {
       if (msg.type === 'audio' && msg.role === 'assistant' && msg.audioUri) {
         const chatId = addMessage('assistant', '🔊 Голосовое сообщение', msg.audioUri);
-        if (!isRecording) {
-          setTimeout(() => {
-            playAudio(chatId, msg.audioUri!);
-          }, 0);
-        }
+        // Auto-play audio immediately when received
+        setTimeout(() => {
+          playAudio(chatId, msg.audioUri!);
+        }, 100);
       } else if (msg.type === 'transcript' && msg.role === 'assistant' && msg.text) {
         addMessage('assistant', msg.text);
       } else if (msg.type === 'transcript' && msg.role === 'user' && msg.text) {
@@ -196,7 +195,7 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
     }
 
     lastProcessedServerMsgIndexRef.current = messages.length;
-  }, [messages, isRecording]);
+  }, [messages]);
 
   const handleSendText = () => {
     if (inputText.trim() === '') return;
