@@ -11,8 +11,8 @@ import {
 } from "@/services/redux/reducers/userApp";
 import { storageService } from "@/services/storage";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useFocusEffect, useRoute, useNavigation } from "@react-navigation/native";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -35,6 +35,10 @@ import { OkkDetail } from "./OkkDetail";
 
 export const Okk = () => {
   const dispatch = useDispatch();
+  const route = useRoute();
+  const navigation = useNavigation();
+  const routeParams = route.params as { help_call_id?: number } | undefined;
+  
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeCallId, setActiveCallId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<OkkStatusKeyType>(
@@ -48,6 +52,9 @@ export const Okk = () => {
   });
   const [localPoints, setLocalPoints] = useState<CheckListPointsType[]>([]);
   const { okkData, isFetching } = useSelector(userAppState);
+  
+  // Track which deep link params we've already handled
+  const lastHandledParamsRef = useRef<string | null>(null);
 
   const getData = async (
     isRefreshing = false,
@@ -75,6 +82,7 @@ export const Okk = () => {
         desc: "",
       })
     );
+    console.log("setPageHeaderData okk");
     getLocalPoints();
   }, [getLocalPoints]);
 
@@ -85,6 +93,40 @@ export const Okk = () => {
       return () => controller.abort();
     }, [activeTab])
   );
+
+  // Handle deep link from notification (help_call_id)
+  useEffect(() => {
+    if (!routeParams?.help_call_id) return;
+    if (!okkData?.length) return;
+
+    const paramsKey = `${routeParams.help_call_id}`;
+    if (lastHandledParamsRef.current === paramsKey) return;
+
+    // Find the task with this help_call_id across all data
+    let targetCall: OkkTaskType | null = null;
+    for (const resident of okkData) {
+      if (!resident.entrances) continue;
+      for (const entrance of resident.entrances) {
+        if (!entrance.calls) continue;
+        const found = entrance.calls.find(
+          (call) => call.help_call_id === routeParams.help_call_id
+        );
+        if (found) {
+          targetCall = found;
+          break;
+        }
+      }
+      if (targetCall) break;
+    }
+
+    if (!targetCall) return;
+
+    // Mark as handled
+    lastHandledParamsRef.current = paramsKey;
+
+    // Auto-open the detail
+    handleClickDetail(targetCall.help_call_id, targetCall);
+  }, [okkData, routeParams]);
 
   const onTabChange = (tab: OkkStatusKeyType) => {
     setActiveTab(tab);
@@ -113,6 +155,12 @@ export const Okk = () => {
     setSelectedData(null);
     dispatch(setPageSettings({ backBtn: false, goBack: null }));
     getLocalPoints();
+    
+    // Reset deep link tracking so next notification can work
+    lastHandledParamsRef.current = null;
+    // Clear navigation params
+    // @ts-ignore
+    navigation.setParams({ help_call_id: undefined });
   };
 
   const handleClickDetail = (help_call_id: number, item: any) => {

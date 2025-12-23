@@ -14,6 +14,18 @@ export const getProjectData = async (projectId:number):Promise<ProjectInfoDataTy
   } catch(e) {}
 }
 
+export const tabNames = {
+  okk: 'M__ProjectFormMobileOkk',
+  agreement: 'M__ProjectFormMobileAgreement',
+  payments: 'M__ProjectFormRemontCostTab',
+  documents: 'M__ProjectFormDocumentTab',
+  materials: 'M__ProjectFormMaterialTab',
+  stages: 'M__ProjectFormStagesTab',
+  info: 'M__ProjectFormInfoTab',
+  floorMap: 'M__ProjectFormMobileFloorMap',
+  work: 'M__ProjectFormWorkTab',
+}
+
 export const tabsNames = [
   'M__ProjectFormMobileOkk',
   'M__ProjectFormMobileAgreement',

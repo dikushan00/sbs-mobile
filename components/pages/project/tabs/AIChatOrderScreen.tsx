@@ -91,8 +91,7 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
       title: 'AI Заказ материалов',
       desc: '',
     }));
-
-    // Auto-connect on mount
+      // Auto-connect on mount
     connect();
 
     return () => {
@@ -118,7 +117,6 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
     } catch (e) {
       // no-op
     }
-
     setConfirmedOrder(null);
   };
 
@@ -161,10 +159,12 @@ export const AIChatOrderScreen: React.FC<AIChatOrderScreenProps> = ({ onBack, pr
         addMessage('assistant', msg.text);
       } else if (msg.type === 'transcript' && msg.role === 'user' && msg.text) {
         addMessage('user', msg.text);
-      } else if (msg.type === 'material_matched' && msg.data) {
-        const materialInfo = `Найден материал: ${msg.data.material_name}\nЦена: ${msg.data.price || 'уточняется'}`;
-        addMessage('assistant', materialInfo);
-      } else if (msg.type === 'material_confirmed' && msg.data) {
+      } 
+      // else if (msg.type === 'material_matched' && msg.data) {
+      //   const materialInfo = `Найден материал: ${msg.data.material_name}\nЦена: ${msg.data.price || 'уточняется'}`;
+      //   addMessage('assistant', materialInfo);
+      // }
+       else if (msg.type === 'material_confirmed' && msg.data) {
         setConfirmedOrder(msg.data);
         try {
           const key = JSON.stringify(msg.data);

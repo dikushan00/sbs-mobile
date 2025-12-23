@@ -5,7 +5,6 @@ import { ConfirmBlock } from "./content/confirm";
 import { CustomSelectList } from "./content/customSelectList";
 import { FlatSelectList } from "./content/flatSelectList";
 import { WorkSetSelectList } from "./content/workSetSelectList";
-import { SelectModule } from "./content/selectModule";
 import { UploadMedia } from "./content/uploadMedia";
 import { MaterialActions } from "./content/materialActions";
 import { DocumentActions } from "./content/documentActions";
@@ -18,7 +17,6 @@ import { CitySelect } from "./content/citySelect";
 import { BOTTOM_DRAWER_KEYS } from "./constants";
 import {
   ConfirmDrawerType,
-  SelectModuleProps,
   UploadMediaDrawerType,
   MaterialActionsDrawerType,
   DocumentActionsDrawerType,
@@ -31,7 +29,7 @@ import {
 } from "./types";
 
 
-export const getBottomDrawerContent = (isOkk = false) => ({
+export const getBottomDrawerContent = () => ({
   [BOTTOM_DRAWER_KEYS.confirm]: {
     component: ConfirmBlock as React.FC<{
       data: ConfirmDrawerType;
@@ -49,13 +47,6 @@ export const getBottomDrawerContent = (isOkk = false) => ({
   [BOTTOM_DRAWER_KEYS.customSelectList]: {
     component: CustomSelectList as React.FC<{
       data: CustomSelectProps;
-      handleClose: () => void;
-    }>,
-    snapPoints: [500],
-  },
-  [BOTTOM_DRAWER_KEYS.selectModule]: {
-    component: SelectModule as React.FC<{
-      data: SelectModuleProps;
       handleClose: () => void;
     }>,
     snapPoints: [500],

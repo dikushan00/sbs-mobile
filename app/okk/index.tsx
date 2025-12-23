@@ -4,6 +4,7 @@ import { PageWrapper } from "@/components/PageWrapper";
 import { getOkkData } from "@/services/redux/reducers/userApp";
 import React, { useCallback } from "react";
 import { useDispatch } from "react-redux";
+import { NavigationLayout } from "@/components/layout/NavigationLayout";
 
 const OkkPage = () => {
   const dispatch = useDispatch();
@@ -26,7 +27,9 @@ const OkkPage = () => {
 
   return (
     <PageWrapper getData={getData}>
-      <Okk />
+      <NavigationLayout>
+        <Okk />
+      </NavigationLayout>
     </PageWrapper>
   );
 };

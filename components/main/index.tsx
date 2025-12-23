@@ -1,6 +1,6 @@
 import { setPageHeaderData } from "@/services/redux/reducers/userApp";
 import { setHideFooterNav, showCustomWebViewMode } from "@/services/redux/reducers/app";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Platform,
   RefreshControl,
@@ -15,13 +15,17 @@ import { ProjectPage } from "../pages/project";
 import { COLORS, FONT, SIZES } from "@/constants";
 import { ProjectFiltersType, SelectedDataType } from "./types";
 import { setPageSettings } from "@/services/redux/reducers/app";
-import { getProjects } from "../pages/project/services";
+import { getProjects, tabNames } from "../pages/project/services";
 import { ProjectType } from "../pages/project/services/types";
 import { CustomLoader } from "../common/CustomLoader";
 import { OuraFab } from "./OuraFab";
+import { useRoute, useNavigation } from "@react-navigation/native";
 
 export const MainPage = () => {
   const dispatch = useDispatch();
+  const route = useRoute();
+  const navigation = useNavigation();
+  const routeParams = route.params as { project_id?: number; tab?: keyof typeof tabNames } | undefined;
   const [isFetching, setIsFetching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null);
@@ -33,6 +37,9 @@ export const MainPage = () => {
   });
   const [showProjectPage, setShowProjectPage] = useState(false);
   const [projectList, setProjectList] = useState<ProjectType[]>([]);
+  const [initialTab, setInitialTab] = useState<string | undefined>(undefined);
+  // Track which deep link params we've already handled (to avoid re-handling the same notification)
+  const lastHandledParamsRef = useRef<string | null>(null);
 
   useEffect(() => {
     dispatch(
@@ -56,6 +63,30 @@ export const MainPage = () => {
     }).finally(() => setIsFetching(false))
   }, [])
 
+  // Handle deep link from notification (project_id + tab)
+  useEffect(() => {
+    if (!projectList.length || !routeParams?.project_id) return;
+
+    // Create a unique key for these params to avoid re-handling the same notification
+    const paramsKey = `${routeParams.project_id}_${routeParams.tab || ''}`;
+    if (lastHandledParamsRef.current === paramsKey) return;
+
+    const targetProject = projectList.find(p => p.project_id === routeParams.project_id);
+    if (!targetProject) return;
+
+    // Mark these params as handled
+    lastHandledParamsRef.current = paramsKey;
+
+    // Set initial tab if provided
+    if (routeParams.tab && tabNames[routeParams.tab]) {
+      setInitialTab(tabNames[routeParams.tab]);
+    }
+
+    console.log(routeParams, targetProject);
+    // Auto-select the project
+    handleProjectSelect(targetProject);
+  }, [projectList, routeParams])
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await getProjectsData()
@@ -75,6 +106,11 @@ export const MainPage = () => {
 
   const handleBackToFilters = () => {
     setShowProjectPage(false);
+    setInitialTab(undefined); // Clear initial tab when going back
+    lastHandledParamsRef.current = null; // Reset so next notification can be handled
+    // Clear navigation params so they don't persist
+    // @ts-ignore
+    navigation.setParams({ project_id: undefined, tab: undefined });
     dispatch(setHideFooterNav(false));
     dispatch(
       setPageHeaderData({
@@ -150,6 +186,14 @@ export const MainPage = () => {
     </TouchableOpacity>
   );
 
+  const handleTabExited = () => {
+    // Reset deep link tracking so next notification can work
+    lastHandledParamsRef.current = null;
+    // Clear navigation params
+    // @ts-ignore
+    navigation.setParams({ project_id: undefined, tab: undefined });
+  };
+
   if (showProjectPage && selectedData) {
     return (
       <ProjectPage
@@ -157,6 +201,9 @@ export const MainPage = () => {
         projectId={projectId}
         onBack={handleBackToFilters}
         filters={filters}
+        initialTab={initialTab}
+        onInitialTabConsumed={() => setInitialTab(undefined)}
+        onTabExited={handleTabExited}
       />
     );
   }

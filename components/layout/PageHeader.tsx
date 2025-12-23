@@ -12,7 +12,6 @@ import { HeaderTitle } from "./HeaderTitle";
 import { Icon } from "../Icon";
 import { useSelector } from "react-redux";
 import { appState } from "@/services/redux/reducers/app";
-import { userAppState } from "@/services/redux/reducers/userApp";
 
 export const PageHeader = ({
   navigation,
@@ -22,7 +21,6 @@ export const PageHeader = ({
   params: any;
 }) => {
   const { pageSettings, newVersionBannerShowed } = useSelector(appState);
-  const { isOkk } = useSelector(userAppState);
   const route: { params?: { withoutLayout?: boolean; backBtn?: boolean } } =
     useRoute();
   const insets = useSafeAreaInsets();
@@ -48,17 +46,15 @@ export const PageHeader = ({
       {route?.params?.withoutLayout ? (
         <View />
       ) : (
-        <TouchableOpacity onPress={() => isOkk && navigation.openDrawer()}>
+        <View>
           {showBackBtn ? (
             <TouchableOpacity onPress={handleBack} style={{ padding: 20 }}>
               <Icon name="back" />
             </TouchableOpacity>
           ) : (
-            isOkk 
-              ? <Text style={styles.headerText}>☰</Text> 
-              : <View style={{ width: 30, height: 32 }}></View> 
+            <View style={{ width: 30, height: 32 }}></View> 
           )}
-        </TouchableOpacity>
+        </View>
       )}
       <View style={{...styles.centerTitleContainer, top: Platform.OS === "ios" ? insets.top - 10 : 0}}>
         <HeaderTitle title={params?.title} />

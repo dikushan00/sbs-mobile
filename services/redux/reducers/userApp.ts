@@ -164,10 +164,8 @@ export const resetAuthData = async () => {
 
 export const logout = (): AppThunk => async (dispatch) => {
   dispatch(setLogoutLoading(true));
-  if(!__DEV__)  {
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
-    if (token) deletePushToken(token);
-  }
+  const token = (await Notifications.getExpoPushTokenAsync()).data;
+  if (token) deletePushToken(token);
   dispatch(resetData());
   await storageService.resetAllData();
   await SecureStore.deleteItemAsync(STORE_KEYS.auth);

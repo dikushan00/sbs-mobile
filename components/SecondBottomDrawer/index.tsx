@@ -6,7 +6,6 @@ import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { CustomLoader } from "../common/CustomLoader";
 import { getBottomDrawerContent } from "../BottomDrawer/services";
-import { userAppState } from "@/services/redux/reducers/userApp";
 
 const snapPoints = ["40%"];
 export const SecondBottomDrawer = () => {
@@ -15,7 +14,6 @@ export const SecondBottomDrawer = () => {
   const {
     secondBottomDrawerData: { show, type, data, loading },
   } = useSelector(appState);
-  const { isOkk } = useSelector(userAppState);
   const animatedOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -30,8 +28,8 @@ export const SecondBottomDrawer = () => {
 
   const contentData = useMemo(() => {
     if (!type) return null;
-    return getBottomDrawerContent(isOkk)[type];
-  }, [type, isOkk]);
+    return getBottomDrawerContent()[type];
+  }, [type]);
 
   const handleSnapChange = (index: number) => {
     Animated.timing(animatedOpacity, {

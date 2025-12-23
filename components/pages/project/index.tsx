@@ -27,7 +27,10 @@ interface ProjectPageProps {
   projectId: number | null,
   selectedData?: any;
   onBack?: () => void;
-  filters: ProjectFiltersType
+  filters: ProjectFiltersType;
+  initialTab?: string; // grant_code from tabNames (e.g., 'M__ProjectFormMobileAgreement')
+  onInitialTabConsumed?: () => void;
+  onTabExited?: () => void; // Called when exiting a tab to project page (not back to list)
 }
 
 const getIconForGrantCode = (grantCode: string) => {
@@ -47,7 +50,8 @@ const getIconForGrantCode = (grantCode: string) => {
 
 export const ProjectPage: React.FC<ProjectPageProps> = ({
   projectId, selectedData,
-  onBack, filters
+  onBack, filters,
+  initialTab, onInitialTabConsumed, onTabExited
 }) => {
   const dispatch = useDispatch();
   const [isFetching, setIsFetching] = useState(false);
@@ -78,6 +82,18 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     getTabs()
   }, [])
 
+  // Handle initialTab from notification deep link
+  useEffect(() => {
+    if (!initialTab || !tabulations.length) return;
+
+    const targetTab = tabulations.find(tab => tab.grant_code === initialTab);
+    if (targetTab) {
+      handleTabPress(targetTab);
+      // Clear initialTab after consuming it
+      onInitialTabConsumed?.();
+    }
+  }, [initialTab, tabulations])
+
   useEffect(() => {
     const getIsSBS = async () => {
       if(!projectId) return setIsSBS(false)
@@ -107,6 +123,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
 
   const backToProject = () => {
     setCurrentTab(null);
+    onTabExited?.(); // Notify parent to reset deep link tracking
     dispatch(setUserPageHeaderData({
       title: "Ведение проекта",
       desc: "",
@@ -119,6 +136,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
         backBtn: true, 
         goBack: () => {
           setCurrentTab(null);
+          onTabExited?.(); // Notify parent to reset deep link tracking
           dispatch(setUserPageHeaderData({
             title: "Ведение проекта",
             desc: "",
@@ -173,7 +191,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
         style={styles.projectInfoBlock}
       >
         <View style={styles.projectInfoHeader}>
-          <Text style={styles.projectName}>{projectData?.resident_name}</Text>
+          <Text style={styles.projectName}>{projectData?.resident_name}<Text style={{fontSize: SIZES.regular, fontFamily: FONT.regular, color: COLORS.darkGray}}>(ID: {projectData?.project_id})</Text></Text>
           <Icon name="folder" width={24} height={24} fill={COLORS.primary} />
         </View>
         <View style={styles.projectDetails}>

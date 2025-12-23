@@ -2,7 +2,6 @@ export const BOTTOM_DRAWER_KEYS = {
   confirm: "confirm",
   uploadMedia: "uploadMedia",
   customSelectList: "customSelectList",
-  selectModule: "selectModule",
   flatSelectList: "flatSelectList",
   workSetSelectList: "workSetSelectList",
   materialActions: "materialActions",

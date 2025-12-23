@@ -30,12 +30,6 @@ export type UploadMediaDrawerType = {
   onClose?: () => void;
 };
 
-export type SelectModuleProps = {
-  modules: { type: string; res: any }[];
-  btnLabel?: string;
-  onSubmit: (res: any, key: "master" | "okk") => void;
-};
-
 export type MaterialActionsDrawerType = {
   material: MaterialRequestType;
   onSubmit: (res: MaterialRequestType[]) => void;
@@ -94,7 +88,6 @@ type BottomDrawerPayloadMap = {
   [BOTTOM_DRAWER_KEYS.confirm]: ConfirmDrawerType;
   [BOTTOM_DRAWER_KEYS.uploadMedia]: UploadMediaDrawerType;
   [BOTTOM_DRAWER_KEYS.customSelectList]: CustomSelectProps;
-  [BOTTOM_DRAWER_KEYS.selectModule]: SelectModuleProps;
   [BOTTOM_DRAWER_KEYS.materialActions]: MaterialActionsDrawerType;
   [BOTTOM_DRAWER_KEYS.documentActions]: DocumentActionsDrawerType;
   [BOTTOM_DRAWER_KEYS.paymentActions]: PaymentActionsDrawerType;

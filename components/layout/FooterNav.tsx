@@ -12,12 +12,14 @@ import { COLORS, PAGE_NAMES } from "@/constants";
 import { useSelector } from "react-redux";
 import { appState } from "@/services/redux/reducers/app";
 import { Icon } from "../Icon";
+import { userAppState } from "@/services/redux/reducers/userApp";
 
 export const FooterNav = () => {
   const navigation = useNavigation();
   const route: { name?: string } = useRoute();
   const insets = useSafeAreaInsets();
   const { hideFooterNav } = useSelector(appState);
+  const { isOkk } = useSelector(userAppState);
 
   const goTo = (name: string) => {
     // @ts-ignore
@@ -36,6 +38,22 @@ export const FooterNav = () => {
         },
       ]}
     >
+      {isOkk && <TouchableOpacity
+        style={styles.item}
+        onPress={() => goTo(PAGE_NAMES.okk)}
+      >
+        <Icon name="checkCircleOutline"
+          fill={isActive(PAGE_NAMES.okk) ? COLORS.primary : "#D1D5DB"}
+          width={20} height={20} />
+        <Text
+          style={[
+            styles.label,
+            isActive(PAGE_NAMES.okk) && styles.activeText,
+          ]}
+        >
+          OKK
+        </Text>
+      </TouchableOpacity>}
       <TouchableOpacity
         style={styles.item}
         onPress={() => goTo(PAGE_NAMES.main)}

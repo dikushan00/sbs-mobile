@@ -147,7 +147,11 @@ export const useVoiceAssistant = ({
         role: 'assistant',
         audioUri: audioUri,
       };
-      
+
+      setIsRecording(false)
+      try {
+        await AudioRecord.stop();
+      } catch (err) {}
       setMessages((prev) => [...prev, audioMessage]);
       console.log(`[VAC] Combined audio saved to: ${audioUri}`);
       
@@ -254,7 +258,6 @@ export const useVoiceAssistant = ({
       await AudioRecord.start();
       console.log("[VAC] startRecording");
       wsRef.current?.send(JSON.stringify({ type: "audio_start" }));
-
       setIsRecording(true);
     } catch (err) {
       console.error("[VAC] startRecording error", err);

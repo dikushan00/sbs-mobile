@@ -32,7 +32,7 @@ export const NavigationBlock = () => {
           <PageHeader navigation={navigation} params={props.route.params} />
         ),
       })}
-      initialRouteName={auth ? PAGE_NAMES.main : PAGE_NAMES.login}
+      initialRouteName={auth ? isOkk ? PAGE_NAMES.okk : PAGE_NAMES.main : PAGE_NAMES.login}
     >
       {routes.map((item) => {
         const Component = item.component;

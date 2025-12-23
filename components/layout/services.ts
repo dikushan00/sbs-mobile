@@ -23,7 +23,7 @@ export const authRoutes = [
 
 const okkAuthRoutes = [
   {
-    name: PAGE_NAMES.main,
+    name: PAGE_NAMES.okk,
     component: OkkPage,
     options: { title: "Контроллер", withDesc: true, dynamicTitle: true },
   },
@@ -49,7 +49,7 @@ export const getAuthRoutes = (isOkk: boolean) => {
         (route) => route.name !== PAGE_NAMES.main
       );
       return sortArrayToFirstPlace(
-        [...routes, ...okkAuthRoutes],
+        [...routes, ...okkAuthRoutes, ...mastersAuthRoutes],
         "name",
         PAGE_NAMES.main
       );

@@ -67,10 +67,10 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     return () => loop.stop();
   }, [aiBgAnim]);
 
-  const aiBgColor = aiBgAnim.interpolate({
+  const aiBgColor = useMemo(() => aiBgAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [COLORS.primaryLight, COLORS.primary, COLORS.primaryLight],
-  });
+  }), [aiBgAnim]);
 
   const fetchMaterials = useCallback(async () => {
     if (!projectEntranceId) return;
@@ -332,12 +332,6 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
             : !loading && <NotFound title='Данные не найдены' />
         }
       </ScrollView>
-      {/* <AnimatedTouchableOpacity
-        style={[styles.aiFloatingButton, { backgroundColor: aiBgColor }]}
-        onPress={handleOpenAIChat}
-      >
-        <Icon name="aiAssistant" width={28} height={28} fill={COLORS.lightWhite} />
-      </AnimatedTouchableOpacity> */}
       <View style={styles.fixedButtonContainer}>
         <CustomButton
           title="Заказать материал"
@@ -352,6 +346,24 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
             <Text style={styles.errorText}>Не удалось загрузить данные о материалах</Text>
           </View>
       }
+
+      {/* AI Floating Button - moved outside conditional to preserve animation */}
+      {__DEV__ && (
+        <View 
+          style={[
+            styles.aiFloatingButtonWrapper,
+            { opacity: materialsData && !loading ? 1 : 0 }
+          ]}
+          pointerEvents={materialsData && !loading ? 'auto' : 'none'}
+        >
+          <AnimatedTouchableOpacity
+            style={[styles.aiFloatingButton, { backgroundColor: aiBgColor }]}
+            onPress={handleOpenAIChat}
+          >
+            <Icon name="aiAssistant" width={28} height={28} fill={COLORS.lightWhite} />
+          </AnimatedTouchableOpacity>
+        </View>
+      )}
 
       {/* Animated AI Chat Overlay */}
       {aiChatVisible && (
@@ -449,10 +461,12 @@ const styles = StyleSheet.create({
   orderButton: {
     backgroundColor: COLORS.primary,
   },
-  aiFloatingButton: {
+  aiFloatingButtonWrapper: {
     position: 'absolute',
     bottom: 82,
     right: 20,
+  },
+  aiFloatingButton: {
     width: 56,
     height: 56,
     borderRadius: 28,

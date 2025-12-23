@@ -6,13 +6,9 @@ import { CustomLoader } from "../common/CustomLoader";
 import { useSnackbar } from "../snackbar/SnackbarContext";
 import styles from "./login.style";
 import { requestNewPassword } from "./services";
-import { useDispatch } from "react-redux";
-import { showBottomDrawer } from "@/services/redux/reducers/app";
-import { BOTTOM_DRAWER_KEYS } from "../BottomDrawer/constants";
 import LogoBlue from "@/assets/images/logo_blue.svg";
 
 export const ForgetPasswordForm = () => {
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const { showErrorSnackbar, showSuccessSnackbar } = useSnackbar();
   const [formData, setFormData] = useState({ email: "" });
@@ -29,28 +25,14 @@ export const ForgetPasswordForm = () => {
     );
     if (!isAllFieldsFilled) return showErrorSnackbar("Заполните все поля!");
 
-    dispatch(
-      showBottomDrawer({
-        type: BOTTOM_DRAWER_KEYS.selectModule,
-        data: {
-          btnLabel: "Сбросить пароль",
-          modules: [
-            { type: "master", res: null },
-            { type: "okk", res: null },
-          ],
-          onSubmit: async () => {
-            setLoading(true);
-            const res = await requestNewPassword(formData);
-            setLoading(false);
-            if (!res) return;
-            showSuccessSnackbar(
-              "Новый пароль был отправлен на указанную почту"
-            );
-            navigation.navigate(PAGE_NAMES.login as never);
-          },
-        },
-      })
+    setLoading(true);
+    const res = await requestNewPassword(formData);
+    setLoading(false);
+    if (!res) return;
+    showSuccessSnackbar(
+      "Новый пароль был отправлен на указанную почту"
     );
+    navigation.navigate(PAGE_NAMES.login as never);
   };
 
   return (

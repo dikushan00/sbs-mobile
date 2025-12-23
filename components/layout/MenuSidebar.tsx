@@ -36,8 +36,7 @@ export const MenuSidebar = ({ navigation }: { navigation: any }) => {
     dispatch(logout());
   };
 
-  if(!isOkk)
-    return null
+  return null;
 
   return (
     <View

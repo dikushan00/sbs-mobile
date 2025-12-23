@@ -18,11 +18,17 @@ export const NotificationsProvider = () => {
   const notificationListener = useRef<Notifications.Subscription>(null);
   const responseListener = useRef<Notifications.Subscription>(null);
 
-  const goToPage = (page: PageNameKeysType, params = {}) => {
-    if (!page || !PAGE_NAMES[page]) return;
+  const goToPage = (page: PageNameKeysType | string, params = {}) => {
+    let targetPage = page;
+    // Redirect 'project' to 'main' (project tab is handled inside MainPage)
+    if (targetPage === 'project') {
+      targetPage = 'main';
+    }
+    if (!targetPage || !PAGE_NAMES[targetPage as PageNameKeysType]) return;
+    console.log(targetPage, params);
     navigation.navigate(
       //@ts-ignore
-      page as never,
+      targetPage as never,
       (params || {}) as never
     );
   };
@@ -57,6 +63,16 @@ export const NotificationsProvider = () => {
       responseListener.current && responseListener.current.remove();
     };
   }, []);
+
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data as any;
+      const { page, params } = data;
+      goToPage(page, params);
+    });
+  
+    return () => sub.remove();
+  }, [navigation]);
 
   return null;
 };

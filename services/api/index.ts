@@ -45,7 +45,6 @@ export const instance = (
   axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
-      // console.log("_error", error.response, error);
       const originalRequest = error.config;
       if (
         showSnackbar &&
@@ -57,6 +56,7 @@ export const instance = (
         const defaultMessage = error.response?.status
           ? `${error.response?.status}, ${error?.response?.statusText}`
           : "Ошибка";
+        // console.log("_error", message, defaultMessage);
         Toast.show({
           type: "error",
           text1: message || defaultMessage,
