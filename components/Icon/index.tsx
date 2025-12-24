@@ -47,6 +47,18 @@ import Calendar from "@/assets/icons/calendar.svg";
 import Profile from "@/assets/icons/profile.svg";
 import Microphone from "@/assets/icons/microphone.svg";
 import AiAssistant from "@/assets/icons/ai-assistant.svg";
+import Apartment from "@/assets/icons/apartment.svg";
+import CalendarAdd from "@/assets/icons/calendar_add.svg";
+import DocSign from "@/assets/icons/doc_sign.svg";
+import EditLine from "@/assets/icons/edit_line.svg";
+import Handshake from "@/assets/icons/handshake.svg";
+import Money2 from "@/assets/icons/money2.svg";
+import NoteStar from "@/assets/icons/note_star.svg";
+import Plan from "@/assets/icons/plan.svg";
+import Resident from "@/assets/icons/resident.svg";
+import Shipping from "@/assets/icons/shipping.svg";
+import UserCheck from "@/assets/icons/user_check.svg";
+import User from "@/assets/icons/user.svg";
 import { ViewStyle } from "react-native";
 
 const icons = {
@@ -99,6 +111,18 @@ const icons = {
   documentPen: DocumentPen,
   microphone: Microphone,
   aiAssistant: AiAssistant,
+  apartment: Apartment,
+  calendarAdd: CalendarAdd,
+  docSign: DocSign,
+  editLine: EditLine,
+  handshake: Handshake,
+  money2: Money2,
+  noteStar: NoteStar,
+  plan: Plan,
+  resident: Resident,
+  shipping: Shipping,
+  userCheck: UserCheck,
+  user: User,
 };
 
 type IconKeysType = keyof typeof icons;
