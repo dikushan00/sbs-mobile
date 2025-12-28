@@ -20,6 +20,7 @@ import { ProjectType } from "../pages/project/services/types";
 import { CustomLoader } from "../common/CustomLoader";
 import { OuraFab } from "./OuraFab";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { Icon } from "../Icon";
 
 export const MainPage = () => {
   const dispatch = useDispatch();
@@ -164,24 +165,34 @@ export const MainPage = () => {
       
       <View style={styles.projectDetails}>
         <View style={styles.projectTypeContainer}>
-          <Text style={styles.detailText}>Тип проекта: </Text>
-          <View style={[styles.projectTypeBadge, { backgroundColor: getProjectTypeColor(project.project_type_name) }]}>
-            <Text style={styles.projectTypeText}>{project.project_type_name}</Text>
+          <Icon name = "noteStar" width={14} height={14} fill={COLORS.primarySecondary} />
+          <Text style={styles.projectTypeText}>{project.project_type_name}</Text>
+        </View>
+        <View style={styles.blocksRow}>
+          <Icon name="residentCloud" width={14} height={14} fill={COLORS.primarySecondary} />
+          {project?.blocks && (
+            <View style={styles.blocksList}>
+              {project.blocks.split(' / ').map((block, index) => {
+                const entranceNumber = block.trim().split(' ')[0];
+                const blockName = block.trim().split(' ')[1];
+                return (<View key={index} style={styles.blockBadge}>
+                  <Text style={styles.blockIndex}>{entranceNumber}</Text>
+                  <Text style={styles.blockText}>{blockName}</Text>
+                </View>)
+              })}
+            </View>
+          )}
+        </View>
+        <View style={styles.dateRow}>
+          <View style={styles.dateBadge}>
+            <Icon name="calendar2" width={14} height={14} fill={COLORS.primarySecondary} />
+            <Text style={styles.detailTextValue}>{project.start_date}</Text>
+          </View>
+          <View style={styles.dateBadge}>
+            <Icon name="calendar2" width={14} height={14} fill={COLORS.primarySecondary} />
+            <Text style={styles.detailTextValue}>{project.finish_date}</Text>
           </View>
         </View>
-        <View style={styles.blocksContainer}>
-          <Text style={styles.detailText}>Подъезды: </Text>
-          <View style={styles.blocksList}>
-            {project.blocks?.split(' / ').map((block, index) => (
-              <View key={index} style={styles.blockBadge}>
-                <Text style={styles.blockText}>{block.trim()}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        <Text style={styles.detailText}>
-          Период: <Text style={styles.detailTextValue}>{project.start_date} - {project.finish_date}</Text>
-        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -301,15 +312,19 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   projectTypeText: {
-    fontSize: SIZES.small,
-    fontFamily: FONT.medium,
-    color: COLORS.white,
+    fontSize: 16,
+    color: '#242424',
   },
   blocksContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     flexWrap: 'wrap',
+  },
+  blocksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
   },
   blocksList: {
     flexDirection: 'row',
@@ -318,10 +333,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   blockBadge: {
-    backgroundColor: '#E9ECEF',
-    paddingHorizontal: 8,
+    paddingHorizontal: 2,
     paddingVertical: 4,
     borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   blockText: {
     fontSize: SIZES.small,
@@ -337,5 +354,25 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 16,
     backgroundColor: '#fff',
+  },
+  blockIndex: {
+    fontSize: 12,
+    fontFamily: FONT.medium,
+    color: '#242424',
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 5,
+    paddingVertical: 0,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  dateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
 });

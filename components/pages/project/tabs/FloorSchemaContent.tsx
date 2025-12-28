@@ -157,6 +157,7 @@ export const FloorSchemaContent = ({ onBack, selectedData }: FloorSchemaContentP
             setEntranceInfo(data)
           }}
         selectedData={selectedData}
+        projectId={selectedData.project_id}
       />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Выберите этаж</Text>

@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceDocumentFloors, getPlacementTypes, getEntrancePayments } from '@/components/main/services';
+import { getEntranceDocumentFloors, getPlacementTypes, getEntrancePayments, getProjectEntrances } from '@/components/main/services';
 import { PlacementType, ProjectFiltersType, ProjectPaymentType, SelectedDataType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
-import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
-import { showBottomDrawer } from '@/services/redux/reducers/app';
-import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { numberWithCommas } from '@/utils';
 import { NotFound } from '@/components/common/NotFound';
@@ -22,10 +18,8 @@ interface PaymentsTabProps {
 }
 
 export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, project_id, selectedData }) => {
-  const dispatch = useDispatch();
   const [paymentsData, setPaymentsData] = useState<ProjectPaymentType[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [placementTypes, setPlacementTypes] = useState<PlacementType[]>([]);
   const [floors, setFloors] = useState<SimpleFloorType[]>([]);
   const [localFilters, setLocalFilters] = useState({
@@ -33,6 +27,22 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
     floor: null as number | null,
     project_entrance_id: 'ALL' as number | 'ALL' | null,
   });
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      const [entrancesData] = await Promise.all([
+        selectedData.project_id ? getProjectEntrances(selectedData.project_id) : null ,
+      ]);
+      if(entrancesData) {
+        if(entrancesData?.length) {
+          setLocalFilters(prev => ({...prev, project_entrance_id: entrancesData[0].project_entrance_id}))
+          const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: entrancesData[0].project_entrance_id})
+          setFloors(floorsData || []);
+        }
+      }
+    };
+    fetchInitialData();
+  }, [selectedData.project_id]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -62,7 +72,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
   const getStatusColour = (status_code: string) => {
     switch (status_code) {
       case 'PAYED':
-        return '#35E744';
+        return '#13A10E';
       case 'AWAITING_PAYMENT':
         return '#F6BA30';
       case 'CANCEL':
@@ -70,29 +80,6 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
       default:
         return COLORS.primary;
     }
-  }
-
-  const toggleExpanded = (itemId: number) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(itemId)) {
-      newExpanded.delete(itemId);
-    } else {
-      newExpanded.add(itemId);
-    }
-    setExpandedItems(newExpanded);
-  };
-
-  const handleMoreActions = (payment: ProjectPaymentType) => {
-    dispatch(showBottomDrawer({
-      type: BOTTOM_DRAWER_KEYS.paymentActions,
-      data: {
-        payment,
-        onSubmit: (res: ProjectPaymentType[]) => {
-          if(!res) return
-          setPaymentsData(res);
-        }
-      }
-    }))
   };
 
   const totalColSum = paymentsData?.reduce((sum, item) => sum + item.col_sum, 0) || 0;
@@ -125,7 +112,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
         selectedEntranceId={localFilters.project_entrance_id}
         onSelectEntrance={(value) => onEntranceChange(value)}
         selectedData={selectedData}
-        selectDefaultEntrance={false}
+        projectId={selectedData.project_id}
       />
       <View style={styles.selectsContainer}>
         <View style={styles.selectWrapper}>
@@ -137,6 +124,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
             value={localFilters.floor}
             placeholder="Этаж" alt
             emptyListMessage={!localFilters.project_entrance_id || localFilters.project_entrance_id === 'ALL' ? 'Выберите подъезд' : 'Этажи не найдены'}
+            style={{height: 36, paddingVertical: 5}}
           />
         </View>
         <View style={styles.selectWrapper}>
@@ -147,6 +135,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
             onChange={(value) => setLocalFilters(prev => ({ ...prev, placement_type_id: value }))}
             value={localFilters.placement_type_id}
             placeholder="Тип" alt
+            style={{height: 36, paddingVertical: 5}}
           />
         </View>
       </View>
@@ -173,74 +162,76 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
             ? <View style={styles.accordionContainer}>
             
             {paymentsData?.map((item, i) => {
-            const isExpanded = expandedItems.has(item.remont_costs_id);
             return (
-                <View key={item.remont_costs_id + '-' + i} style={styles.materialContainer}>
-                  <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
-                <Text style={styles.materialName}>{item.work_set_check_group_name}</Text>
-                {/* <TouchableOpacity 
-                  style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
-                  onPress={() => handleMoreActions(item)}
-                >
-                  <Icon name='more' width={16} height={16} />
+              <View key={item.remont_costs_id + '-' + i} style={styles.paymentCard}>
+                {/* Заголовок - название работ */}
+                <Text style={styles.paymentTitle}>{item.work_set_check_group_name}</Text>
+                
+                {/* Строка с тегами и статусом */}
+                <View style={styles.tagsRow}>
+                  <View style={styles.tagsContainer}>
+                    <View style={styles.tagItem}>
+                      <Icon name="plan" width={12} height={12} fill={'#242424'} />
+                      <Text style={styles.tagLabel}>{item.floor}</Text>
+                    </View>
+                    <View style={styles.tagItem}>
+                      <Icon name="residentCloud" width={12} height={12} fill={'#242424'} />
+                      <Text style={styles.tagLabel}>{item.block_name}</Text>
+                    </View>
+                    <View style={styles.tagItem}>
+                      <Icon name="apartment" width={12} height={12} />
+                      <Text style={styles.tagLabel}>{item.placement_type_name}</Text>
+                    </View>
+                  </View>
+                  <View style={[styles.statusBadge, { backgroundColor: getStatusColour(item.status_code) }]}>
+                    <Text style={styles.statusText}>{item.status_name}</Text>
+                  </View>
+                </View>
+                
+                {/* Строка контрагента */}
+                <View style={styles.contragentRow}>
+                  <Icon name="handshake" width={12} height={12} fill={COLORS.primarySecondary} />
+                  <Text style={styles.contragentText}>{item.contragent}</Text>
+                </View>
+                
+                {/* Две колонки: Работа и Платёж */}
+                <View style={styles.columnsContainer}>
+                  {/* Левая колонка - Работа */}
+                  <View style={styles.column}>
+                    <Text style={styles.columnLabel}>Работа</Text>
+                    <View style={styles.columnValue}>
+                      <Icon name="money2" width={12} height={12} fill={COLORS.primarySecondary} />
+                      <Text style={styles.columnValueText}>{numberWithCommas(item.col_sum)} ₸</Text>
+                    </View>
+                    <View style={styles.columnValue}>
+                      <Icon name="calendar2" width={12} height={12} fill={COLORS.primarySecondary} />
+                      <Text style={styles.columnValueText}>{item.date_create}</Text>
+                      <Text style={{color: COLORS.gray, fontSize: SIZES.small, marginLeft: 5}}>Создано</Text>
+                    </View>
+                  </View>
+                  
+                  {/* Разделитель */}
+                  <View style={styles.columnDivider} />
+                  
+                  {/* Правая колонка - Платёж */}
+                  <View style={styles.column}>
+                    <Text style={styles.columnLabel}>Платёж</Text>
+                    <View style={styles.columnValue}>
+                      <Icon name="money2" width={12} height={12} fill={COLORS.primarySecondary} />
+                      <Text style={styles.columnValueText}>{numberWithCommas(item.payment_amount)} ₸</Text>
+                    </View>
+                    <View style={styles.columnValue}>
+                      <Icon name="calendar2" width={12} height={12} fill={COLORS.primarySecondary} />
+                      <Text style={styles.columnValueText}>{item.date_payment}</Text>
+                    </View>
+                  </View>
+                </View>
+                
+                {/* Кнопка скачать */}
+                {/* <TouchableOpacity style={styles.downloadButton}>
+                  <Text style={styles.downloadText}>Скачать</Text>
+                  <Icon name="downloadAlt" width={14} height={14} fill={COLORS.primarySecondary} />
                 </TouchableOpacity> */}
-                </View>
-                <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.status_code)}}>
-                  <Text style={{color: COLORS.white}}>{item.status_name}</Text>
-                </View>
-                <View style={{marginTop: 15}}>
-                  <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
-                    <ValueDisplay label='Контрагент' value={item.contragent} />
-                      <ValueDisplay label='Сумма платежа, ₸' value={`${numberWithCommas(item.payment_amount)}`} />
-                    {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
-                      style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
-                      onPress={() => toggleExpanded(item.remont_costs_id)}
-                    >
-                      <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
-                      <Icon 
-                        name={"arrowDownColor"} 
-                        width={13} 
-                        height={13} 
-                        fill={COLORS.primaryLight}
-                      />
-                    </TouchableOpacity>}
-                  </View>
-                </View>
-                {isExpanded && (
-                  <View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
-                      <ValueDisplay label='Сумма работ, ₸' value={`${numberWithCommas(item.col_sum)}`} />
-                      <ValueDisplay label='Дата платежа' value={`${item.date_payment}`} />
-                      <View style={{width: 85}}></View>
-                    </View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
-                      <ValueDisplay label='Этаж' value={`${item.floor}`} />
-                      <ValueDisplay label='Тип' value={item.placement_type_name} />
-                      <View style={{width: 85}}></View>
-                    </View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
-                      <ValueDisplay label='Блок' value={`№${item.block_name}`} />
-                      <ValueDisplay label='Дата cоздания' value={`${item.date_create}`} />
-                      <View style={{width: 85}}></View>
-                    </View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                      <ValueDisplay label='АВР инфо' value={item.avr_info} />
-                      <TouchableOpacity 
-                        style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                        onPress={() => toggleExpanded(item.remont_costs_id)}
-                      >
-                        <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
-                        <Icon 
-                          name={"arrowDownColor"} 
-                          width={13} 
-                          height={13} 
-                          fill={COLORS.primaryLight}
-                          style={{ transform: [{ rotate: '180deg' }] }}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
               </View>
             );
           })}
@@ -278,28 +269,6 @@ const styles = StyleSheet.create({
   accordionContainer: {
     marginTop: 10,
   },
-  statusContainer: {
-    padding: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    backgroundColor: COLORS.primary,
-    alignSelf: 'flex-start',
-    marginTop: 15
-  },
-  materialContainer: {
-    padding: 15,
-    borderRadius: 10,
-    backgroundColor: COLORS.white,
-    marginBottom: 10,
-  },
-  materialName: {
-    flex: 1,
-    fontSize: SIZES.regular,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-    lineHeight: 20,
-    flexWrap: 'wrap',
-  },
   selectsContainer: {
     flexDirection: 'row',
     gap: 15,
@@ -336,5 +305,108 @@ const styles = StyleSheet.create({
     fontSize: SIZES.regular,
     fontFamily: FONT.medium,
     color: COLORS.black,
+  },
+  // Новые стили для карточки платежа (variant2)
+  paymentCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+  },
+  paymentTitle: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.semiBold,
+    color: '#242424',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    gap: 12,
+  },
+  tagItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  tagLabel: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.medium,
+    color: '#242424',
+  },
+  statusBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+  statusText: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.medium,
+    color: COLORS.white,
+  },
+  contragentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  contragentText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: '#242424',
+  },
+  columnsContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 16,
+    marginBottom: 12,
+  },
+  column: {
+    flex: 1,
+  },
+  columnLabel: {
+    fontSize: 10,
+    fontFamily: FONT.regular,
+    color: COLORS.gray,
+    marginBottom: 8,
+  },
+  columnValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  columnValueText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: '#242424',
+  },
+  columnDivider: {
+    width: 1,
+    backgroundColor: '#D1D1D1',
+    borderRadius: 1,
+    height: 40,
+    marginBottom: 7
+  },
+  downloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  downloadText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: COLORS.primarySecondary,
   },
 });

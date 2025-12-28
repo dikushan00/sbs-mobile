@@ -59,7 +59,11 @@ import Resident from "@/assets/icons/resident.svg";
 import Shipping from "@/assets/icons/shipping.svg";
 import UserCheck from "@/assets/icons/user_check.svg";
 import User from "@/assets/icons/user.svg";
+import Calendar2 from "@/assets/icons/calendar2.svg";
+import ResidentCloud from "@/assets/icons/resident_cloud.svg";
 import { ViewStyle } from "react-native";
+import TrashOutline from "@/assets/icons/trash_outline.svg";
+import Document2 from "@/assets/icons/document2.svg";
 
 const icons = {
   download: Download,
@@ -90,6 +94,7 @@ const icons = {
   payment: Payment,
   document: Document,
   documentAlt: DocumentAlt,
+  document2: Document2,
   flag: Flag,
   flagTime: FlagTime,
   work: Work,
@@ -123,6 +128,9 @@ const icons = {
   shipping: Shipping,
   userCheck: UserCheck,
   user: User,
+  calendar2: Calendar2,
+  residentCloud: ResidentCloud,
+  trashOutline: TrashOutline,
 };
 
 type IconKeysType = keyof typeof icons;

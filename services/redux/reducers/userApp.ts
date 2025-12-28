@@ -7,12 +7,12 @@ import {
   getUserData,
 } from "@/services";
 import { storageService } from "@/services/storage";
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
 import { AppThunk, RootState } from "..";
 import { checkAuth, doLogin } from "../../../components/login/services";
-import { MenuItem, PageHeaderDataType, UserAppStateType } from "../types";
+import { MenuItem, PageHeaderDataType, UserAppStateType, UserTypeValue } from "../types";
 
 const initialState: UserAppStateType = {
   auth: false,
@@ -25,6 +25,7 @@ const initialState: UserAppStateType = {
   logoutLoading: false,
   userDataFetching: false,
   isOkk: false,
+  userType: 'individual',
 };
 const appSlice = createSlice({
   name: "userApp",
@@ -63,6 +64,9 @@ const appSlice = createSlice({
     setLoginData: (state, { payload }) => {
       state.loginData = payload;
     },
+    setUserType: (state, { payload }: PayloadAction<UserTypeValue>) => {
+      state.userType = payload;
+    },
     resetData: () => {
       return { ...initialState };
     },
@@ -79,6 +83,7 @@ export const {
   setLogoutLoading,
   setOkkData,
   setUserDataFetching,
+  setUserType,
 } = appSlice.actions;
 
 export type appStateType = ReturnType<typeof appSlice.reducer>;
@@ -91,7 +96,7 @@ export const getUserInfo = (): AppThunk => async (dispatch) => {
   dispatch(setUserDataFetching(false));
   if (!res) {
     const localData = await storageService.getData(STORAGE_KEYS.userData);
-    if (!localData || !localData) return;
+    if (!localData || !localData) return dispatch(setUserData({}));
     return dispatch(setUserData(localData));
   }
   dispatch(setUserData(res));
@@ -138,6 +143,9 @@ const login = (): AppThunk => async (dispatch) => {
 };
 
 export const checkUserAuth = (): AppThunk => async (dispatch, getState) => {
+  // Load user type from storage
+  dispatch(loadUserType());
+  
   const auth = await SecureStore.getItemAsync(STORE_KEYS.auth);
   if (auth !== "true") return;
   if (getState()?.userApp?.auth) return;
@@ -210,3 +218,19 @@ export const onSuccessOkkCheck =
     await updateOkkData("PROCESSING", editedOkkData);
     dispatch(setOkkData(editedOkkData || []));
   };
+
+export const changeUserType =
+  (userType: UserTypeValue): AppThunk =>
+  async (dispatch) => {
+    dispatch(setUserType(userType));
+    await storageService.setData(STORAGE_KEYS.userType, {userType});
+  };
+
+export const loadUserType = (): AppThunk => async (dispatch) => {
+  try {
+    const savedUserType = await storageService.getData(STORAGE_KEYS.userType);
+    if (savedUserType?.userType) {
+      dispatch(setUserType(savedUserType?.userType as UserTypeValue));
+    }
+  } catch (e) {}
+};

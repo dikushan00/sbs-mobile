@@ -45,6 +45,7 @@ export const WorkTab: React.FC<WorkTabProps> = ({ filters, selectedData }) => {
       selectedEntranceId={projectEntranceId}
       onSelectEntrance={setProjectEntranceId}
       selectedData={selectedData}
+      projectId={selectedData.project_id}
     />
       {
         loading 

@@ -19,9 +19,6 @@ export const authRoutes = [
     component: ProfilePage,
     options: { title: "Профиль" },
   },
-];
-
-const okkAuthRoutes = [
   {
     name: PAGE_NAMES.okk,
     component: OkkPage,
@@ -32,9 +29,6 @@ const okkAuthRoutes = [
     component: OkkPage,
     options: { title: "Контроллер", dynamicTitle: true, withDesc: true },
   },
-];
-
-const mastersAuthRoutes = [
   {
     name: PAGE_NAMES.main,
     component: MainPage,
@@ -42,29 +36,14 @@ const mastersAuthRoutes = [
   },
 ];
 
-export const getAuthRoutes = (isOkk: boolean) => {
+export const getAuthRoutes = () => {
   try {
-    if (isOkk) {
-      const routes = authRoutes.filter(
-        (route) => route.name !== PAGE_NAMES.main
-      );
-      return sortArrayToFirstPlace(
-        [...routes, ...okkAuthRoutes, ...mastersAuthRoutes],
-        "name",
-        PAGE_NAMES.main
-      );
-    }
     return sortArrayToFirstPlace(
-      [...authRoutes, ...mastersAuthRoutes],
+      [...authRoutes],
       "name",
       PAGE_NAMES.main
     );
   } catch (e) {
-    return sortArrayToFirstPlace(
-      [...authRoutes, ...mastersAuthRoutes],
-      "name",
-      PAGE_NAMES.main
-    );
   }
 };
 

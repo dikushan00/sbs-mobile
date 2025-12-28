@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { getFloorWorkSets } from '@/components/main/services';
-import { FloorMapWorkSetsResponseType, FloorMapWorkSetType, ProjectEntranceAllInfoType } from '@/components/main/types';
-import { BlockItem } from '@/components/common/BlockItem';
+import { FloorMapWorkSetsResponseType, FloorMapWorkSetType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
+import { CustomSelect } from '@/components/common/CustomSelect';
 import { WorkSetAccordion } from './WorksetAccordion';
-import { Icon } from '@/components/Icon';
 import { useDispatch } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';
 import { setPageHeaderData } from '@/services/redux/reducers/userApp';
@@ -29,29 +28,25 @@ export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id, onBack }
       const res = await getFloorWorkSets(floor_map_id);
       setLoading(false);
       setWorkSets(res || null);
+      // Выбираем первый элемент по умолчанию
+      if (res?.data?.length) {
+        setSelectedPlacement(res.data[0]);
+      }
     };
     getFloorWorkSetsData();
   }, [floor_map_id]);
 
   useEffect(() => {
-    if(selectedPlacement) {
-      dispatch(setPageSettings({goBack: () => setSelectedPlacement(null)}))
-    } else {
-      dispatch(setPageSettings({goBack: onBack}))
-      dispatch(
-        setPageHeaderData({
-          title: 'Вызок ОКК',
-        })
-      );
-    }
-  }, [selectedPlacement]);
+    dispatch(setPageSettings({goBack: onBack}))
+    dispatch(
+      setPageHeaderData({
+        title: 'Вызок ОКК',
+      })
+    );
+  }, []);
 
-  const handlePlacementSelect = (placement: FloorMapWorkSetType) => {
-    setSelectedPlacement(placement);
-  };
-
-  const handleBackToList = () => {
-    setSelectedPlacement(null);
+  const handlePlacementSelect = (id: number | null, item: FloorMapWorkSetType | null) => {
+    setSelectedPlacement(item);
   };
 
   const handleWorkSetsUpdate = (updatedWorkSets: FloorMapWorkSetsResponseType) => {
@@ -91,41 +86,29 @@ export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id, onBack }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {(selectedPlacement) ? (
+      <View style={styles.selectContainer}>
+        <CustomSelect
+          list={workSets?.data || []}
+          onChange={handlePlacementSelect}
+          value={selectedPlacement?.placement_type_id}
+          valueKey="placement_type_id"
+          labelKey="placement_type_name"
+          placeholder="Тип помещения"
+          label="" alt
+          style={{height: 40}}
+        />
+      </View>
+      {selectedPlacement ? (
         <WorkSetAccordion
           floor_map_id={floor_map_id}
           placement={selectedPlacement}
-          onBack={handleBackToList}
+          onBack={() => setSelectedPlacement(null)}
           setWorkSets={handleWorkSetsUpdate}
         />
       ) : (
-        <>
-          <View style={styles.accordionContainer}>
-            {workSets?.data.map((placementType) => {
-              const showContent = !!placementType.placement_okk_status_colours?.length
-              return (
-                <BlockItem  
-                  key={placementType.placement_type_id}
-                  title={placementType.placement_type_name}
-                  onPress={() => handlePlacementSelect(placementType)}
-                  blockMode={false}
-                  renderContent={showContent ? () => <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-                    {
-                      placementType.is_defect_exist && <Icon name='info' fill='red' />
-                    }
-                    {
-                      placementType.placement_okk_status_colours?.map(item => {
-                        return (
-                          <Icon key={item} name="flagTime" width={16} height={16} fill={item || '#000'} />
-                        )
-                      })
-                    }
-                  </View> : undefined}
-                />
-              )
-            })}
-          </View>
-        </>
+        <View style={styles.hintContainer}>
+          <Text style={styles.hintText}>Выберите помещение, чтобы увидеть данные</Text>
+        </View>
       )}
     </ScrollView>
   );
@@ -134,6 +117,10 @@ export const WorksetTab: React.FC<MaterialsTabProps> = ({ floor_map_id, onBack }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  selectContainer: {
+    paddingHorizontal: 5,
+    paddingBottom: 10,
   },
   loadingContainer: {
     flex: 1,
@@ -156,13 +143,15 @@ const styles = StyleSheet.create({
     color: COLORS.gray,
     textAlign: 'center',
   },
-  accordionContainer: {
+  hintContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 24,
+    alignItems: 'center',
   },
-  accordionTitle: {
-    fontSize: 17,
+  hintText: {
+    fontSize: SIZES.medium,
     fontFamily: FONT.regular,
-    color: COLORS.black,
-    marginBottom: 10,
-    marginTop: 10
+    color: COLORS.gray,
+    textAlign: 'center',
   },
 });

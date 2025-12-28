@@ -1,5 +1,5 @@
 import { NotificationsResponse } from "@/components/pages/notifications/services";
-import { STORAGE_KEYS } from "@/constants";
+import { STORAGE_KEYS, UserTypeValue } from "@/constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MenuItem, OfflineActionType, UserDataType } from "./redux/types";
 import {
@@ -16,6 +16,7 @@ type StorageDataMap = {
   [STORAGE_KEYS.userData]: UserDataType | null;
   [STORAGE_KEYS.offlineActions]: OfflineActionType[] | null;
   [STORAGE_KEYS.notifications]: NotificationsResponse[] | null;
+  [STORAGE_KEYS.userType]: {userType: UserTypeValue} | null;
 };
 
 export const storageService = (function () {
@@ -87,6 +88,7 @@ export const storageService = (function () {
       offlineActions: null,
       notifications: null,
       checkListPoints: null,
+      userType: null,
     };
     await Promise.all(
       Object.keys(STORAGE_KEYS).map(async (key) => {

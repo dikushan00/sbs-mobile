@@ -2,11 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl, Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import { COLORS, FONT, mobileSignUrl, SIZES } from '@/constants';
-import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, signEntranceDocument, getResidentialEntrances } from '@/components/main/services';
+import { COLORS, FONT, mobileSignUrl, mobileSignBusinessUrl, SIZES } from '@/constants';
+import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, signEntranceDocument, getProjectEntrances } from '@/components/main/services';
 import { DocumentTypeType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectMainDocumentType, SelectedDataType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
-import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
 import { closeBottomDrawer, showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
@@ -25,11 +24,11 @@ interface DocumentsTabProps {
 
 export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isSBS, selectedData }) => {
   const dispatch = useDispatch();
-  const { userData } = useSelector(userAppState);
+  const { userData, userType } = useSelector(userAppState);
+  const egovSignUrl = userType === 'business' ? mobileSignBusinessUrl : mobileSignUrl;
   const [documentsData, setDocumentsData] = useState<ProjectMainDocumentType[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<Record<number, boolean>>({});
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [floorsData, setFloorsData] = useState<SimpleFloorType[]>([]);
   const [documentTypesData, setDocumentTypesData] = useState<DocumentTypeType[]>([]);
   const [localFilters, setLocalFilters] = useState({
@@ -37,15 +36,13 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     floor: null as any,
     floor_map_document_type_id: null as any
   });
-  const [, setEntrances] = useState<ProjectEntranceAllInfoType[]>([]);
 
   const fetchInitialData = useCallback(async () => {
     const [entrancesData, documentTypes] = await Promise.all([
-      getResidentialEntrances(filters),
+      selectedData.project_id ? getProjectEntrances(selectedData.project_id) : null,
       getEntranceDocumentTypes()
     ]);
     if (entrancesData) {
-      setEntrances(entrancesData);
       if(entrancesData?.length) {
         setLocalFilters(prev => ({...prev, project_entrance_id: entrancesData[0].project_entrance_id}))
         const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: entrancesData[0].project_entrance_id})
@@ -55,7 +52,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     if (documentTypes) {
       setDocumentTypesData(documentTypes);
     }
-  }, [filters]);
+  }, [filters, selectedData.project_id]);
 
   const fetchDocuments = useCallback(async () => {
     if(!localFilters.project_entrance_id) return;
@@ -83,9 +80,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
       if (!url) return;
 
       try {
-        const { path, queryParams } = ExpoLinking.parse(url);
-        const route = path || '';
-        console.log(route, queryParams)
+        const { queryParams } = ExpoLinking.parse(url);
 
         if (queryParams?.status === 'success') {
           // Показываем модалку/алерт об успешном подписании
@@ -140,16 +135,6 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     }
   }
 
-  const toggleExpanded = (itemId: number) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(itemId)) {
-      newExpanded.delete(itemId);
-    } else {
-      newExpanded.add(itemId);
-    }
-    setExpandedItems(newExpanded);
-  };
-
   const handleMoreActions = (document: ProjectMainDocumentType) => {
     dispatch(showBottomDrawer({
       type: BOTTOM_DRAWER_KEYS.documentActions,
@@ -178,7 +163,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
   const confirmSign = async (floor_map_document_id: number) => {
     const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${floor_map_document_id}&type=document&user=${userData?.employee_id}`)
 
-    const link = `${mobileSignUrl}?link=${apiUrl}`
+    const link = `${egovSignUrl}?link=${apiUrl}`
     await Linking.openURL(link);
     return
     if (processing[floor_map_document_id]) return;
@@ -209,10 +194,9 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
       </View>
     );
   }
-
+  
   const onEntranceChange = async (value: string | number | null, row: ProjectEntranceAllInfoType | null) => {
-    setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
-
+    setLocalFilters(prev => ({ ...prev, project_entrance_id: value, floor: null, floor_map_document_type_id: null }))
 
     const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: value as number})
     setFloorsData(floorsData || []);
@@ -225,6 +209,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
           onEntranceChange(value, data)
         }}
         selectedData={selectedData}
+        projectId={selectedData.project_id}
       />
       <View style={styles.selectsContainer}>
         <View style={styles.selectWrapper}>
@@ -237,6 +222,8 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
             placeholder="Этаж" alt 
             style={{height: 36, paddingVertical: 5}}
             textStyles={{fontSize: 14}}
+            showResetBtn
+            showSearch={false}
           />
         </View>
         <View style={styles.selectWrapper}>
@@ -263,7 +250,6 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
           documentsData?.length 
             ? <View style={styles.accordionContainer}>
             {documentsData?.map((item) => {
-            const isExpanded = expandedItems.has(item.floor_map_document_id);
             const show1cInfo = isSBS && item.is_avr_sent_bi && (item.guid || item.esf_status || item.avr_code || item.error)
 
             const canSign = !!item?.assign_signs?.find((signatory) => !signatory.is_signed && signatory.can_sign)
@@ -273,14 +259,26 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
               <View key={item.floor_map_document_id} style={styles.materialContainer}>
                 <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
                   <Text style={styles.materialName}>{item.floor_map_document_type_name}</Text>
-                  <TouchableOpacity 
-                    style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
-                    onPress={() => handleMoreActions(item)}
-                  >
-                    <Icon name='more' width={16} height={16} />
+                  <TouchableOpacity style={{padding: 5, backgroundColor: COLORS.grayLight, borderRadius: 100}} onPress={() => handleMoreActions(item)}>
+                    <Icon name='more' width={16} height={16} fill={COLORS.primarySecondary} />
                   </TouchableOpacity>
                 </View>
-                <View style={{flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 15, justifyContent: 'space-between'}}>
+                <View style={styles.dateStatusRow}>
+                  <View style={styles.dateBadge}>
+                    <Icon name="plan" width={14} height={14} fill={'#242424'} />
+                    <Text style={styles.dateText}>{item.floor}</Text>
+                  </View>
+                  <View style={styles.dateBadge}>
+                    <Icon name="residentCloud" width={14} height={14} fill={'#242424'} />
+                    <Text style={styles.dateText}>{item.block_name}</Text>
+                  </View>
+                  <View style={styles.dateBadge}>
+                    <Icon name="apartment" width={14} height={14} />
+                    <Text style={styles.dateText}>{item.placement_type_name}</Text>
+                  </View>
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 15, justifyContent: 'space-between'}}>
+
                   <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.is_signed, userSigned)}}>
                     <Text style={{color: COLORS.white}}>{item.is_signed ? 'Подписано' : userSigned ? 'Ожидание других подписантов' : 'На подписании'}</Text>
                   </View>
@@ -295,67 +293,50 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
                           <Text style={styles.notSentText}>Не отправлено в 1С</Text>
                         </View>
                   }
-                  {
+                  {/* {
                     !item.is_signed && !item.is_avr_sent_bi && canSign && 
                     <TouchableOpacity onPress={() => handleSign(item)} disabled={processing[item.floor_map_document_id]} style={{backgroundColor: COLORS.primary, borderRadius: 6, padding: 7, paddingHorizontal: 10}}>
                       <Text style={{color: "#fff"}}>Подписать</Text>
                     </TouchableOpacity>
-                  }
+                  } */}
                   {
                     !item.is_signed && userSigned && 
                     <View style={{paddingVertical: 5, backgroundColor: COLORS.green, borderRadius: 6, paddingHorizontal: 10}}>
-                      <Text style={{color: "white"}}>Подписан</Text>
+                      <Text style={{color: "white"}}>Подписанты</Text>
                     </View>
                   }
                 </View>
-                <View style={{marginTop: 15}}>
-                  <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
-                    <ValueDisplay style={{minWidth: 40}} label='Группа работ' value={isExpanded ? item.work_set_check_group_name : item.work_set_check_group_short_name } />
-                    <ValueDisplay label='Тип' value={item.placement_type_name} />
-                    {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
-                      style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
-                      onPress={() => toggleExpanded(item.floor_map_document_id)}
-                    >
-                      <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
-                      <Icon 
-                        name={"arrowDownColor"} 
-                        width={13} 
-                        height={13} 
-                        fill={COLORS.primaryLight}
-                      />
-                    </TouchableOpacity>}
-                  </View>
-                </View>
-                {isExpanded && (
+                
                   <View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
-                      <ValueDisplay label='ID' value={item.floor_map_document_id} />
-                      <ValueDisplay label='Дата создания' value={item.date_create} />
-                      <View style={{width: 85}}></View>
+                    <View style={{flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 10}}>
+                      <Icon name="document2" width={16} height={16} />
+                      <Text style={styles.documentName}>{item.work_set_check_group_name}</Text>
                     </View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
-                      <ValueDisplay label='Блок' value={`${item.block_name}`} />
-                      <ValueDisplay label='Этаж' value={`${item.floor}`} />
-                      <View style={{width: 85}}></View>
+                    <View style={{flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 10}}>
+                    <View style={{ gap: 10, width: '50%' }}>
+                      <View style={{flexDirection: 'row', alignItems: 'center', gap: 5}}>
+                        <Text style={styles.documentIdText}>ID</Text>
+                        <Text>{item.floor_map_document_id}</Text>
+                      </View>
+                      <View style={{flexDirection: 'row', alignItems: 'center', gap: 5}}>
+                        <Icon name="calendar2" width={16} height={16} fill={COLORS.primarySecondary} />
+                        <Text>{item.date_begin}</Text>
+                      </View>
                     </View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                      <ValueDisplay label='Дата начала' value={`${item.date_begin}`} />
-                      <ValueDisplay label='Дата окончания' value={`${item.date_end}`} />
-                      {show1cInfo ? <View style={{width: 85}}></View> : <TouchableOpacity 
-                        style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                        onPress={() => toggleExpanded(item.floor_map_document_id)}
-                      >
-                        <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
-                        <Icon 
-                          name={"arrowDownColor"} 
-                          width={13} 
-                          height={13} 
-                          fill={COLORS.primaryLight}
-                          style={{ transform: [{ rotate: '180deg' }] }}
-                        />
-                      </TouchableOpacity> }
+                    <View style={{ gap: 10, width: '50%' }}>
+                      <View style={{flexDirection: 'row', alignItems: 'center', gap: 5}}>
+                        <Icon name="calendarAdd" width={16} height={16} fill={COLORS.primarySecondary} />
+                        <Text>{item.date_create}</Text>
+                        <Text style={{color: COLORS.gray, fontSize: SIZES.small}}>Создано</Text>
+                      </View>
+                      <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 5, paddingRight: 10}}>
+                        <View style={{flexDirection: 'row', alignItems: 'center', gap: 5}}>
+                          <Icon name="calendar2" width={16} height={16} fill={COLORS.primarySecondary} />
+                          <Text>{item.date_end}</Text>
+                        </View>
+                      </View>
                     </View>
-                    
+                    </View>
                     {show1cInfo && (
                       <View style={styles.sbsInfoContainer}>
                         {item.guid && (
@@ -381,25 +362,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
                         )}
                       </View>
                     )}
-                    {
-                      show1cInfo && <View style={{flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end',  marginTop: 15}}>
-                        <TouchableOpacity 
-                          style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                          onPress={() => toggleExpanded(item.floor_map_document_id)}
-                        >
-                          <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
-                          <Icon 
-                            name={"arrowDownColor"} 
-                            width={13} 
-                            height={13} 
-                            fill={COLORS.primaryLight}
-                            style={{ transform: [{ rotate: '180deg' }] }}
-                          />
-                        </TouchableOpacity>
-                    </View>
-                    }
                   </View>
-                )}
               </View>
             );
           })}
@@ -532,5 +495,33 @@ const styles = StyleSheet.create({
     fontSize: SIZES.small,
     fontFamily: FONT.medium,
     color: COLORS.red,
+  },
+  dateStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 10,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 5,
+    marginTop: 10,
+    alignSelf: 'flex-start',
+  },
+  dateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dateText: {
+    fontSize: 12,
+    fontFamily: FONT.medium,
+    color: '#242424',
+  },
+  documentName: {
+  },
+  documentIdText: {
+    fontSize: SIZES.regular,
+    color: COLORS.primarySecondary,
   },
 });

@@ -53,6 +53,8 @@ export type UserDataType = {
   token: string;
   token_url: string;
 };
+export type UserTypeValue = 'individual' | 'business';
+
 export interface UserAppStateType {
   auth: boolean;
   loginData: { token: { access: string; refresh: string } } | null;
@@ -64,6 +66,7 @@ export interface UserAppStateType {
   logoutLoading: boolean;
   isOkk: boolean;
   userDataFetching: boolean;
+  userType: UserTypeValue;
 }
 
 export interface OfflineActionType {

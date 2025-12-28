@@ -1,20 +1,21 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getResidentialEntrances } from '../main/services';
+import { getProjectEntrances, getResidentialEntrances } from '../main/services';
 import { ProjectEntranceAllInfoType, SelectedDataType } from '../main/types';
 
 type EntranceId = number | null;
 type EntranceIdWithAll = number | 'ALL' | null;
 
 type EntranceSelectorProps =
-  | {
+  {
       selectedEntranceId: EntranceId;
       defaultEntranceId?: EntranceId;
       onSelectEntrance: (entranceId: number, e: ProjectEntranceAllInfoType, init?: boolean) => void;
       containerStyle?: any;
       selectDefaultEntrance?: true;
       selectedData: SelectedDataType;
+      projectId?: number | null
     }
   | {
       selectedEntranceId: EntranceIdWithAll;
@@ -23,6 +24,7 @@ type EntranceSelectorProps =
       containerStyle?: any;
       selectDefaultEntrance: false;
       selectedData: SelectedDataType;
+      projectId?: number | null
     };
 
 const normalizeEntranceId = (id: number | string | null | undefined): number | 'ALL' | null => {
@@ -68,6 +70,7 @@ export const EntranceSelector = ({
   selectedData,
   defaultEntranceId,
   selectDefaultEntrance = true,
+  projectId,
 }: EntranceSelectorProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
   const entrancePositions = useRef<Record<string, number>>({});
@@ -76,20 +79,23 @@ export const EntranceSelector = ({
 
   const getEntrances = useCallback(async () => {
     setIsFetching(true)
-    getResidentialEntrances({resident_id: selectedData.resident_id, project_type_id: selectedData.project_type_id, project_entrance_id: null})
-    .then((res) => {
-      setIsFetching(false)
-      if(!res) return
-      if(selectDefaultEntrance) {
-        if (!defaultEntranceId && res?.length) {
-          onSelectEntrance(normalizeEntranceId(res[0].project_entrance_id) as number, res[0], true)
-        }
-        setEntrances(res || [])
-      } else {
-        setEntrances([{project_entrance_id: 'ALL', block_name: '', contractor_name: '', entrance_name: 'Все', entrance_full_name: 'Все', entrance: 0, project_id: selectedData.project_id, entrance_percent: 0}, ...res])
+    let res: ProjectEntranceAllInfoType[] | undefined;
+    if(projectId) {
+      res = await getProjectEntrances(projectId)
+    } else {
+      res = await getResidentialEntrances({resident_id: selectedData.resident_id, project_type_id: selectedData.project_type_id, project_entrance_id: null})
+    }
+    setIsFetching(false)
+    if(!res) return;
+    if(selectDefaultEntrance) {
+      if (!defaultEntranceId && res?.length) {
+        onSelectEntrance(normalizeEntranceId(res[0].project_entrance_id) as number, res[0], true)
       }
-    });
-  }, [selectedData, selectDefaultEntrance])
+      setEntrances(res || [])
+    } else {
+      setEntrances([{project_entrance_id: 'ALL', block_name: '', contractor_name: '', entrance_name: 'Все', entrance_full_name: 'Все', entrance: 0, project_id: selectedData.project_id, entrance_percent: 0}, ...res])
+    }
+  }, [selectedData, selectDefaultEntrance, projectId])
 
   useEffect(() => {
     getEntrances()

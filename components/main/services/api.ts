@@ -35,6 +35,11 @@ export const residentialSettingsAPI = {
       .get(`/project/entrances/read/`, { params })
       .then((res) => res?.data);
   },
+  async getProjectEntrances(project_id: number): Promise<ReqResponse<ProjectEntranceType[] | undefined>> {
+    return await instance()
+      .get(`/project/entrances/by_project/`, { params: { project_id } })
+      .then((res) => res?.data);
+  },
   async getEntranceApartments(params: ProjectFiltersType): Promise<ReqResponse<ProjectFloorType[] | undefined>> {
     return await instance()
       .get(`/project/flats/read/`, { params })

@@ -4,7 +4,7 @@ import { Animated, Easing, View, Text, StyleSheet, ScrollView, TouchableOpacity,
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceMaterialRequests } from '@/components/main/services';
+import { deleteEntranceMaterialRequest, getEntranceMaterialRequests } from '@/components/main/services';
 import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType, SelectedDataType, NewMaterialRequestData, ProjectEntranceAllInfoType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { ValueDisplay } from '@/components/common/ValueDisplay';
@@ -14,7 +14,7 @@ import { MaterialOrderSuccess } from './MaterialOrderSuccess';
 import { AIChatOrderScreen } from './AIChatOrderScreen';
 import { numberWithCommas } from '@/utils';
 import { Icon } from '@/components/Icon';
-import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
+import { closeBottomDrawer, setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { NotFound } from '@/components/common/NotFound';
 import { setPageHeaderData } from '@/services/redux/reducers/userApp';
@@ -31,10 +31,10 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
   const [materialsData, setMaterialsData] = useState<MaterialRequestType[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [showSuccessPage, setShowSuccessPage] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
+  const [deleting, setDeleting] = useState(false)
   const [orderData, setOrderData] = useState<NewMaterialRequestData | null>(null);
   const [projectEntranceId, setProjectEntranceId] = useState<number | null>(null);
 
@@ -123,16 +123,6 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     }
   }
 
-  const toggleExpanded = (itemId: number) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(itemId)) {
-      newExpanded.delete(itemId);
-    } else {
-      newExpanded.add(itemId);
-    }
-    setExpandedItems(newExpanded);
-  };
-
   const handleOrderMaterial = () => {
     setShowOrderForm(true);
   };
@@ -199,6 +189,30 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
     }))
   };
 
+  const confirmDelete = async (provider_request_item_id: number) => {
+    if(deleting) return
+    setDeleting(true)
+    const res = await deleteEntranceMaterialRequest({...filters, project_entrance_id: projectEntranceId}, provider_request_item_id)
+    setDeleting(false)
+    if(!res) return
+    setMaterialsData(res)
+    dispatch(closeBottomDrawer())
+  };
+
+  const handleDelete = (material: MaterialRequestType) => {
+    dispatch(showBottomDrawer({
+      type: BOTTOM_DRAWER_KEYS.confirm,
+      data: {
+        title: 'Вы точно хотите удалить?',
+        submitBtnText: 'Удалить',
+        cancelMode: true,
+        onSubmit: async() => {
+          await confirmDelete(material.provider_request_item_id)
+        },
+      }
+    }))
+  };
+
   if (showOrderForm) {
     return (
       <MaterialOrderForm
@@ -230,6 +244,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
         onSelectEntrance={setProjectEntranceId}
         selectedData={selectedData}
         defaultEntranceId={projectEntranceId}
+        projectId={selectedData.project_id}
       />
       {
         loading 
@@ -267,64 +282,50 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
           materialsData?.length
             ? <View style={styles.accordionContainer}>
               {materialsData?.map((item) => {
-                const isExpanded = expandedItems.has(item.provider_request_item_id);
                 const showMoreActions = item.provider_request_status_code === 'CREATE' || item.provider_request_status_code === 'BRING_TO_CONTRACTOR';
                 return (
                   <View key={item.provider_request_item_id} style={styles.materialContainer}>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
-                      <Text style={styles.materialName}>{item.material_name}</Text>
-                      {showMoreActions && <TouchableOpacity 
-                        style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
-                        onPress={() => handleMoreActions(item)}
-                      >
-                        <Icon name='more' width={16} height={16} />
-                      </TouchableOpacity>}
-                    </View>
-                    <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.provider_request_status_code)}}>
-                      <Text style={{color: COLORS.white}}>{item.provider_request_status_name}</Text>
-                    </View>
-                    <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                      <ValueDisplay label='Дата отгрузки' value={item.date_shipping} />
-                      <ValueDisplay label='Сумма' value={numberWithCommas(item.material_sum)} />
-                      {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
-                        style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                        onPress={() => toggleExpanded(item.provider_request_item_id)}
-                      >
-                        <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
-                        <Icon 
-                          name={"arrowDownColor"} 
-                          width={13} 
-                          height={13} 
-                          fill={COLORS.primaryLight}
-                        />
-                      </TouchableOpacity>}
-                    </View>
-                    {isExpanded && (
-                      <View style={styles.expandedContent}>
-                        <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                          <ValueDisplay label='Дата заказа' value={item.date_create} />
-                          <ValueDisplay label='Цена' value={numberWithCommas(item.price)} />
-                          <View style={{width: 85}}></View>
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <View style={{ flex: 1 }}>
+                      <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
+                        <Text style={styles.materialName}>{item.material_name}</Text>
+                      </View>
+                      <View style={styles.dateStatusWrapper}>
+                        <View style={styles.dateStatusRow}>
+                          <View style={styles.dateBadge}>
+                            <Icon name="docSign" width={14} height={14} fill={'#242424'} />
+                            <Text style={styles.dateText}>{item.date_create}</Text>
+                          </View>
+                          <View style={styles.dateBadge}>
+                            <Icon name="shipping" width={14} height={14} fill={'#242424'} />
+                            <Text style={styles.dateText}>{item.date_shipping}</Text>
+                          </View>
                         </View>
-                        <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                          <ValueDisplay label='Мин. кол-во' value={`${item.qty_atom} ${item.atom_unit_name}`} />
-                          <ValueDisplay label='Кол-во в ед. продаж' value={`${item.material_cnt} ${item.sell_unit_name}`} />
-                            <TouchableOpacity 
-                              style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                              onPress={() => toggleExpanded(item.provider_request_item_id)}
-                            >
-                              <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
-                              <Icon 
-                                name={"arrowDownColor"} 
-                                width={13} 
-                                height={13} 
-                                fill={COLORS.primaryLight}
-                                style={{ transform: [{ rotate: '180deg' }] }}
-                              />
-                            </TouchableOpacity>
+                        <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.provider_request_status_code)}}>
+                          <Text style={{color: COLORS.white, fontSize: 12, fontFamily: FONT.medium}}>{item.provider_request_status_name}</Text>
                         </View>
                       </View>
-                    )}
+
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 15, marginTop: 15, }}>
+                        <View style={{ gap: 4 }}>
+                          <View style={styles.detailItem}><Text style={styles.detailLabel}>Сумма</Text><Text>{numberWithCommas(item.material_sum)} ₸</Text></View>
+                          <View style={styles.detailItem}><Text style={styles.detailLabel}>Цена</Text><Text>{numberWithCommas(item.price)} ₸</Text></View>
+                        </View>
+                        <View style={{ gap: 4, borderLeftWidth: 1, borderLeftColor: COLORS.stroke, paddingLeft: 15 }}>
+                        <View style={styles.detailItem}><Text style={styles.detailLabel}>Кол-во (ед.)</Text><Text>{item.material_cnt} {item.sell_unit_name}</Text></View>
+                          <View style={styles.detailItem}><Text style={styles.detailLabel}>Кол-во (мин.)</Text><Text>{item.qty_atom} {item.atom_unit_name}</Text></View>
+                        </View>
+                        </View>
+                      </View>
+                      {
+                        showMoreActions && <TouchableOpacity 
+                          style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 7}}
+                          onPress={() => handleDelete(item)}
+                        >
+                          <Icon name='trashOutline' width={16} height={16} fill={COLORS.redLight} />
+                        </TouchableOpacity>
+                      }
+                    </View>
                   </View>
                 );
               })}
@@ -347,23 +348,20 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
           </View>
       }
 
-      {/* AI Floating Button - moved outside conditional to preserve animation */}
-      {__DEV__ && (
-        <View 
-          style={[
-            styles.aiFloatingButtonWrapper,
-            { opacity: materialsData && !loading ? 1 : 0 }
-          ]}
-          pointerEvents={materialsData && !loading ? 'auto' : 'none'}
+      {/* <View 
+        style={[
+          styles.aiFloatingButtonWrapper,
+          { opacity: materialsData && !loading ? 1 : 0 }
+        ]}
+        pointerEvents={materialsData && !loading ? 'auto' : 'none'}
+      >
+        <AnimatedTouchableOpacity
+          style={[styles.aiFloatingButton, { backgroundColor: aiBgColor }]}
+          onPress={handleOpenAIChat}
         >
-          <AnimatedTouchableOpacity
-            style={[styles.aiFloatingButton, { backgroundColor: aiBgColor }]}
-            onPress={handleOpenAIChat}
-          >
-            <Icon name="aiAssistant" width={28} height={28} fill={COLORS.lightWhite} />
-          </AnimatedTouchableOpacity>
-        </View>
-      )}
+          <Icon name="aiAssistant" width={28} height={28} fill={COLORS.lightWhite} />
+        </AnimatedTouchableOpacity>
+      </View> */}
 
       {/* Animated AI Chat Overlay */}
       {aiChatVisible && (
@@ -438,10 +436,9 @@ const styles = StyleSheet.create({
   statusContainer: {
     padding: 10,
     paddingVertical: 5,
-    borderRadius: 6,
+    borderRadius: 8,
     backgroundColor: COLORS.primary,
     alignSelf: 'flex-start',
-    marginTop: 15
   },
   materialContainer: {
     padding: 15,
@@ -449,7 +446,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     marginBottom: 10,
   },
-  expandedContent: {  },
   fixedButtonContainer: {
     position: 'absolute',
     bottom: 0,
@@ -489,7 +485,7 @@ const styles = StyleSheet.create({
   materialName: {
     flex: 1,
     fontSize: SIZES.regular,
-    fontFamily: FONT.regular,
+    fontFamily: FONT.medium,
     color: COLORS.black,
     lineHeight: 20,
     flexWrap: 'wrap',
@@ -510,6 +506,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     borderRadius: 8,
   },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  detailLabel: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: COLORS.gray,
+  },
   summaryLabel: {
     fontSize: SIZES.small,
     fontFamily: FONT.regular,
@@ -519,5 +525,33 @@ const styles = StyleSheet.create({
     fontSize: SIZES.regular,
     fontFamily: FONT.medium,
     color: COLORS.black,
+  },
+  dateStatusWrapper: {
+    flexDirection: 'row', 
+    justifyContent: 'flex-start', 
+    alignItems: 'center', 
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 15,
+  },
+  dateStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 10,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 5,
+  },
+  dateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dateText: {
+    fontSize: 12,
+    fontFamily: FONT.medium,
+    color: '#242424',
   },
 });

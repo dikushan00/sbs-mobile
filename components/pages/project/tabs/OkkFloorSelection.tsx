@@ -146,6 +146,7 @@ export const OkkFloorSelection: React.FC<OkkFloorSelectionProps> = ({
           setEntranceInfo(data)
         }}
         selectedData={selectedData}
+        projectId={selectedData.project_id}
       />
       
       <View style={styles.header}>

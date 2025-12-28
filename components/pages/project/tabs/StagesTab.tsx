@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
-import { getEntranceStages, getEntranceDocumentFloors, getPlacementTypes, getResidentialEntrances } from '@/components/main/services';
+import { getEntranceStages, getEntranceDocumentFloors, getPlacementTypes, getProjectEntrances } from '@/components/main/services';
 import { ProjectStageType, ProjectFiltersType, PlacementType, SimpleFloorType, SelectedDataType, ProjectEntranceAllInfoType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
-import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { Icon } from '@/components/Icon';
 import { showBottomDrawer } from '@/services/redux/reducers/app';
 import { setPageSettings } from '@/services/redux/reducers/app';
@@ -28,7 +27,6 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
   const dispatch = useDispatch();
   const [stagesData, setStagesData] = useState<ProjectStageType[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [entranceInfo, setEntranceInfo] = useState<ProjectEntranceAllInfoType | null>(null);
   const [placementTypes, setPlacementTypes] = useState<PlacementType[]>([]);
   const [floors, setFloors] = useState<SimpleFloorType[]>([]);
@@ -43,8 +41,9 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
 
   useEffect(() => {
     const fetchInitialData = async () => {
+      if(!project_id) return;
       const [entrancesData, placementTypesData] = await Promise.all([
-        getResidentialEntrances(filters),
+        getProjectEntrances(project_id),
         getPlacementTypes(),
       ]);
       if (entrancesData) {
@@ -58,7 +57,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
       setPlacementTypes(placementTypesData || []);
     };
     fetchInitialData();
-  }, []);
+  }, [project_id]);
 
   useEffect(() => {
     if(viewMode === 'stages')
@@ -97,15 +96,15 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     }
   }
 
-  const toggleExpanded = (itemId: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(itemId)) {
-      newExpanded.delete(itemId);
-    } else {
-      newExpanded.add(itemId);
-    }
-    setExpandedItems(newExpanded);
-  };
+  const openSchema = (stage: ProjectStageType) => {
+    setSelectedStage(stage);
+    setViewMode('schema');
+  }
+
+  const openComments = (stage: ProjectStageType) => {
+    setSelectedStage(stage);
+    setViewMode('comments');
+  }
 
   const handleMoreActions = (stage: ProjectStageType) => {
     dispatch(showBottomDrawer({
@@ -132,10 +131,6 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
     setViewMode('stages');
     setSelectedStage(null);
   };
-
-  const getUniqId = (item: ProjectStageType) => {
-    return item.call_date + '_' + item.floor + '_' + item.work_set_check_group_id + '_' + item.placement_type_name;
-  }
 
   if (viewMode === 'comments') {
     return (
@@ -169,7 +164,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
   }
 
   const onEntranceChange = async (value: string | number | null, row: ProjectEntranceAllInfoType | null) => {
-    setLocalFilters(prev => ({ ...prev, project_entrance_id: value }))
+    setLocalFilters(prev => ({ ...prev, project_entrance_id: value, floor: null, placement_type_id: null }))
     setEntranceInfo(row)
 
     const floorsData = await getEntranceDocumentFloors({...filters, project_entrance_id: value as number})
@@ -185,6 +180,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
         }}
         selectedData={selectedData}
         defaultEntranceId={localFilters.project_entrance_id ? +localFilters.project_entrance_id : null}
+        projectId={project_id}
       />
       <View style={styles.selectsContainer}>
         <View style={styles.selectWrapper}>
@@ -194,7 +190,10 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
             labelKey="floor_name"
             onChange={(value) => setLocalFilters(prev => ({ ...prev, floor: value }))}
             value={localFilters.floor}
-            placeholder="Этаж" alt
+            placeholder="Этаж" alt 
+            showResetBtn
+            showSearch={false} 
+            style={{height: 36, paddingVertical: 5}}
           />
         </View>
         <View style={styles.selectWrapper}>
@@ -205,6 +204,7 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
             onChange={(value) => setLocalFilters(prev => ({ ...prev, placement_type_id: value }))}
             value={localFilters.placement_type_id}
             placeholder="Тип" alt
+            style={{height: 36, paddingVertical: 5}}
           />
         </View>
       </View>
@@ -219,70 +219,81 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
           stagesData?.length 
             ? <View style={styles.accordionContainer}>
             {stagesData?.map((item, i) => {
-              const isExpanded = expandedItems.has(getUniqId(item));
               return (
-                <View key={item.floor_map_id + '-' + i} style={styles.materialContainer}>
-                  <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
-                    <Text style={styles.materialName}>{item.work_set_check_group_name}</Text>
-                    <TouchableOpacity 
-                      style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 100, padding: 5, backgroundColor: COLORS.grayLight}}
-                      onPress={() => handleMoreActions(item)}
-                    >
-                      <Icon name='more' width={16} height={16} />
-                    </TouchableOpacity>
-                  </View>
-                  <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.check_status_code)}}>
-                    <Text style={{color: COLORS.white}}>{item.check_status}</Text>
-                  </View>
-                  <View style={{marginTop: 15}}>
-                    <View style={{flexDirection: 'row', gap: 15, alignItems: 'flex-start'}}>
-                      <ValueDisplay label='Вызвал(а)' value={item.call_employee_fio} />
-                      <ValueDisplay label='Тип' value={item.placement_type_name} />
-                      {isExpanded ? <View style={{width: 85}}></View> : <TouchableOpacity 
-                        style={{flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-end', marginTop: 10}}
-                        onPress={() => toggleExpanded(getUniqId(item))}
-                      >
-                        <Text style={{color: COLORS.primaryLight}}>Раскрыть</Text> 
-                        <Icon 
-                          name={"arrowDownColor"} 
-                          width={13} 
-                          height={13} 
-                          fill={COLORS.primaryLight}
-                        />
-                      </TouchableOpacity>}
-                    </View>
-                  </View>
-                  {isExpanded && (
-                    <View>
-                      <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
-                        <ValueDisplay label='Блок' value={`№${item.block_name}`} />
-                        <ValueDisplay label='Этаж' value={`${item.floor}`} />
-                        <View style={{width: 85}}></View>
+                <View key={item.floor_map_id + '-' + i} style={styles.stageCard}>
+                  {/* Заголовок */}
+                  <Text style={styles.stageTitle}>{item.work_set_check_group_name}</Text>
+                  
+                  {/* Строка с тегами и статусом */}
+                  <View style={styles.tagsRow}>
+                    <View style={styles.tagsContainer}>
+                      <View style={styles.tagItem}>
+                        <Icon name = "plan" width={12} height={12} fill={'#242424'} />
+                        <Text style={styles.tagLabel}>{item.floor}</Text>
                       </View>
-                      <View style={{flexDirection: 'row', alignItems: 'flex-start', marginTop: 15}}>
-                        <ValueDisplay label='Дата вызова' value={item.call_date} />
-                        <ValueDisplay label='Дата принятия' value={item.check_date} />
-                        <View style={{width: 85}}></View>
+                      <View style={styles.tagItem}>
+                        <Icon name = "residentCloud" width={12} height={12} fill={'#242424'} />
+                        <Text style={styles.tagLabel}>{item.block_name}</Text>
                       </View>
-                      <View style={{flexDirection: 'row', alignItems: 'flex-end', marginTop: 15}}>
-                        <ValueDisplay label='Принял(а)' value={item.check_employee_fio} />
-                        <View style={{flex: 1}}></View>
-                        <TouchableOpacity 
-                          style={{flexDirection: 'row', alignItems: 'center', gap: 8}}
-                          onPress={() => toggleExpanded(getUniqId(item))}
-                        >
-                          <Text style={{color: COLORS.primaryLight}}>Закрыть</Text> 
-                          <Icon 
-                            name={"arrowDownColor"} 
-                            width={13} 
-                            height={13} 
-                            fill={COLORS.primaryLight}
-                            style={{ transform: [{ rotate: '180deg' }] }}
-                          />
-                        </TouchableOpacity>
+                      <View style={styles.tagItem}>
+                        <Icon name = "apartment" width={12} height={12} />
+                        <Text style={styles.tagLabel}>{item.placement_type_name}</Text>
                       </View>
                     </View>
-                  )}
+                    {
+                      item.check_status_code === 'DEFECT' 
+                      ? <TouchableOpacity onPress={() => openComments(item)}>
+                        <View style={[styles.statusBadge, { backgroundColor: getStatusColour(item.check_status_code) }]}>
+                      <Text style={styles.statusText}>{item.check_status}</Text>
+                    </View>
+                      </TouchableOpacity>
+                      : <View style={[styles.statusBadge, { backgroundColor: getStatusColour(item.check_status_code) }]}>
+                      <Text style={styles.statusText}>{item.check_status}</Text>
+                    </View>
+                    }
+                    
+                  </View>
+                  
+                  {/* Две колонки: Вызов и Принятие */}
+                  <View style={styles.columnsContainer}>
+                    {/* Левая колонка - Вызов */}
+                    <View style={styles.column}>
+                      <Text style={styles.columnLabel}>Вызов</Text>
+                      <View style={styles.columnValue}>
+                        <Icon name="user" width={12} height={12} fill={COLORS.primarySecondary} />
+                        <Text style={styles.columnValueText}>{item.call_employee_fio}</Text>
+                      </View>
+                      <View style={styles.columnValue}>
+                        <Icon name="calendar2" width={12} height={12} fill={COLORS.primarySecondary} />
+                        <Text style={styles.columnValueText}>{item.call_date}</Text>
+                      </View>
+                    </View>
+                    
+                    {/* Разделитель */}
+                    <View style={styles.columnDivider} />
+                    
+                    {/* Правая колонка - Принятие */}
+                    <View style={styles.column}>
+                      <Text style={styles.columnLabel}>Принятие</Text>
+                      <View style={styles.columnValue}>
+                        <Icon name="user" width={12} height={12} fill={COLORS.primarySecondary} />
+                        <Text style={styles.columnValueText}>{item.check_employee_fio || '-'}</Text>
+                      </View>
+                      <View style={styles.columnValue}>
+                        <Icon name="calendar2" width={12} height={12} fill={COLORS.primarySecondary} />
+                        <Text style={styles.columnValueText}>{item.check_date || '-'}</Text>
+                      </View>
+                    </View>
+                  </View>
+                  
+                  {/* Кнопка комментарии */}
+                  <TouchableOpacity 
+                    style={styles.commentsButton}
+                    onPress={() => openSchema(item)}
+                  >
+                    <Text style={styles.commentsButtonText}>Открыть схему</Text>
+                    <Icon name="arrowRightAlt" width={14} height={14} fill={COLORS.primarySecondary} />
+                  </TouchableOpacity>
                 </View>
               );
             })}
@@ -320,28 +331,6 @@ const styles = StyleSheet.create({
   accordionContainer: {
     marginTop: 10,
   },  
-  statusContainer: {
-    padding: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    backgroundColor: COLORS.primary,
-    alignSelf: 'flex-start',
-    marginTop: 15
-  },
-  materialContainer: {
-    padding: 15,
-    borderRadius: 10,
-    backgroundColor: COLORS.white,
-    marginBottom: 10,
-  },
-  materialName: {
-    flex: 1,
-    fontSize: SIZES.regular,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-    lineHeight: 20,
-    flexWrap: 'wrap',
-  },
   selectsContainer: {
     flexDirection: 'row',
     gap: 15,
@@ -352,5 +341,98 @@ const styles = StyleSheet.create({
   },
   selectWrapper: {
     flex: 1,
+  },
+  // Новые стили для карточки этапа (variant2)
+  stageCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 12,
+    paddingBottom: 16,
+    marginBottom: 10,
+  },
+  stageTitle: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.semiBold,
+    color: '#242424',
+    lineHeight: 18,
+    marginBottom: 8,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    gap: 12,
+  },
+  tagItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  tagLabel: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.medium,
+    color: '#242424',
+  },
+  statusBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  statusText: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.medium,
+    color: COLORS.white,
+  },
+  columnsContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 16,
+    marginBottom: 12,
+  },
+  column: {
+    flex: 1,
+  },
+  columnLabel: {
+    fontSize: 10,
+    fontFamily: FONT.regular,
+    color: COLORS.gray,
+    marginBottom: 8,
+  },
+  columnValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  columnValueText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: '#242424',
+  },
+  columnDivider: {
+    width: 1,
+    height: 38,
+    marginBottom: 10,
+    backgroundColor: '#D1D1D1',
+    borderRadius: 1,
+  },
+  commentsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  commentsButtonText: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
+    color: COLORS.primarySecondary,
   },
 });

@@ -1,6 +1,7 @@
 const COLORS = {
   primary: "#134686",
   primaryLight: "#0060FE",
+  primarySecondary: "#0F6CBD",
   red: "red",
   primaryDisabled: "rgba(19, 116, 207, 0.25)",
   disabled: "#F2F2F2",
@@ -31,7 +32,9 @@ const COLORS = {
   grayLight: "#f2f2f2",
   black: "#000",
   dark: "#000",
+  stroke: "#d1d1d1",
 
+  redLight: "#C50F1F",
   white: "#FFF",
   lightWhite: "#FAFAFC",
 };

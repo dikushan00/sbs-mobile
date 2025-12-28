@@ -85,7 +85,6 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
   // Handle initialTab from notification deep link
   useEffect(() => {
     if (!initialTab || !tabulations.length) return;
-
     const targetTab = tabulations.find(tab => tab.grant_code === initialTab);
     if (targetTab) {
       handleTabPress(targetTab);
@@ -186,39 +185,63 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
   }
 
   const renderProjectInfoBlock = () => {
+    const isSigned = projectData?.is_signed;
+    
     return (
-      <View
-        style={styles.projectInfoBlock}
-      >
+      <View style={styles.projectInfoBlock}>
+        {/* Header with name and folder icon */}
         <View style={styles.projectInfoHeader}>
-          <Text style={styles.projectName}>{projectData?.resident_name}<Text style={{fontSize: SIZES.regular, fontFamily: FONT.regular, color: COLORS.darkGray}}>(ID: {projectData?.project_id})</Text></Text>
-          <Icon name="folder" width={24} height={24} fill={COLORS.primary} />
+          <Text style={styles.projectName}>{projectData?.resident_name}</Text>
+          <View style={styles.folderIconWrapper}>
+            <Icon name="folder" width={22} height={22} fill={COLORS.primarySecondary} />
+          </View>
         </View>
-        <View style={styles.projectDetails}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Тип проекта:</Text>
-            <Text style={styles.detailValue}>{projectData?.project_type_name || projectInfo?.data?.project_type_name}</Text>
+        {/* Date range and status row */}
+        <View style={styles.dateStatusWrapper}>
+          <View style={styles.dateStatusRow}>
+            <View style={styles.dateBadge}>
+              <Icon name="calendar2" width={14} height={14} fill={'#242424'} />
+              <Text style={styles.dateText}>{projectData?.start_date}</Text>
+            </View>
+            <View style={styles.dateBadge}>
+              <Icon name="calendar2" width={14} height={14} fill={'#242424'} />
+              <Text style={styles.dateText}>{projectData?.finish_date}</Text>
+            </View>
           </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Период:</Text>
-            <Text style={styles.detailValue}>
-              {projectData?.start_date} - {projectData?.finish_date}
-            </Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Подъезды:</Text>
-            {projectData?.blocks ? (
-              <View style={styles.blocksList}>
-                {projectData.blocks.split(' / ').map((block, index) => (
-                  <View key={index} style={styles.blockBadge}>
-                    <Text style={styles.blockText}>{block.trim()}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : (
-              <Text style={styles.detailValue}>Не указаны</Text>
-            )}
-          </View>
+          {isSigned !== undefined && (
+            <View style={[styles.statusBadge, isSigned ? styles.statusSigned : styles.statusPending]}>
+              <Text style={styles.statusText}>
+                {isSigned ? 'Подписан' : 'На подписании'}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Project type row */}
+        <View style={styles.infoRow}>
+          <Icon name="noteStar" width={14} height={14} fill={COLORS.primarySecondary} />
+          <Text style={styles.infoText}>
+            {projectData?.project_type_name || projectInfo?.data?.project_type_name || 'Не указан'}
+          </Text>
+        </View>
+
+        {/* Blocks row */}
+        <View style={styles.blocksRow}>
+          <Icon name="residentCloud" width={14} height={14} fill={COLORS.primarySecondary} />
+          {projectData?.blocks ? (
+            <View style={styles.blocksList}>
+              {projectData.blocks.split(' / ').map((block, index) => {
+                const entranceNumber = block.trim().split(' ')[0];
+                const blockName = block.trim().split(' ')[1];
+                return (<View key={index} style={styles.blockBadge}>
+                  <Text style={styles.blockIndex}>{entranceNumber}</Text>
+                  <Text style={styles.blockText}>{blockName}</Text>
+                </View>)
+              })}
+            </View>
+          ) : (
+            <Text style={styles.infoText}>Подъезды не указаны</Text>
+          )}
         </View>
       </View>
     );
@@ -243,7 +266,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
                 name={getIconForGrantCode(tab?.grant_code) as any} 
                 width={20} 
                 height={20} 
-                fill={COLORS.primaryLight} 
+                fill={COLORS.primarySecondary} 
               />
               {tab.grant_code === 'M__ProjectFormMobileOkk' && <View style={{position: 'absolute', bottom: -23, left: 0,flexDirection: 'row', gap: 5, alignItems: 'center'}}>
                 {!!tab.okk_call && <View style={{flexDirection: 'row', alignItems: 'center', gap: 3,
@@ -310,7 +333,7 @@ const styles = StyleSheet.create({
   projectInfoBlock: {
     backgroundColor: COLORS.white,
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: {
@@ -324,51 +347,99 @@ const styles = StyleSheet.create({
   projectInfoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    alignItems: 'flex-start',
+    marginBottom: 15,
   },
   projectName: {
-    fontSize: SIZES.large,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
+    fontSize: 16,
+    fontFamily: FONT.medium,
+    color: '#1a202c',
     flex: 1,
+    lineHeight: 26,
   },
-  projectDetails: {
-    gap: 8,
+  folderIconWrapper: {
   },
-  detailRow: {
+  dateStatusWrapper: {flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 10},
+  dateStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 5,
   },
-  detailLabel: {
-    fontSize: SIZES.medium,
-    fontFamily: FONT.regular,
-    color: COLORS.darkGray,
-    marginRight: 8,
+  dateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  detailValue: {
-    fontSize: SIZES.medium,
+  dateText: {
+    fontSize: 12,
+    fontFamily: FONT.medium,
+    color: '#242424',
+  },
+  statusBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  statusSigned: {
+    backgroundColor: '#48BB78',
+  },
+  statusPending: {
+    backgroundColor: '#FF8D28',
+  },
+  statusText: {
+    fontSize: 12,
+    fontFamily: FONT.medium,
+    color: '#FFFFFF',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 15,
+    marginTop: 10,
+  },
+  infoText: {
+    fontSize: 14,
     fontFamily: FONT.regular,
-    color: COLORS.dark,
+    color: '#242424',
     flex: 1,
+  },
+  blocksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   blocksList: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     flexWrap: 'wrap',
     flex: 1,
   },
   blockBadge: {
-    backgroundColor: '#E9ECEF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  blockIndex: {
+    fontSize: 12,
+    fontFamily: FONT.medium,
+    color: '#242424',
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 5,
+    paddingVertical: 0,
     borderRadius: 4,
+    overflow: 'hidden',
   },
   blockText: {
-    fontSize: SIZES.small,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
+    fontSize: 12,
+    fontFamily: FONT.medium,
+    color: '#242424',
   },
   tabBlock: {
     backgroundColor: COLORS.white,
@@ -377,7 +448,7 @@ const styles = StyleSheet.create({
     minHeight: 80,
     justifyContent: 'center',
     flex: 1,
-    shadowColor: '#000',
+    shadowColor: '#404040',
     shadowOffset: {
       width: 0,
       height: 0,

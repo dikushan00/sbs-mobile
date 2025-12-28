@@ -59,6 +59,25 @@ export const getResidentialEntrances = async (params: ProjectFiltersType): Promi
     );
   } catch (e) {}
 };
+export const getProjectEntrances = async (project_id: number): Promise<ProjectEntranceAllInfoType[] | undefined> => {
+  try {
+    const res = await residentialSettingsAPI.getProjectEntrances(project_id);
+    console.log('res', res)
+    return (
+      res?.data?.map((item) => ({
+        ...item,
+        entrance_name: `Подъезд: ${item.entrance}${
+          item.block_name ? ` Б-${item.block_name}` : ""
+        }`,
+        entrance_full_name: `Подъезд ${item.entrance}${
+          item.block_name ? `, Блок-${item.block_name}` : ""
+        }${item.contractor_name ? `, ${item.contractor_name}` : ""} (${
+          item.entrance_percent || 0
+        }%)`,
+      })) || []
+    );
+  } catch (e) {}
+};
 export const getEntranceApartments = async (params: ProjectFiltersType): Promise<ProjectFloorType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getEntranceApartments(params);
