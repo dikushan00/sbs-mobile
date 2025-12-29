@@ -3,6 +3,7 @@ import {
   BottomDrawerPayload,
 } from "@/components/BottomDrawer/types";
 import { ModalKeys, ModalPayload } from "@/components/Modal/types";
+import { getNotifications } from "@/components/pages/notifications/services";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "..";
 import { AppStateType } from "../types";
@@ -19,6 +20,7 @@ const initialState: AppStateType = {
   shouldPageDataReload: false,
   pageSettings: { backBtn: false, goBack: null },
   hideFooterNav: false,
+  notificationsCount: 0,
 };
 const appSlice = createSlice({
   name: "app",
@@ -104,6 +106,9 @@ const appSlice = createSlice({
     setHideFooterNav: (state, { payload }) => {
       state.hideFooterNav = !!payload;
     },
+    setNotificationsCount: (state, { payload }: PayloadAction<number>) => {
+      state.notificationsCount = payload;
+    },
   },
 });
 export const {
@@ -125,6 +130,7 @@ export const {
   closeModal,
   setPageSettings,
   setHideFooterNav,
+  setNotificationsCount,
 } = appSlice.actions;
 
 export type appStateType = ReturnType<typeof appSlice.reducer>;
@@ -137,4 +143,18 @@ export const initialize = (): AppThunk => async (dispatch) => {
   return Promise.all([checkAuth])
     .then(() => dispatch(setInit()))
     .catch(() => {});
+};
+
+export const fetchNotificationsCount = (): AppThunk => async (dispatch) => {
+  try {
+    const data = await getNotifications();
+    if (data) {
+      const totalCount = data.reduce((acc, item) => {
+        return acc + (item.notify_list?.length || 0);
+      }, 0);
+      dispatch(setNotificationsCount(totalCount));
+    }
+  } catch (e) {
+    console.error("Error fetching notifications count:", e);
+  }
 };

@@ -14,6 +14,7 @@ import {
   closeBottomDrawer,
   closeSecondBottomDrawer,
   closeModal,
+  fetchNotificationsCount,
   initialize,
   setNetworkStatus,
 } from "@/services/redux/reducers/app";
@@ -118,7 +119,10 @@ export const Content = () => {
   }, []);
 
   useEffect(() => {
-    if (init && auth) checkOfflineActions();
+    if (init && auth) {
+      checkOfflineActions();
+      // dispatch(fetchNotificationsCount());
+    }
   }, [init, auth]);
 
   useEffect(() => {

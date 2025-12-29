@@ -13,7 +13,6 @@ export const getNotifications = async (
   signal?: AbortSignal
 ): Promise<NotificationsResponse[] | undefined> => {
   try {
-    return;
     const res = await notificationsAPI.getList(signal);
     if (res?.data) {
       await storageService.setData(STORAGE_KEYS.notifications, res?.data);

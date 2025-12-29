@@ -35,7 +35,8 @@ export interface NotificationType {
   mobile_notify_text: string;
   mobile_notify_type_name: string;
   mobile_notify_type_code: string;
-  remont_id?: number | null;
+  project_id?: number | null;
+  help_call_id?: number | null;
   date_create: string;
 }
 

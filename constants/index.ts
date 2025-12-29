@@ -32,7 +32,10 @@ export const STORAGE_KEYS = {
   checkListPoints: "checkListPoints",
   offlineActions: "offlineActions",
   notifications: "notifications",
+  userType: "userType",
 } as const;
+
+export type UserTypeValue = 'individual' | 'business';
 
 export const PAGE_NAMES = {
   main: "main",

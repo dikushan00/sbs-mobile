@@ -314,6 +314,7 @@ export const Okk = () => {
     return options;
   }, [okkData]);
 
+  // console.log("selectedData", selectedData?.help_call_id);
   if (selectedData?.help_call_id)
     return (
       <OkkDetail

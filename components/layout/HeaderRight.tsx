@@ -1,21 +1,22 @@
 import { PAGE_NAMES } from "@/constants";
+import { appState } from "@/services/redux/reducers/app";
 import { userAppState } from "@/services/redux/reducers/userApp";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { StyleSheet, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSelector } from "react-redux";
 
 export const HeaderRight = () => {
   const navigation = useNavigation();
   const route: { params?: { withoutLayout?: boolean } } = useRoute();
   const { logoutLoading } = useSelector(userAppState);
+  const { notificationsCount } = useSelector(appState);
 
   const handleClick = () => {
-    return
     navigation.navigate(PAGE_NAMES.notifications as never);
   };
 
+  return <View></View>
   if (route?.params?.withoutLayout) return <View></View>;
   return (
     <TouchableOpacity
@@ -23,7 +24,14 @@ export const HeaderRight = () => {
       onPress={handleClick}
       disabled={logoutLoading}
     >
-      {/* <FontAwesome5 name="bell" size={22} color={"#404040"} /> */}
+      <FontAwesome5 name="bell" size={22} color={"#404040"} />
+      {notificationsCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>
+            {notificationsCount > 99 ? "99+" : notificationsCount}
+          </Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -31,5 +39,23 @@ export const HeaderRight = () => {
 const styles = StyleSheet.create({
   headerRight: {
     padding: 5,
+    position: "relative",
+  },
+  badge: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: "#FF3B30",
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });

@@ -14,6 +14,7 @@ export interface AppStateType {
   modal: ModalDataType;
   pageSettings: { backBtn: boolean; goBack: (() => void) | null };
   hideFooterNav: boolean;
+  notificationsCount: number;
 }
 
 export type MenuItem = {
