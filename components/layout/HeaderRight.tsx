@@ -16,7 +16,6 @@ export const HeaderRight = () => {
     navigation.navigate(PAGE_NAMES.notifications as never);
   };
 
-  return <View></View>
   if (route?.params?.withoutLayout) return <View></View>;
   return (
     <TouchableOpacity
@@ -24,7 +23,7 @@ export const HeaderRight = () => {
       onPress={handleClick}
       disabled={logoutLoading}
     >
-      <FontAwesome5 name="bell" size={22} color={"#404040"} />
+      <FontAwesome5 name="bell" size={19} color={"#404040"} />
       {notificationsCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>

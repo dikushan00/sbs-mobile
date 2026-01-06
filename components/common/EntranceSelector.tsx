@@ -178,22 +178,22 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   entranceButton: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
   },
   entranceButtonSelected: {
-    backgroundColor: COLORS.primaryLight,
-    borderColor: COLORS.primaryLight,
+    backgroundColor: COLORS.primarySecondary,
+    borderColor: COLORS.primarySecondary,
   },
   entranceButtonText: {
-    fontSize: SIZES.regular,
+    fontSize: SIZES.small,
     fontFamily: FONT.regular,
     color: COLORS.black,
   },
   entranceButtonTextSelected: {
     color: COLORS.white,
-    fontFamily: FONT.medium,
+    fontFamily: FONT.regular,
   },
   skeletonPill: {
     height: 34,

@@ -33,6 +33,7 @@ export const STORAGE_KEYS = {
   offlineActions: "offlineActions",
   notifications: "notifications",
   userType: "userType",
+  notificationsEnabled: "notificationsEnabled",
 } as const;
 
 export type UserTypeValue = 'individual' | 'business';

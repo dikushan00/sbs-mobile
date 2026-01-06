@@ -159,13 +159,6 @@ export const FloorSchemaContent = ({ onBack, selectedData }: FloorSchemaContentP
         selectedData={selectedData}
         projectId={selectedData.project_id}
       />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Выберите этаж</Text>
-        <Text style={styles.headerCount}>
-          <Text style={styles.countLabel}>Кол-во:</Text> {floorsPlan?.length || 0}
-        </Text>
-      </View>
-      
       <ScrollView style={styles.floorsContainer} showsVerticalScrollIndicator={false}>
         {renderFloorsGrid()}
       </ScrollView>
@@ -177,27 +170,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 5
-  },
-  headerTitle: {
-    fontSize: SIZES.medium,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-  },
-  headerCount: {
-    fontSize: SIZES.medium,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-  },
-  countLabel: {
-    color: COLORS.darkGray,
   },
   floorsContainer: {
     flex: 1,
@@ -230,12 +202,15 @@ const styles = StyleSheet.create({
   floorNumberContainer: {
     backgroundColor: COLORS.background,
     borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 5,
     marginRight: 12,
+    minWidth: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   floorNumber: {
-    fontSize: SIZES.medium,
+    fontSize: SIZES.regular,
     fontFamily: FONT.medium,
     color: COLORS.black,
   },

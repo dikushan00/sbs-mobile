@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { COLORS } from '@/constants';
-import { ProjectFiltersType, SelectedDataType } from '@/components/main/types';
+import { SelectedDataType } from '@/components/main/types';
 import { FloorSchemaContent } from './FloorSchemaContent';
 import { useDispatch } from 'react-redux';
 import { setPageSettings } from '@/services/redux/reducers/app';

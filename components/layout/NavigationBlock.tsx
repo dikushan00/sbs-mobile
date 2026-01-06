@@ -27,6 +27,7 @@ export const NavigationBlock = () => {
       drawerContent={(props) => <MenuSidebar {...props} />}
       screenOptions={({ navigation }) => ({
         headerShown: true,
+        swipeEnabled: false,
         sceneStyle: {
           backgroundColor: COLORS.backgroundWhite,
         },

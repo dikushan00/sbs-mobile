@@ -4,3 +4,5 @@ export { MaterialsTab } from './MaterialsTab';
 export { PaymentsTab } from './PaymentsTab';
 export { DocumentsTab } from './DocumentsTab';
 export { StagesTab } from './StagesTab';
+export { FloorSchemaChess } from './FloorSchemaChess';
+export { FloorSchemaChessTab } from './FloorSchemaChessTab';

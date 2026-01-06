@@ -25,7 +25,7 @@ const initialState: UserAppStateType = {
   logoutLoading: false,
   userDataFetching: false,
   isOkk: false,
-  userType: 'individual',
+  userType: 'business',
 };
 const appSlice = createSlice({
   name: "userApp",

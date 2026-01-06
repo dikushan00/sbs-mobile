@@ -21,6 +21,13 @@ export const appAPI = {
       .post("/auth/mobile_token/delete/", body)
       .then((res) => res?.data);
   },
+  async addPushToken(body: {
+    mobile_token: string;
+  }): Promise<{ data: boolean }> {
+    return await instance(true, { showSnackbar: false })
+      .post("/auth/mobile_token/add/", body)
+      .then((res) => res?.data);
+  },
   async getAppLastVersion(): Promise<{ data: { version_name: string } }> {
     return await instance(false, { showSnackbar: false }, apiUrl)
       .get("/common/mobile_app/version/get/")

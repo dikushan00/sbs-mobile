@@ -22,6 +22,7 @@ import { Contracts } from './blocks';
 import { OKKTab } from './tabs/OkkTab';
 import { getProjectData, tabsNames } from "../../pages/project/services";
 import { GrantTabType, ProjectType } from './services/types';
+import { FloorSchemaChessTab } from './tabs/FloorSchemaChessTab';
 
 interface ProjectPageProps {
   projectId: number | null,
@@ -168,7 +169,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       case 'M__ProjectFormMobileOkk':
         return <OKKTab onBack={backToProject} selectedData={selectedData} />;
       case 'M__ProjectFormMobileFloorMap':
-        return <FloorSchemaTab onBack={backToProject} selectedData={selectedData} />;
+        return <FloorSchemaChessTab onBack={backToProject} selectedData={selectedData} />;
       case 'M__ProjectFormWorkTab':
         return <WorkTab filters={filters} selectedData={selectedData} />;
       case 'M__ProjectFormMaterialTab':

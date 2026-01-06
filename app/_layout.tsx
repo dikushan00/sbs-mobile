@@ -14,9 +14,11 @@ import {
   closeBottomDrawer,
   closeSecondBottomDrawer,
   closeModal,
-  fetchNotificationsCount,
   initialize,
   setNetworkStatus,
+  showModal,
+  fetchNotificationsCount,
+  closeWebViewMode,
 } from "@/services/redux/reducers/app";
 import { getMenuData, userAppState } from "@/services/redux/reducers/userApp";
 import { Roboto_500Medium } from "@expo-google-fonts/dev";
@@ -36,8 +38,8 @@ import {
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useRef, useState } from "react";
-import { Alert, BackHandler, Platform, StatusBar } from "react-native";
+import React, { useEffect, useState } from "react";
+import { BackHandler, Platform, StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import {
@@ -83,7 +85,6 @@ export default function RootLayout() {
   );
 }
 
-const exitTimeout = 2000;
 export const Content = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigation = useNavigation();
@@ -99,7 +100,6 @@ export const Content = () => {
   const { init, webViewMode, networkWasOff, modal, bottomDrawerData, secondBottomDrawerData, pageSettings } =
     useSelector(appState);
   const { auth } = useSelector(userAppState);
-  const lastBackPressed = useRef(0);
   const [offlineActionsLoading, setOfflineActionsLoading] = useState(false);
   const [networkConnected, setNetworkConnected] = useState(true);
   
@@ -121,7 +121,7 @@ export const Content = () => {
   useEffect(() => {
     if (init && auth) {
       checkOfflineActions();
-      // dispatch(fetchNotificationsCount());
+      dispatch(fetchNotificationsCount());
     }
   }, [init, auth]);
 
@@ -145,6 +145,11 @@ export const Content = () => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
+
+        if (webViewMode.active) {
+          dispatch(closeWebViewMode())
+          return true;
+        }
 
         // Затем проверяем модалку
         if (modal.show) {
@@ -170,20 +175,13 @@ export const Content = () => {
         }
 
         // Затем проверяем навигацию
-        const currentTime = Date.now();
         if (navigation.canGoBack()) {
           navigation.goBack();
           return true;
         } else {
-          // В конце выходим из приложения
-          if (currentTime - lastBackPressed.current <= exitTimeout) {
-            BackHandler.exitApp();
-            return false;
-          } else {
-            lastBackPressed.current = currentTime;
-            Alert.prompt("Нажмите еще раз, чтобы выйти");
-            return true;
-          }
+          // В конце показываем модалку подтверждения выхода
+          dispatch(showModal({ type: "exitConfirm", data: { close: false } }));
+          return true;
         }
       }
     );
@@ -191,7 +189,7 @@ export const Content = () => {
     return () => {
       backHandler.remove();
     };
-  }, [navigation, modal, bottomDrawerData, secondBottomDrawerData, pageSettings]);
+  }, [navigation, modal, bottomDrawerData, secondBottomDrawerData, pageSettings, webViewMode]);
 
   useEffect(() => {
     if (error) throw error;

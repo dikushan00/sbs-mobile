@@ -1,4 +1,4 @@
-import { COLORS, FONT } from "@/constants";
+import { COLORS, FONT, SIZES } from "@/constants";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
 
@@ -8,6 +8,7 @@ type PropsType = {
   onChange: (tab: string) => void;
   alt?: boolean;
 };
+
 export const CustomTabs = ({ data, defaultActive, onChange, alt = false }: PropsType) => {
   const [activeTab, setActiveTab] = useState(defaultActive || null);
   const handleChange = (newActiveTab: string) => {
@@ -33,7 +34,7 @@ export const CustomTabs = ({ data, defaultActive, onChange, alt = false }: Props
               isActive && (alt ? styles.tabActiveAlt : styles.tabActive),
               !alt && isFirst && { marginLeft: 0 },
               !alt && isLast && { marginRight: 0 },
-            ]}
+            ]} 
             onPress={() => handleChange(item.value)}
           >
             <Text
@@ -59,7 +60,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#EAEDF0",
     borderRadius: 8,
     padding: 3,
-    maxHeight: 46
+    height: 40,
+    maxHeight: 40
   },
   tab: {
     height: 48,
@@ -84,7 +86,7 @@ const styles = StyleSheet.create({
   // Alt styles for segmented control look
   tabAlt: {
     flex: 1,
-    height: 40,
+    height: 33,
     borderRadius: 6,
     paddingHorizontal: 16,
     justifyContent: "center",
@@ -96,7 +98,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   tabTextAlt: {
-    fontSize: 14,
+    fontSize: SIZES.small,
     color: "#000",
     fontFamily: FONT.regular,
   },

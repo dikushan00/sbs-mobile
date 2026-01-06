@@ -17,6 +17,7 @@ type StorageDataMap = {
   [STORAGE_KEYS.offlineActions]: OfflineActionType[] | null;
   [STORAGE_KEYS.notifications]: NotificationsResponse[] | null;
   [STORAGE_KEYS.userType]: {userType: UserTypeValue} | null;
+  [STORAGE_KEYS.notificationsEnabled]: {enabled: boolean} | null;
 };
 
 export const storageService = (function () {
@@ -89,6 +90,7 @@ export const storageService = (function () {
       notifications: null,
       checkListPoints: null,
       userType: null,
+      notificationsEnabled: null,
     };
     await Promise.all(
       Object.keys(STORAGE_KEYS).map(async (key) => {

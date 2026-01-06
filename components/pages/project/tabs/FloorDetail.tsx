@@ -12,6 +12,7 @@ import { getFloorSchema, getFloorWorkSets, getFloorWorkSetParams } from '@/compo
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { FloorSchema } from '../FloorSchema';
 import { MaterialsFloorTab } from './MaterialsFloorTab';
+import { WorksetTab } from './WorksetTab';
 import { Icon } from '@/components/Icon';
 
 interface FloorDetailProps {
@@ -91,7 +92,8 @@ export const FloorDetail = ({ floor, onBack, selectedData, entranceInfo }: Floor
 
   const tabsData = [
     { label: 'Схема этажа', value: 'scheme' },
-    { label: 'Материалы', value: 'materials' }
+    { label: 'Материалы', value: 'materials' },
+    { label: 'Работы', value: 'works' }
   ];
 
   const renderTabContent = () => {
@@ -99,6 +101,8 @@ export const FloorDetail = ({ floor, onBack, selectedData, entranceInfo }: Floor
       return renderSchemeContent();
     } else if (activeTab === 'materials') {
       return renderMaterialsContent();
+    } else if (activeTab === 'works') {
+      return renderWorksContent();
     }
     return null;
   };
@@ -172,6 +176,12 @@ export const FloorDetail = ({ floor, onBack, selectedData, entranceInfo }: Floor
     </View>
   );
 
+  const renderWorksContent = () => (
+    <View style={[styles.tabContent, {paddingTop: 15}]}>
+      <WorksetTab floor_map_id={floor.floor_map_id} onBack={onBack} />
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       {isFetching && <CustomLoader />}
@@ -199,12 +209,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tabContent: {
-    gap: 16,
+    gap: 12,
   },
   selectsContainer: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 0,
     marginTop: 15
   },
   selectWrapper: {
@@ -218,18 +228,5 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     zIndex: 10,
-  },
-  filterIndicator: {
-    backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignSelf: 'flex-start',
-  },
-  filterText: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: '500',
   },
 });

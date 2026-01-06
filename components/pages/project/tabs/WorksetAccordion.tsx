@@ -122,7 +122,7 @@ export const WorkSetAccordion: React.FC<MaterialsAccordionProps> = ({ placement,
                   height={13}
                   fill={COLORS.black}
                 />
-                <View style={{marginLeft: 10}}>
+                <View style={{marginLeft: 10, flex: 1, flexShrink: 1}}>
                   <Text style={styles.groupTitle}>{group.work_set_check_group_name}</Text>
                   <Text style={styles.groupTotalAlt}>Сумма: {numberWithCommas(Math.floor(group.total_sum))} 〒</Text>
                 </View>

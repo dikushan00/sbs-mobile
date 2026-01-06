@@ -54,6 +54,15 @@ export const deletePushToken = async (token: string) => {
   } catch (e) {}
 };
 
+export const addPushToken = async (token: string) => {
+  try {
+    await appAPI.addPushToken({ mobile_token: token });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
 export const getAppLastVersion = async () => {
   try {
     const res = await appAPI.getAppLastVersion();

@@ -54,12 +54,12 @@ export const FlatSelect = (props: FlatSelectProps) => {
       <Pressable
         onPress={openList}
         style={{
-          padding: 10,
+          padding: 5,
           paddingHorizontal: 15,
           backgroundColor: props.value ? COLORS.primaryLight : "#f0f0f0",
           borderRadius: 12,
           width: "100%",
-          height: 48,
+          height: 34,
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
@@ -68,7 +68,7 @@ export const FlatSelect = (props: FlatSelectProps) => {
         <Text 
           style={{ 
             color: props.value ? "#fff" : (isPlaceholder ? "#757575" : "#333"),
-            fontSize: 16,
+            fontSize: 14,
             flex: 1
           }}
           numberOfLines={1}

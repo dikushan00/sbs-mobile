@@ -16,6 +16,7 @@ export type GalleryType = {
 type ModalPayloadMap = {
   [MODAL_NAMES.gallery]: GalleryType;
   [MODAL_NAMES.syncData]: { close?: boolean };
+  [MODAL_NAMES.exitConfirm]: { close?: boolean };
 };
 
 export type ModalPayload<T extends ModalKeys | null> = {
