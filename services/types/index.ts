@@ -29,6 +29,7 @@ export type AuthRegisterData = {
   password_repeat: string;
 };
 
+export type MobileNotifyGroupCodeType = 'OKK' | 'AGREEMENT' | 'DOCUMENTS' | 'MATERIALS';
 export interface NotificationType {
   mobile_notify_id: number;
   mobile_notify_title: string;
@@ -38,6 +39,7 @@ export interface NotificationType {
   project_id?: number | null;
   help_call_id?: number | null;
   date_create: string;
+  is_read: boolean;
 }
 
 export type FileType = {

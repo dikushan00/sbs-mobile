@@ -29,6 +29,9 @@ import Payment from "@/assets/icons/payment.svg";
 import Document from "@/assets/icons/document.svg";
 import DocumentAlt from "@/assets/icons/document_alt.svg";
 import DocumentPen from "@/assets/icons/document_pen.svg";
+import DocumentOutlinePen from "@/assets/icons/document_outline_pen.svg";
+import DocumentOutline from "@/assets/icons/document_outline.svg";
+import Car from "@/assets/icons/car.svg";
 import Flag from "@/assets/icons/flag.svg";
 import FlagTime from "@/assets/icons/flat-time.svg";
 import Work from "@/assets/icons/work.svg";
@@ -95,6 +98,9 @@ const icons = {
   document: Document,
   documentAlt: DocumentAlt,
   document2: Document2,
+  documentOutlinePen: DocumentOutlinePen,
+  documentOutline: DocumentOutline,
+  car: Car,
   flag: Flag,
   flagTime: FlagTime,
   work: Work,
@@ -133,7 +139,7 @@ const icons = {
   trashOutline: TrashOutline,
 };
 
-type IconKeysType = keyof typeof icons;
+export type IconKeysType = keyof typeof icons;
 type PropsType = {
   name: IconKeysType;
   style?: ViewStyle;

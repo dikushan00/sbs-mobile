@@ -1,25 +1,25 @@
 import { CustomLoader } from "@/components/common/CustomLoader";
 import { NotFound } from "@/components/common/NotFound";
-import { FONT, SHADOWS } from "@/constants";
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useEffect, useRef } from "react";
+import { COLORS, PAGE_NAMES } from "@/constants";
+import { MobileNotifyGroupCodeType } from "@/services/types";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useCallback } from "react";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { NotificationGroupItem } from "./NotificationGroupItem";
 import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { Notification } from "./Notification";
-import { getNotifyDate, NotificationsResponse } from "./services";
+  getGroupNotifyCount,
+  NOTIFICATION_GROUPS,
+  NotificationsResponse,
+} from "./services";
 
 type PropsType = {
   isFetching: boolean;
   data: NotificationsResponse[];
   getData: (controller?: AbortController) => void;
 };
+
 export const Notifications = ({ data, getData, isFetching }: PropsType) => {
-  const scrollViewRef = useRef(null);
+  const navigation = useNavigation();
 
   useFocusEffect(
     useCallback(() => {
@@ -29,55 +29,52 @@ export const Notifications = ({ data, getData, isFetching }: PropsType) => {
     }, [])
   );
 
-  useEffect(() => {
-    if (scrollViewRef.current && data?.length)
-      //@ts-ignore
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [scrollViewRef.current, data]);
+  // Фильтруем только группы с уведомлениями
+  const groupsWithNotifications = data?.filter(
+    (group) => getGroupNotifyCount(group) > 0
+  );
 
+  const handleGroupPress = (groupCode: MobileNotifyGroupCodeType) => {
+    const selectedGroup = data?.find(
+      (group) => group.mobile_notify_group_code === groupCode
+    );
+    if (selectedGroup) {
+      const groupInfo = NOTIFICATION_GROUPS[groupCode];
+      navigation.navigate(
+        // @ts-ignore
+        PAGE_NAMES.notificationDetails as never,
+        {
+          groupCode,
+          groupData: JSON.stringify(selectedGroup),
+          title: groupInfo?.title || "Уведомления",
+        } as never
+      );
+    }
+  };
   return (
     <>
       {isFetching && <CustomLoader />}
       <ScrollView
         style={styles.container}
-        contentContainerStyle={{ paddingBottom: 25 }}
+        contentContainerStyle={styles.contentContainer}
         refreshControl={
           <RefreshControl refreshing={isFetching} onRefresh={() => getData()} />
         }
-        ref={scrollViewRef}
-        onContentSizeChange={() => {
-          // Scroll to bottom whenever the content size changes
-          //@ts-ignore
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }}
       >
-        <View style={styles.notificationsWrapper}>
-          {data?.length
-            ? data.map((item) => {
-                return (
-                  <View key={item.day_date}>
-                    <View style={styles.date}>
-                      <View style={styles.dateTextWrapper}>
-                        <Text style={styles.dateText}>
-                          {getNotifyDate(item.day_date)}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={styles.notifications}>
-                      {item.notify_list?.map((notify) => {
-                        return (
-                          <Notification
-                            key={String(notify.mobile_notify_id)}
-                            data={notify}
-                          />
-                        );
-                      })}
-                    </View>
-                  </View>
-                );
-              })
-            : !isFetching && <NotFound />}
-        </View>
+        {groupsWithNotifications?.length ? (
+          <View style={styles.groupsWrapper}>
+            {groupsWithNotifications.map((group, index) => (
+              <NotificationGroupItem
+                key={group.mobile_notify_group_code}
+                group={group}
+                onPress={handleGroupPress}
+                isLast={index === groupsWithNotifications.length - 1}
+              />
+            ))}
+          </View>
+        ) : (
+          !isFetching && <NotFound />
+        )}
       </ScrollView>
     </>
   );
@@ -86,32 +83,22 @@ export const Notifications = ({ data, getData, isFetching }: PropsType) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  contentContainer: {
     padding: 10,
-    paddingTop: 10,
-    height: "100%",
+    paddingBottom: 25,
   },
-  notificationsWrapper: {
-    gap: 15,
-  },
-  notifications: {
-    gap: 15,
-  },
-  date: {
-    marginBottom: 12,
-    flexDirection: "row",
-    justifyContent: "center",
-  },
-  dateTextWrapper: {
-    backgroundColor: "#edf4ff",
-    borderRadius: 8,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    ...SHADOWS.small,
-  },
-  dateText: {
-    textAlign: "center",
-    fontSize: 12,
-    color: "#8f8f8f",
-    fontFamily: FONT.medium,
+  groupsWrapper: {
+    backgroundColor: COLORS.backgroundWhite,
+    borderRadius: 16,
+    shadowColor: "#ccc",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 2,
   },
 });

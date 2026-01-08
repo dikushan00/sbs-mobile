@@ -62,7 +62,6 @@ export const getResidentialEntrances = async (params: ProjectFiltersType): Promi
 export const getProjectEntrances = async (project_id: number): Promise<ProjectEntranceAllInfoType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getProjectEntrances(project_id);
-    console.log('res', res)
     return (
       res?.data?.map((item) => ({
         ...item,

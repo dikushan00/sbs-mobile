@@ -1,6 +1,7 @@
 import ForgetPasswordPage from "@/app/forget-password";
 import LoginPage from "@/app/login";
 import NotificationsPage from "@/app/notifications";
+import NotificationDetailsPage from "@/app/notification-details";
 import ProfilePage from "@/app/profile";
 import OkkPage from "@/app/okk";
 import { PAGE_NAMES } from "@/constants";
@@ -12,6 +13,11 @@ export const authRoutes = [
   {
     name: PAGE_NAMES.notifications,
     component: NotificationsPage,
+    options: { title: "Уведомления" },
+  },
+  {
+    name: PAGE_NAMES.notificationDetails,
+    component: NotificationDetailsPage,
     options: { title: "Уведомления" },
   },
   {

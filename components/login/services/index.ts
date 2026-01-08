@@ -16,9 +16,9 @@ export const handleLoginResData = async (
   dispatch: AppDispatch | null
 ) => {
   const { token, user } = res;
-  await SecureStore.setItemAsync(STORE_KEYS.accessToken, token?.access);
-  await SecureStore.setItemAsync(STORE_KEYS.refreshToken, token?.refresh);
-  await SecureStore.setItemAsync(STORE_KEYS.auth, "true");
+  await SecureStore.setItemAsync(STORE_KEYS.accessToken, token?.access, {keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY});
+  await SecureStore.setItemAsync(STORE_KEYS.refreshToken, token?.refresh, {keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY});
+  await SecureStore.setItemAsync(STORE_KEYS.auth, "true", {keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY});
 
   if (dispatch) {
     await storageService.setData(STORAGE_KEYS.userData, user);

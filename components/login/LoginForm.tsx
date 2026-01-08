@@ -111,9 +111,9 @@ export const LoginForm = ({ disabled = false }) => {
 
   const saveAuthData = async (data: AuthLoginData) => {
     try {
-      await SecureStore.setItemAsync(STORE_KEYS.allowBiometry, "true");
-      await SecureStore.setItemAsync(STORE_KEYS.login, data.login);
-      await SecureStore.setItemAsync(STORE_KEYS.password, data.password);
+      await SecureStore.setItemAsync(STORE_KEYS.allowBiometry, "true", {keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY});
+      await SecureStore.setItemAsync(STORE_KEYS.login, data.login, {keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY});
+      await SecureStore.setItemAsync(STORE_KEYS.password, data.password, {keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY});
     } catch (e) {}
   };
 

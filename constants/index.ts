@@ -46,6 +46,7 @@ export const PAGE_NAMES = {
   forgetPassword: "forgetPassword",
   okkTasks: "okkTasks",
   notifications: "notifications",
+  notificationDetails: "notificationDetails",
   profile: "profile",
 };
 

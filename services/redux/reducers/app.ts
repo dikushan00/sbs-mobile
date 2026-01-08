@@ -3,7 +3,7 @@ import {
   BottomDrawerPayload,
 } from "@/components/BottomDrawer/types";
 import { ModalKeys, ModalPayload } from "@/components/Modal/types";
-import { getNotifications } from "@/components/pages/notifications/services";
+import { getNotifications, NotificationsResponse } from "@/components/pages/notifications/services";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { AppThunk, RootState } from "..";
 import { AppStateType } from "../types";
@@ -148,13 +148,24 @@ export const initialize = (): AppThunk => async (dispatch) => {
 export const fetchNotificationsCount = (): AppThunk => async (dispatch) => {
   try {
     const data = await getNotifications();
+    dispatch(updateNotificationsCount(data));
+  } catch (e) {
+    console.error("Error fetching notifications count:", e);
+  }
+};
+
+export const updateNotificationsCount = (data: NotificationsResponse[] | undefined): AppThunk => async (dispatch) => {
+  try {
     if (data) {
-      const totalCount = data.reduce((acc, item) => {
-        return acc + (item.notify_list?.length || 0);
+      const totalCount = data.reduce((acc, group) => {
+        const groupCount = group.day_list?.reduce((dayAcc, day) => {
+          const count = day.notify_list?.filter((notify) => !notify.is_read).length || 0;
+          return dayAcc + count;
+        }, 0) || 0;
+        return acc + groupCount;
       }, 0);
       dispatch(setNotificationsCount(totalCount));
     }
   } catch (e) {
-    console.error("Error fetching notifications count:", e);
   }
 };
