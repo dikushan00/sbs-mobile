@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Keyboard } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { CustomButton } from '@/components/common/CustomButton';
 import { Icon } from '@/components/Icon';
@@ -22,6 +22,10 @@ export const DatePicker: React.FC<DatePickerProps> = ({ data, handleClose }) => 
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
     'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
   ];
+
+  useEffect(() => {
+    Keyboard.dismiss();
+  }, []);
 
   const daysOfWeek = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
 

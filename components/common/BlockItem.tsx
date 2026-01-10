@@ -58,6 +58,8 @@ const styles = StyleSheet.create({
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
   },
   iconContainer: {
     backgroundColor: '#DFEFFF',
@@ -69,6 +71,8 @@ const styles = StyleSheet.create({
     fontSize: SIZES.medium,
     fontFamily: FONT.regular,
     color: COLORS.black,
+    flex: 1,
+    flexShrink: 1,
   },
   blockMode: {
     backgroundColor: COLORS.white,

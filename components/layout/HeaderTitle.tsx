@@ -24,7 +24,7 @@ export const HeaderTitle = ({ title }: PropsType) => {
   return (
     <View style={styles.headerContainer}>
       {showTitle && (
-        <Text style={styles.headerText}>
+        <Text style={styles.headerText} allowFontScaling={false}>
           {cutString(
             route.params?.dynamicTitle ? pageHeaderData?.title || "" : title
           )}
@@ -39,6 +39,7 @@ export const HeaderTitle = ({ title }: PropsType) => {
             width: "85%",
             textAlign: "center",
           }}
+          allowFontScaling={false}
         >
           {pageHeaderData.desc}
         </Text>

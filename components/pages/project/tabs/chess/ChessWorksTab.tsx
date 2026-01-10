@@ -100,12 +100,13 @@ export const ChessWorksTab = ({
               <Text 
                 key={status.status_colour} 
                 style={[styles.doneCount, { color: status.status_colour === '#D3D3D3' ? COLORS.dark : status.status_colour }]}
+                allowFontScaling={false}
               >
                 {status.status_cnt}
               </Text>
             ))
           }
-          <Text style={styles.flatLabel}>кв.{flat.flat_num}</Text>
+          <Text style={styles.flatLabel} allowFontScaling={false}>кв.{flat.flat_num}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -136,12 +137,13 @@ export const ChessWorksTab = ({
                 <Text 
                   key={status.status_colour} 
                   style={[styles.floorDoneCount, { color: status.status_colour === '#D3D3D3' ? COLORS.dark : status.status_colour }]}
+                  allowFontScaling={false}
                 >
                   {status.status_cnt}
                 </Text>
               ))
             }
-            <Text style={styles.floorHeaderText}>Этаж {floor.floor}</Text>
+            <Text style={styles.floorHeaderText} allowFontScaling={false}>Этаж {floor.floor}</Text>
           </View>
         </TouchableOpacity>
         <View style={styles.floorDivider} />
@@ -167,7 +169,7 @@ export const ChessWorksTab = ({
     if (!floorsPlan || floorsPlan.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Нет данных для отображения</Text>
+          <Text style={styles.emptyText} allowFontScaling={false}>Нет данных для отображения</Text>
         </View>
       );
     }
@@ -204,15 +206,15 @@ export const ChessWorksTab = ({
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#2CAB00' }]} />
-            <Text style={styles.legendText}>Завершено</Text>
+            <Text style={styles.legendText} allowFontScaling={false}>Завершено</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#BBBE31' }]} />
-            <Text style={styles.legendText}>ОКК вызван</Text>
+            <Text style={styles.legendText} allowFontScaling={false}>ОКК вызван</Text>
           </View>
           <View style={styles.legendItem}>
             <Icon name='info' fill='#FC4646' width={16} height={16} />
-            <Text style={styles.legendText}>Замечание</Text>
+            <Text style={styles.legendText} allowFontScaling={false}>Замечание</Text>
           </View>
         </View>
       </View>

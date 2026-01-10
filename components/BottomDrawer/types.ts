@@ -42,6 +42,7 @@ export type DocumentActionsDrawerType = {
   onSubmit: (res: ProjectMainDocumentType[]) => void;
   params: ProjectFiltersType;
   floor_map_document_id: number;
+  showDateChangeInitially?: boolean;
 };
 
 export type PaymentActionsDrawerType = {

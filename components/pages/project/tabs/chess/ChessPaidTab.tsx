@@ -91,12 +91,13 @@ export const ChessPaidTab = ({
               <Text 
                 key={status.status_colour} 
                 style={[styles.statusValue, { color: status.status_colour === '#D3D3D3' ? COLORS.dark : status.status_colour }]}
+                allowFontScaling={false}
               >
                 {numberWithCommas(status.status_sum)}
               </Text>
             ))
           }
-          <Text style={styles.flatLabel}>кв.{flat.flat_num}</Text>
+          <Text style={styles.flatLabel} allowFontScaling={false}>кв.{flat.flat_num}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -118,12 +119,13 @@ export const ChessPaidTab = ({
                 <Text 
                   key={status.status_colour} 
                   style={[styles.floorStatusValue, { color: status.status_colour === '#D3D3D3' ? COLORS.dark : status.status_colour }]}
+                  allowFontScaling={false}
                 >
                   {numberWithCommas(status.status_sum)}
                 </Text>
               ))
             }
-            <Text style={styles.floorHeaderText}>Этаж {floor.floor}</Text>
+            <Text style={styles.floorHeaderText} allowFontScaling={false}>Этаж {floor.floor}</Text>
           </View>
         </TouchableOpacity>
         <View style={styles.floorDivider} />
@@ -149,7 +151,7 @@ export const ChessPaidTab = ({
     if (!floorsPlan || floorsPlan.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Нет данных для отображения</Text>
+          <Text style={styles.emptyText} allowFontScaling={false}>Нет данных для отображения</Text>
         </View>
       );
     }
@@ -186,15 +188,15 @@ export const ChessPaidTab = ({
         <View style={styles.legendRow}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#2CAB00' }]} />
-            <Text style={styles.legendText}>Оплачено</Text>
+            <Text style={styles.legendText} allowFontScaling={false}>Оплачено</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#BBBE31' }]} />
-            <Text style={styles.legendText}>К оплате</Text>
+            <Text style={styles.legendText} allowFontScaling={false}>К оплате</Text>
           </View>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#D3D3D3' }]} />
-            <Text style={styles.legendText}>Остаток</Text>
+            <Text style={styles.legendText} allowFontScaling={false}>Остаток</Text>
           </View>
         </View>
       </View>
@@ -303,6 +305,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: FONT.medium,
     color: '#2CAB00',
+    textAlign: 'center',
   },
   floorDivider: {
     height: 50,
@@ -339,6 +342,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: FONT.medium,
     color: '#2CAB00',
+    textAlign: 'center',
   },
   flatLabel: {
     fontSize: 8,

@@ -48,7 +48,7 @@ export const PageHeader = ({
       ) : (
         <View>
           {showBackBtn ? (
-            <TouchableOpacity onPress={handleBack} style={{ padding: 20 }}>
+            <TouchableOpacity onPress={handleBack} style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
               <Icon name="back" />
             </TouchableOpacity>
           ) : (

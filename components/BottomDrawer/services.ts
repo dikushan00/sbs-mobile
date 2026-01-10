@@ -49,7 +49,7 @@ export const getBottomDrawerContent = () => ({
       data: CustomSelectProps;
       handleClose: () => void;
     }>,
-    snapPoints: [500],
+    snapPoints: ['100%'],
   },
   [BOTTOM_DRAWER_KEYS.flatSelectList]: {
     component: FlatSelectList as React.FC<{

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl, Linking, ActivityIndicator } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONT, mobileSignUrl, mobileSignBusinessUrl, SIZES } from '@/constants';
@@ -14,6 +14,8 @@ import { NotFound } from '@/components/common/NotFound';
 import { userAppState } from '@/services/redux/reducers/userApp';
 import * as ExpoLinking from 'expo-linking';
 import { EntranceSelector } from '@/components/common/EntranceSelector';
+import { downloadAndOpenFile, openLocalFileIfExists } from '@/utils';
+import { instance } from '@/services/api';
 
 interface DocumentsTabProps {
   filters: ProjectFiltersType;
@@ -36,6 +38,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     floor: null as any,
     floor_map_document_type_id: null as any
   });
+  const [downloading, setDownloading] = useState(false);
 
   const fetchInitialData = useCallback(async () => {
     const [entrancesData, documentTypes] = await Promise.all([
@@ -63,7 +66,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
       setDocumentsData(documents);
     }
   }, [filters, localFilters]);
-
+ 
   useEffect(() => {
     fetchInitialData();
   }, [fetchInitialData]);
@@ -150,6 +153,22 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     }))
   };
 
+  const handleEditDates = (document: ProjectMainDocumentType) => {
+    dispatch(showBottomDrawer({
+      type: BOTTOM_DRAWER_KEYS.documentActions,
+      data: {
+        document,
+        onSubmit: (res: any[]) => {
+          if(!res) return
+          setDocumentsData(res);
+        },
+        params: {...filters, ...localFilters},
+        floor_map_document_id: document.floor_map_document_id,
+        showDateChangeInitially: true
+      }
+    }))
+  };
+
   const handleSign = (document: ProjectMainDocumentType) => {
     dispatch(showBottomDrawer({
       type: BOTTOM_DRAWER_KEYS.signatoriesList,
@@ -185,6 +204,29 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
         }
       }
     } catch (error) {}
+  };
+
+  const handleDownload = async (document: ProjectMainDocumentType) => {
+    if (downloading) return;
+    
+    setDownloading(true);
+    try {
+      const fileName = document.floor_map_document_type_name + '.pdf';
+
+      // Если файл уже скачан — открываем локальный и не делаем повторный запрос
+      const openedFromCache = await openLocalFileIfExists(fileName);
+      if (openedFromCache) {
+        setDownloading(false);
+        return;
+      }
+
+      const res = await instance().get(document.master_url, { responseType: 'arraybuffer' });
+      await downloadAndOpenFile(res, fileName);
+    } catch (error) {
+      Alert.alert('Ошибка', 'Не удалось скачать документ');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   if (!documentsData && !loading) {
@@ -239,7 +281,7 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
           />
         </View>
       </View>
-      {loading && <CustomLoader />}
+      {(loading || downloading) && <CustomLoader />}
       <ScrollView 
         refreshControl={<RefreshControl refreshing={loading} onRefresh={fetchDocuments} />}
         style={styles.scrollContainer} 
@@ -259,29 +301,33 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
               <View key={item.floor_map_document_id} style={styles.materialContainer}>
                 <View style={{flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 15}}>
                   <Text style={styles.materialName}>{item.floor_map_document_type_name}</Text>
-                  <TouchableOpacity style={{padding: 5, backgroundColor: COLORS.grayLight, borderRadius: 100}} onPress={() => handleMoreActions(item)}>
+                  {/* <TouchableOpacity style={{padding: 5, backgroundColor: COLORS.grayLight, borderRadius: 100}} onPress={() => handleMoreActions(item)}>
                     <Icon name='more' width={16} height={16} fill={COLORS.primarySecondary} />
+                  </TouchableOpacity> */}
+                </View>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap'}}>
+                  <View style={styles.dateStatusRow}>
+                    <View style={styles.dateBadge}>
+                      <Icon name="plan" width={14} height={14} fill={'#242424'} />
+                      <Text style={styles.dateText}>{item.floor}</Text>
+                    </View>
+                    <View style={styles.dateBadge}>
+                      <Icon name="residentCloud" width={14} height={14} fill={'#242424'} />
+                      <Text style={styles.dateText}>{item.block_name}</Text>
+                    </View>
+                    <View style={styles.dateBadge}>
+                      <Icon name="apartment" width={14} height={14} />
+                      <Text style={styles.dateText}>{item.placement_type_name}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity 
+                    style={{...styles.statusContainer, backgroundColor: getStatusColour(item.is_signed, userSigned)}}
+                    onPress={() => handleSign(item)}
+                  >
+                    <Text style={{color: COLORS.white, fontSize: 12}}>{item.is_signed ? 'Подписано' : userSigned ? 'Ожидание других подписантов' : 'На подписании'}</Text>
                   </TouchableOpacity>
                 </View>
-                <View style={styles.dateStatusRow}>
-                  <View style={styles.dateBadge}>
-                    <Icon name="plan" width={14} height={14} fill={'#242424'} />
-                    <Text style={styles.dateText}>{item.floor}</Text>
-                  </View>
-                  <View style={styles.dateBadge}>
-                    <Icon name="residentCloud" width={14} height={14} fill={'#242424'} />
-                    <Text style={styles.dateText}>{item.block_name}</Text>
-                  </View>
-                  <View style={styles.dateBadge}>
-                    <Icon name="apartment" width={14} height={14} />
-                    <Text style={styles.dateText}>{item.placement_type_name}</Text>
-                  </View>
-                </View>
-                <View style={{flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 15, justifyContent: 'space-between'}}>
-
-                  <View style={{...styles.statusContainer, backgroundColor: getStatusColour(item.is_signed, userSigned)}}>
-                    <Text style={{color: COLORS.white}}>{item.is_signed ? 'Подписано' : userSigned ? 'Ожидание других подписантов' : 'На подписании'}</Text>
-                  </View>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 5, justifyContent: 'space-between'}}>
                   {
                     item.is_avr_sent_bi 
                       ? <View style={styles.sentTo1CContainer}>
@@ -329,11 +375,14 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
                         <Text>{item.date_create}</Text>
                         <Text style={{color: COLORS.gray, fontSize: SIZES.small}}>Создано</Text>
                       </View>
-                      <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 5, paddingRight: 10}}>
+                      <View style={{flexDirection: 'row', alignItems: 'center', gap: 5, justifyContent: 'space-between', paddingRight: 10}}>
                         <View style={{flexDirection: 'row', alignItems: 'center', gap: 5}}>
                           <Icon name="calendar2" width={16} height={16} fill={COLORS.primarySecondary} />
                           <Text>{item.date_end}</Text>
                         </View>
+                        <TouchableOpacity style={{padding: 5}} onPress={() => handleEditDates(item)}>
+                          <Icon name="editLine" width={16} height={16} fill={COLORS.primarySecondary} />
+                        </TouchableOpacity>
                       </View>
                     </View>
                     </View>
@@ -363,6 +412,15 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
                       </View>
                     )}
                   </View>
+
+                  <TouchableOpacity 
+                    style={{paddingTop: 12, paddingBottom: 3, flexDirection: 'row', alignItems: 'center', gap: 5}}
+                    onPress={() => handleDownload(item)}
+                    disabled={downloading}
+                  >
+                    <Text style={{color: COLORS.primarySecondary}}>Скачать</Text>
+                    <Icon name="downloadAlt" width={16} height={16} fill={COLORS.primarySecondary} />
+                  </TouchableOpacity>
               </View>
             );
           })}
@@ -400,7 +458,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   statusContainer: {
-    padding: 10,
+    padding: 7,
     paddingVertical: 5,
     borderRadius: 6,
     backgroundColor: COLORS.primary,
@@ -426,12 +484,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 10,
-    backgroundColor: COLORS.white
+    backgroundColor: COLORS.white,
+    borderEndEndRadius: 16,
+    borderStartEndRadius: 16,
   },
   selectWrapper: {
     flex: 1,
   },
-  
   // Стили для информации о 1С
   sbsInfoContainer: {
     backgroundColor: '#F8F9FA',
@@ -499,13 +558,12 @@ const styles = StyleSheet.create({
   dateStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
+    // flexWrap: 'wrap',
     gap: 10,
     backgroundColor: '#F0F0F0',
-    borderRadius: 8,
+    borderRadius: 6,
     paddingHorizontal: 7,
     paddingVertical: 5,
-    marginTop: 10,
     alignSelf: 'flex-start',
   },
   dateBadge: {
@@ -519,6 +577,8 @@ const styles = StyleSheet.create({
     color: '#242424',
   },
   documentName: {
+    flex: 1,
+    flexShrink: 1,
   },
   documentIdText: {
     fontSize: SIZES.regular,

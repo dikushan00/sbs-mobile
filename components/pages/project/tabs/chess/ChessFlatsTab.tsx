@@ -62,10 +62,10 @@ export const ChessFlatsTab = ({
         onPress={() => handleFlatPress(flat)}
         activeOpacity={0.7}
       >
-        <Text style={styles.roomCount}>{flat.room_cnt}</Text>
+        <Text style={styles.roomCount} allowFontScaling={false}>{flat.room_cnt}</Text>
         <View style={styles.statusContainer}>
-          <Text style={styles.apartmentNumber}>{flat.area} м²</Text>
-          <Text style={styles.apartmentNumber}>кв.{flat.flat_num}</Text>
+          <Text style={styles.apartmentNumber} allowFontScaling={false}>{flat.area} м²</Text>
+          <Text style={styles.apartmentNumber} allowFontScaling={false}>кв.{flat.flat_num}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -78,7 +78,7 @@ export const ChessFlatsTab = ({
           style={[styles.floorHeader, styles.apartmentItem, { backgroundColor: getSchemeColor(floor.hex_code), borderRadius: 8 }]} 
           onPress={() => onFloorPress(floor)}
         >
-          <Text style={styles.floorHeaderText}>Этаж {floor.floor}</Text>
+          <Text style={styles.floorHeaderText} allowFontScaling={false}>Этаж {floor.floor}</Text>
         </TouchableOpacity>
         <View style={styles.floorDivider} />
       </View>
@@ -103,7 +103,7 @@ export const ChessFlatsTab = ({
     if (!floorsPlan || floorsPlan.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Нет данных для отображения</Text>
+          <Text style={styles.emptyText} allowFontScaling={false}>Нет данных для отображения</Text>
         </View>
       );
     }
@@ -139,7 +139,7 @@ export const ChessFlatsTab = ({
       <View style={styles.legendContainer}>
         <View style={styles.legendItem}>
           <Icon name="info" width={16} height={16} fill={COLORS.primary} />
-          <Text style={styles.legendText}>
+          <Text style={styles.legendText} allowFontScaling={false}>
             Одинаковый цвет означает одинаковую схему этажа
           </Text>
         </View>
@@ -229,6 +229,7 @@ const styles = StyleSheet.create({
     fontSize: SIZES.small,
     fontFamily: FONT.regular,
     color: COLORS.dark,
+    textAlign: 'center',
   },
   floorDivider: {
     height: 50,

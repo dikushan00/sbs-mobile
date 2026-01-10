@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   },
   folderIconWrapper: {
   },
-  dateStatusWrapper: {flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 10},
+  dateStatusWrapper: {flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 10, flexWrap: 'wrap'},
   dateStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',

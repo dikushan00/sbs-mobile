@@ -50,6 +50,24 @@ export const BottomDrawer = () => {
   };
 
   const Component = contentData?.component;
+  
+  // Функция для изменения высоты drawer (позиция от низа экрана)
+  const snapToPosition = (position: number) => {
+    if (bottomSheetRef.current) {
+      bottomSheetRef.current.snapToPosition(position);
+    }
+  };
+
+  // Функция для возврата к исходному snapPoint
+  const snapToIndex = (index: number = 0) => {
+    if (bottomSheetRef.current) {
+      bottomSheetRef.current.snapToIndex(index);
+    }
+  };
+
+  // Передаем функции изменения высоты через data
+  const componentData = data ? { ...data, snapToPosition, snapToIndex } : { snapToPosition, snapToIndex };
+
   return (
     <React.Fragment>
       {show && (
@@ -72,6 +90,9 @@ export const BottomDrawer = () => {
         enablePanDownToClose={true}
         enableOverDrag={false}
         enableDynamicSizing={data?.enableDynamicSizing || true}
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
         handleComponent={() => (
           <View style={styles.handleContainer}>
             <View style={styles.dragLineContainer}>
@@ -83,9 +104,9 @@ export const BottomDrawer = () => {
         onChange={handleSnapChange}
         onClose={() => show && dispatch(closeBottomDrawer())}
       >
-        <BottomSheetScrollView nestedScrollEnabled>
+        <BottomSheetScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled">
           <View style={styles.content}>
-            {!!Component && <Component data={data} handleClose={handleClose} />}
+            {!!Component && <Component data={componentData} handleClose={handleClose} />}
           </View>
         </BottomSheetScrollView>
       </BottomSheet>

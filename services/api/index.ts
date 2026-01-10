@@ -7,8 +7,6 @@ import Toast from "react-native-toast-message";
 import { getUserCredentials } from "..";
 import { storageService } from "../storage";
 
-export let source: any;
-
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
@@ -24,10 +22,8 @@ export const instance = (
   };
   const { throwError, showSnackbar } = reqOptions;
 
-  source = axios?.CancelToken?.source();
   const axiosInstance = axios.create({
     baseURL: url || apiUrl,
-    cancelToken: options.cancelToken || source.token,
   });
 
   if (authorization) {

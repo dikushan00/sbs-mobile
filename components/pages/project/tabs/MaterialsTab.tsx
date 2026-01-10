@@ -5,13 +5,12 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { useDispatch } from 'react-redux';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { deleteEntranceMaterialRequest, getEntranceMaterialRequests } from '@/components/main/services';
-import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType, SelectedDataType, NewMaterialRequestData, ProjectEntranceAllInfoType } from '@/components/main/types';
+import { ProjectFiltersType, MaterialRequestType, ProviderRequestStatusCodeType, SelectedDataType, NewMaterialRequestData } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
-import { ValueDisplay } from '@/components/common/ValueDisplay';
 import { CustomButton } from '@/components/common/CustomButton';
 import { MaterialOrderForm } from './MaterialOrderForm';
 import { MaterialOrderSuccess } from './MaterialOrderSuccess';
-import { AIChatOrderScreen } from './AIChatOrderScreen';
+// import { AIChatOrderScreen } from './AIChatOrderScreen';
 import { numberWithCommas } from '@/utils';
 import { Icon } from '@/components/Icon';
 import { closeBottomDrawer, setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
@@ -363,7 +362,6 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
         </AnimatedTouchableOpacity>
       </View> */}
 
-      {/* Animated AI Chat Overlay */}
       {aiChatVisible && (
         <Animated.View 
           style={[
@@ -381,10 +379,10 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
             },
           ]}
         >
-          <AIChatOrderScreen
+          {/* <AIChatOrderScreen
             onBack={handleBackToMaterials}
             projectId={selectedData?.project_id}
-          />
+          /> */}
         </Animated.View>
       )}
     </View>

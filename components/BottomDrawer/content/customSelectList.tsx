@@ -2,20 +2,32 @@ import { CustomSelectProps } from "@/components/common/CustomSelect";
 import { CustomButton } from "@/components/common/CustomButton";
 import { NotFound } from "@/components/common/NotFound";
 import { closeBottomDrawer } from "@/services/redux/reducers/app";
-import React, { useState, useMemo } from "react";
-import { Pressable, StyleSheet, Text, View, TextInput, ScrollView } from "react-native";
+import React, { useState, useMemo, useEffect } from "react";
+import { Pressable, StyleSheet, Text, View, TextInput, ScrollView, Dimensions, Keyboard } from "react-native";
 import { useDispatch } from "react-redux";
 import { BottomDrawerHeader } from "../BottomDrawerHeader";
 import { COLORS } from "@/constants";
 import { Icon } from "@/components/Icon";
 
-type PropsType = { data: CustomSelectProps; handleClose: () => void };
+type PropsType = { 
+  data: CustomSelectProps & { 
+    snapToPosition?: (position: number) => void;
+    snapToIndex?: (index: number) => void;
+  }; 
+  handleClose: () => void 
+};
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const CustomSelectList = ({ data, handleClose }: PropsType) => {
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { list, valueKey, onChange, value, labelKey, disabled, label, placeholder, showResetBtn, showSearch } = data;
+  const { list, valueKey, onChange, value, labelKey, disabled, label, placeholder, showResetBtn, showSearch, snapToPosition, snapToIndex } = data;
+
+  useEffect(() => {
+    Keyboard.dismiss();
+  }, []);
 
   // Фильтруем список по поисковому запросу
   const filteredList = useMemo(() => {
@@ -27,9 +39,41 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
     });
   }, [list, searchQuery, labelKey]);
 
+  // Изменяем высоту drawer при вводе в поле поиска
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      // При вводе - на всю высоту экрана (позиция от низа экрана)
+      if (snapToPosition) {
+        snapToPosition(SCREEN_HEIGHT);
+      }
+    } else {
+      // При очистке - возвращаем к исходному snapPoint
+      if (snapToIndex) {
+        snapToIndex(0);
+      }
+    }
+  }, [searchQuery, snapToPosition, snapToIndex]);
+
+  // Отслеживаем закрытие клавиатуры и возвращаем высоту к исходной
+  useEffect(() => {
+    
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', (e) => {
+      console.log(e);
+        // При закрытии клавиатуры возвращаем к исходному snapPoint только если поле поиска пустое
+        if (!searchQuery.trim() && snapToIndex) {
+          snapToIndex(0);
+        }
+    });
+
+    return () => {
+      keyboardDidHideListener.remove();
+    };
+  }, [snapToIndex, searchQuery]);
+
   const handleChange = (selectedId: number | null, item: any) => {
     if (disabled) return;
     
+    Keyboard.dismiss();
     // Если выбран уже выбранный элемент, сбрасываем выбор
     if (value === selectedId) {
       onChange && onChange(null, null);
@@ -57,7 +101,7 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
         <TextInput
           style={styles.searchInput}
           placeholder="Поиск" placeholderTextColor={COLORS.darkGray}
-          value={searchQuery}
+          value={searchQuery} 
           onChangeText={setSearchQuery}
         />
       </View>}
@@ -69,20 +113,27 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
           showResetButton ? { paddingBottom: 70 } : null
         ]}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {filteredList?.length ? (
           filteredList?.map((item, i) => {
             return (
               <Pressable
-                style={{
+                style={({ pressed }) => ({
                   ...styles.item,
-                  backgroundColor:
-                    value === item[valueKey || "id"] ? "rgba(0, 108, 255, 0.1)" : "#fff",
-                }}
+                  backgroundColor: pressed 
+                    ? "rgba(0, 108, 255, 0.05)" 
+                    : value === item[valueKey || "id"] 
+                      ? "rgba(0, 108, 255, 0.1)" 
+                      : "#fff",
+                  opacity: pressed ? 0.8 : 1,
+                })}
                 key={String(item[valueKey || "id"])}
-                onPress={() =>
-                  !disabled && handleChange(item[valueKey || "id"], item)
-                }
+                onPress={() => {
+                  if (!disabled) {
+                    handleChange(item[valueKey || "id"], item);
+                  }
+                }}
               >
                 <Text style={{fontSize: 16, color: 
                     value === item[valueKey || "id"] ? COLORS.primaryLight : "#000",}}>{item[labelKey || "label"] || ""}</Text>
@@ -146,6 +197,7 @@ const styles = StyleSheet.create({
   listContainer: {
     flex: 1,
     marginTop: 15,
+    minHeight: 0,
   },
   listContent: {
     flexGrow: 1,
