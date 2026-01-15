@@ -93,7 +93,7 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
         ))}
       </ScrollView>
 
-      {!!signDocument && (
+      {/* {!!signDocument && (
         <View style={styles.fixedActionContainer}>
           <TouchableOpacity
             style={[
@@ -129,7 +129,7 @@ export const SignatoriesList: React.FC<SignatoriesListProps> = ({ data, handleCl
             </Text>
           </TouchableOpacity>
         </View>
-      )}
+      )} */}
     </View>
   );
 };

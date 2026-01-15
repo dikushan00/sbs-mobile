@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
-import { COLORS, FONT, mobileSignUrl, SIZES } from '@/constants';
+import { COLORS, FONT, mobileSignUrl, mobileSignBusinessUrl, SIZES } from '@/constants';
 import { Icon } from '@/components/Icon';
 import { CustomButton } from '@/components/common/CustomButton';
 import { ProjectMainDocumentType, ProjectFiltersType } from '@/components/main/types';
@@ -8,7 +8,7 @@ import { CustomDatePicker } from '@/components/common/CustomDatePicker';
 import { BOTTOM_DRAWER_KEYS } from '../constants';
 import { showSecondBottomDrawer } from '@/services/redux/reducers/app';
 import { useDispatch, useSelector } from 'react-redux';
-import { changeDateEntranceDocument, sendAvrTo1C, signEntranceDocument } from '@/components/main/services';
+import { changeDateEntranceDocument, sendAvrTo1C } from '@/components/main/services';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
 import { BottomDrawerHeader } from '../BottomDrawerHeader';
 import { downloadAndOpenFile, openLocalFileIfExists } from '@/utils';
@@ -22,6 +22,7 @@ interface DocumentActionsProps {
     onSubmit: (res: ProjectMainDocumentType[]) => void;
     params: ProjectFiltersType;
     floor_map_document_id: number;
+    showDateChangeInitially?: boolean;
   };
   handleClose: () => void;
 }
@@ -29,8 +30,8 @@ interface DocumentActionsProps {
 export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleClose }) => {
   const dispatch = useDispatch();
   const { showSuccessSnackbar } = useSnackbar();
-  const [showDateChange, setShowDateChange] = useState(false);
-  const { document, params, floor_map_document_id, onSubmit } = data;
+  const { document, params, floor_map_document_id, onSubmit, showDateChangeInitially } = data;
+  const [showDateChange, setShowDateChange] = useState(showDateChangeInitially || false);
   const [processing, setProcessing] = useState(false);
   const [singningDisabled, setSingningDisabled] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -40,7 +41,8 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
     date_end: document.date_end
   });
   const [changeDateLoading, setChangeDateLoading] = useState(false);
-  const { userData } = useSelector(userAppState);
+  const { userData, userType } = useSelector(userAppState);
+  const egovSignUrl = userType === 'business' ? mobileSignBusinessUrl : mobileSignUrl;
   
   const handleDownload = async () => {
     if(downloading) return;
@@ -115,29 +117,8 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
 
   const confirmSign = async () => {
     const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${floor_map_document_id}&type=document&user=${userData?.employee_id}`)
-    const link = `${mobileSignUrl}?link=${apiUrl}`
+    const link = `${egovSignUrl}?link=${apiUrl}`
     await Linking.openURL(link);
-    return
-    if (processing) return;
-    setProcessing(true);
-
-    const body = {
-      floor_map_document_id,
-    };
-
-    const res = await signEntranceDocument(body, params);
-    setProcessing(false);
-    setSingningDisabled(true);
-    handleClose()
-    if(!res) return;
-    try {
-      if (res?.redirect_url) {
-        const canOpen = await Linking.canOpenURL(res.redirect_url);
-        if (canOpen) {
-          await Linking.openURL(res.redirect_url);
-        }
-      }
-    } catch (error) {}
   };
 
   const handleDateChange = async () => {
@@ -198,7 +179,8 @@ export const DocumentActions: React.FC<DocumentActionsProps> = ({ data, handleCl
             <View style={styles.actionIcon}>
               <Icon name="people" width={20} height={20} fill={COLORS.primary} />
             </View>
-            <Text style={styles.actionText}>{signDocument ? 'Подписать' : 'Подписанты'}</Text>
+            <Text style={styles.actionText}>Подписанты</Text>
+            {/* <Text style={styles.actionText}>{signDocument ? 'Подписать' : 'Подписанты'}</Text> */}
           </TouchableOpacity>
         )}
         

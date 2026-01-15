@@ -23,7 +23,7 @@ export const HeaderRight = () => {
       onPress={handleClick}
       disabled={logoutLoading}
     >
-      <FontAwesome5 name="bell" size={19} color={"#404040"} />
+      <FontAwesome5 name="bell" size={20} color={"#404040"} />
       {notificationsCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>
@@ -42,15 +42,15 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: "absolute",
-    top: 0,
-    right: 0,
+    top: -2,
+    right: -2,
     backgroundColor: "#FF3B30",
     borderRadius: 10,
     minWidth: 18,
     height: 18,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
   },
   badgeText: {
     color: "#fff",

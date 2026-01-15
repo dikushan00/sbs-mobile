@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Alert, Platform, Linking, AppState } from 'react-native';
 import * as ExpoLinking from 'expo-linking';
-import { COLORS, FONT, mobileSignBusinessUrl, SIZES } from '@/constants';
+import { COLORS, FONT, mobileSignUrl, mobileSignBusinessUrl, SIZES } from '@/constants';
 import { ProjectDocumentType } from '@/components/main/types';
 import { getDocuments, sendAgreementTo1C } from '@/components/main/services';
 import { Block, BlockContainer } from './Block';
@@ -12,18 +12,39 @@ import { downloadAndOpenFile } from '@/utils';
 import { useSnackbar } from '@/components/snackbar/SnackbarContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { NotFound } from '@/components/common/NotFound';
-import { useSelector } from 'react-redux';
-import { userAppState } from '@/services/redux/reducers/userApp';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPageHeaderData, userAppState } from '@/services/redux/reducers/userApp';
+import { setPageSettings } from '@/services/redux/reducers/app';
 
-export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS: boolean }) => {
+type ContractsProps = {
+  project_id: number | null;
+  isSBS: boolean;
+  onBack?: () => void;
+}
+export const Contracts = ({project_id, isSBS, onBack}: ContractsProps) => {
+  const dispatch = useDispatch();
   const {showSuccessSnackbar} = useSnackbar()
-  const { userData } = useSelector(userAppState);
+  const { userData, userType } = useSelector(userAppState);
+  const egovSignUrl = userType === 'business' ? mobileSignBusinessUrl : mobileSignUrl;
   const [agreements, setAgreements] = useState<ProjectDocumentType[]>([]);
   const [isFetching, setIsFetching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [sending, setSending] = useState(false);
   const [signing,] = useState(false);
+
+  useEffect(() => {
+    if(onBack) {
+      dispatch(setPageSettings({
+        backBtn: true,
+        goBack: onBack
+      }));
+      dispatch(setPageHeaderData({
+        title: 'Договоры',
+        desc: '',
+      }));
+    }
+  }, [onBack]);
 
   const getData = useCallback((refresh: boolean = false) => {
     if(project_id) {
@@ -155,7 +176,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
           onPress: async () => {
             const agreement = agreements[0];
             const apiUrl = encodeURIComponent(`https://devmaster-back.smart-remont.kz/mgovSign/init?doc_id=${agreement.project_agreement_id}&type=agreement&user=${userData?.employee_id}`)
-            const link = `${mobileSignBusinessUrl}?link=${apiUrl}`
+            const link = `${egovSignUrl}?link=${apiUrl}`
             await Linking.openURL(link);
             // setSigning(true)
             // try {
@@ -185,8 +206,8 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
     } else if (!contractor_can_sign) {
       return { text: 'На подписании', color: '#F6BA30' };
     } else {
-      return { text: 'Подписать', color: COLORS.primary };
-      return { text: 'Подписать', color: COLORS.primary };
+      // return { text: 'Подписать', color: COLORS.primary };
+      return { text: '', color: COLORS.primary };
     }
   };
 
@@ -301,7 +322,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
             : <NotFound title='Договоров не найдено' />
         }
       </ScrollView>
-      {!!agreements.length && (
+      {/* {!!agreements.length && (
         (() => {
           const agreement = agreements[0];
           const contractorStatus = getStatusInfo(agreement.contractor_is_sign, agreement.contractor_can_sign);
@@ -323,7 +344,7 @@ export const Contracts = ({project_id, isSBS}: {project_id: number | null, isSBS
             </View>
           ) : null;
         })()
-      )}
+      )} */}
     </View>
   );
 };

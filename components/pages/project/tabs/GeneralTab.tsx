@@ -103,7 +103,7 @@ const blocks = [
   },
   {
     id: 3,
-    title: 'Заказанный объем материалов',
+    title: 'Объем материалов',
     icon: 'materials',
   },
 ];

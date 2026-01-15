@@ -67,6 +67,10 @@ import ResidentCloud from "@/assets/icons/resident_cloud.svg";
 import { ViewStyle } from "react-native";
 import TrashOutline from "@/assets/icons/trash_outline.svg";
 import Document2 from "@/assets/icons/document2.svg";
+import Home from "@/assets/icons/home.svg";
+import ListFilled from "@/assets/icons/list_filled.svg";
+import CarFilled from "@/assets/icons/car_filled.svg";
+import DocumentPenAlt from "@/assets/icons/document_pen_alt.svg";
 
 const icons = {
   download: Download,
@@ -100,7 +104,9 @@ const icons = {
   document2: Document2,
   documentOutlinePen: DocumentOutlinePen,
   documentOutline: DocumentOutline,
+  documentPenAlt: DocumentPenAlt,
   car: Car,
+  carFilled: CarFilled,
   flag: Flag,
   flagTime: FlagTime,
   work: Work,
@@ -114,6 +120,7 @@ const icons = {
   trash: Trash,
   trashLine: TrashLine,
   logout: Logout,
+  listFilled: ListFilled,
   search: Search,
   calendar: Calendar,
   profile: Profile,
@@ -137,6 +144,7 @@ const icons = {
   calendar2: Calendar2,
   residentCloud: ResidentCloud,
   trashOutline: TrashOutline,
+  home: Home,
 };
 
 export type IconKeysType = keyof typeof icons;

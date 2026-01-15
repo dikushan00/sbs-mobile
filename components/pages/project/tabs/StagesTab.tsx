@@ -6,6 +6,7 @@ import { getEntranceStages, getEntranceDocumentFloors, getPlacementTypes, getPro
 import { ProjectStageType, ProjectFiltersType, PlacementType, SimpleFloorType, SelectedDataType, ProjectEntranceAllInfoType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { Icon } from '@/components/Icon';
+import { PlacementBadges } from '@/components/pages/project/components/PlacementBadges';
 import { showBottomDrawer } from '@/services/redux/reducers/app';
 import { setPageSettings } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
@@ -226,20 +227,13 @@ export const StagesTab: React.FC<StagesTabProps> = ({ filters, onBack, project_i
                   
                   {/* Строка с тегами и статусом */}
                   <View style={styles.tagsRow}>
-                    <View style={styles.tagsContainer}>
-                      <View style={styles.tagItem}>
-                        <Icon name = "plan" width={12} height={12} fill={'#242424'} />
-                        <Text style={styles.tagLabel}>{item.floor}</Text>
-                      </View>
-                      <View style={styles.tagItem}>
-                        <Icon name = "residentCloud" width={12} height={12} fill={'#242424'} />
-                        <Text style={styles.tagLabel}>{item.block_name}</Text>
-                      </View>
-                      <View style={styles.tagItem}>
-                        <Icon name = "apartment" width={12} height={12} />
-                        <Text style={styles.tagLabel}>{item.placement_type_name}</Text>
-                      </View>
-                    </View>
+                    <PlacementBadges
+                      variant="tag"
+                      floor={item.floor}
+                      blockName={item.block_name}
+                      placementTypeName={item.placement_type_name}
+                      iconFill={COLORS.primarySecondary}
+                    />
                     {
                       item.check_status_code === 'DEFECT' 
                       ? <TouchableOpacity onPress={() => openComments(item)}>
@@ -363,40 +357,20 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
-  tagsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 12,
-  },
-  tagItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  tagLabel: {
-    fontSize: SIZES.small,
-    fontFamily: FONT.medium,
-    color: '#242424',
-  },
   statusBadge: {
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 6,
   },
   statusText: {
-    fontSize: SIZES.regular,
-    fontFamily: FONT.medium,
+    fontSize: SIZES.small,
+    fontFamily: FONT.regular,
     color: COLORS.white,
   },
   columnsContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 16,
-    marginBottom: 12,
   },
   column: {
     flex: 1,
@@ -429,6 +403,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginTop: 5,
   },
   commentsButtonText: {
     fontSize: SIZES.small,

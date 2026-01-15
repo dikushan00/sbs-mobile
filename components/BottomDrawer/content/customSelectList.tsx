@@ -58,7 +58,6 @@ export const CustomSelectList = ({ data, handleClose }: PropsType) => {
   useEffect(() => {
     
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', (e) => {
-      console.log(e);
         // При закрытии клавиатуры возвращаем к исходному snapPoint только если поле поиска пустое
         if (!searchQuery.trim() && snapToIndex) {
           snapToIndex(0);

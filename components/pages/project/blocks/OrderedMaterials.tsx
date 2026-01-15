@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { COLORS, FONT, SIZES } from '@/constants';
 import { ProjectMaterialsType } from '@/components/main/types';
-import { Block, BlockContainer } from './Block';
-import { Icon } from '@/components/Icon';
 import { numberWithCommas } from '@/utils';
+import { NotFound } from '@/components/common/NotFound';
 
-export const OrderedMaterials = ({data}: {data: ProjectMaterialsType[]}) => {
-  const [expandedEntrances, setExpandedEntrances] = useState<Set<number>>(new Set());
-
+export const OrderedMaterials = ({ data }: { data: ProjectMaterialsType[] }) => {
   // Вычисляем общую сумму всех материалов
   const totalSum = data.reduce((sum, entrance) => {
     return sum + entrance.materials.reduce((entranceSum, material) => {
@@ -16,142 +13,135 @@ export const OrderedMaterials = ({data}: {data: ProjectMaterialsType[]}) => {
     }, 0);
   }, 0);
 
-  const toggleEntrance = (entrance: number) => {
-    const newExpanded = new Set(expandedEntrances);
-    if (newExpanded.has(entrance)) {
-      newExpanded.delete(entrance);
-    } else {
-      newExpanded.add(entrance);
-    }
-    setExpandedEntrances(newExpanded);
-  };
+  if (!data.length) {
+    return (
+      <View>
+        <NotFound title="Не найдено данных" />
+      </View>
+    );
+  }
 
   return (
-    <BlockContainer>
-      <Block>
-        <View style={styles.sumBlock}>
-          <Text style={styles.sumTitle}>Итого</Text>
-          <View style={styles.sumRow}>
-            <Text style={styles.sumLabel}>Общая сумма:</Text>
-            <Text style={styles.sumValue}>{numberWithCommas(totalSum)} ₸</Text>
-          </View>
+    <View style={styles.container}>
+      {/* Итого */}
+      <View style={[styles.card, styles.cardFirst]}>
+        <View style={styles.totalRow}>
+          <Text style={styles.totalTitle}>Итого</Text>
+          <Text style={styles.totalValue}>{numberWithCommas(totalSum)} ₸</Text>
         </View>
-      </Block>
-      
-      {data?.map((entranceData) => (
-        <Block key={entranceData.entrance}
-        onPress={() => toggleEntrance(entranceData.entrance)}>
+      </View>
+
+      <ScrollView>
+      {/* По подъездам */}
+        {data.map((entranceData, entranceIndex) => (
           <View 
-            style={styles.entranceHeader}
+            key={entranceData.entrance} 
+            style={[
+              styles.card, 
+              {marginBottom: 12},
+              entranceIndex === data.length - 1 && styles.cardLast
+            ]}
           >
-            <Text style={styles.entranceTitle}>Подъезд №{entranceData.entrance}</Text>
-            <Icon 
-              name="arrowRightAlter" 
-              width={16} 
-              height={16} 
-              fill={COLORS.gray}
-              style={expandedEntrances.has(entranceData.entrance) ? styles.arrowIconRotated : styles.arrowIcon}
-            />
-          </View>
-          
-          {expandedEntrances.has(entranceData.entrance) && (
+            <Text style={styles.entranceTitle}>Подъезд {entranceData.entrance}</Text>
+            
             <View style={styles.materialsContainer}>
               {entranceData.materials?.map((material, index) => (
-                <View key={index} style={styles.materialItem}>
-                  <Text style={styles.materialName}>{material.material_name}</Text>
-                  <View style={styles.materialRow}>
-                    <Text style={styles.materialLabel}>Кол-во:</Text>
-                    <Text style={styles.materialValue}>
-                      {material.material_cnt} {material.sell_unit_name}
-                    </Text>
-                  </View>
-                  <View style={styles.materialRow}>
-                    <Text style={styles.materialLabel}>Сумма:</Text>
-                    <Text style={styles.materialValue}>
-                      {numberWithCommas(material.material_sum)} ₸
-                    </Text>
+                <View key={index}>
+                  {index > 0 && <View style={styles.materialDivider} />}
+                  <View style={styles.materialItem}>
+                    <Text style={styles.materialName}>{material.material_name}</Text>
+                    <View style={styles.materialRow}>
+                      <Text style={styles.materialLabel}>Количество:</Text>
+                      <Text style={styles.materialValue}>
+                        {numberWithCommas(material.material_cnt)} {material.sell_unit_name}
+                      </Text>
+                    </View>
+                    <View style={styles.materialRow}>
+                      <Text style={styles.materialLabel}>Сумма:</Text>
+                      <Text style={styles.materialValue}>
+                        {numberWithCommas(material.material_sum)} ₸
+                      </Text>
+                    </View>
                   </View>
                 </View>
               ))}
             </View>
-          )}
-        </Block>
-      ))}
-    </BlockContainer>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  sumBlock: {
-    gap: 8,
+  container: {
+    gap: 12,
+    backgroundColor: COLORS.backgroundNew,
   },
-  sumTitle: {
-    fontSize: SIZES.medium,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
+  card: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
   },
-  sumRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5
+  cardFirst: {
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
-  sumLabel: {
-    fontSize: SIZES.medium,
-    fontFamily: FONT.regular,
-    color: COLORS.gray,
+  cardLast: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
-  sumValue: {
-    fontSize: SIZES.medium,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-  },
-  entranceHeader: {
+  totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  totalTitle: {
+    fontSize: 15,
+    fontFamily: FONT.medium,
+    color: '#242424',
+  },
+  totalValue: {
+    fontSize: 16,
+    fontFamily: FONT.medium,
+    color: '#242424',
+  },
   entranceTitle: {
-    fontSize: SIZES.medium,
-    fontFamily: FONT.regular,
-    color: COLORS.black,
-  },
-  arrowIcon: {
-    transform: [{ rotate: '0deg' }],
-  },
-  arrowIconRotated: {
-    transform: [{ rotate: '90deg' }],
+    fontSize: 15,
+    fontFamily: FONT.medium,
+    color: '#242424',
+    marginBottom: 12,
   },
   materialsContainer: {
-    marginTop: 15,
-    gap: 15,
+    gap: 0,
+  },
+  materialDivider: {
+    height: 1,
+    backgroundColor: '#F0F0F0',
+    marginVertical: 12,
   },
   materialItem: {
-    backgroundColor: '#F2F5F8',
-    borderRadius: 6,
-    padding: 12,
-    gap: 4,
+    gap: 6,
   },
   materialName: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: FONT.regular,
-    color: COLORS.dark,
+    color: '#242424',
+    marginBottom: 4,
   },
   materialRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 8
   },
   materialLabel: {
-    fontSize: SIZES.regular,
+    fontSize: SIZES.small,
     fontFamily: FONT.regular,
-    color: COLORS.darkGray,
-    minWidth: 50,
+    color: COLORS.gray,
+    marginRight: 6,
   },
   materialValue: {
-    fontSize: SIZES.regular,
-    fontFamily: FONT.regular,
-    color: COLORS.dark,
-    flex: 1,
+    fontSize: SIZES.small,
+    fontFamily: FONT.medium,
+    color: '#242424',
   },
 });
