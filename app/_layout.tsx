@@ -60,8 +60,9 @@ export default function RootLayout() {
       <Provider store={store}>
         <PaperProvider>
           <StatusBar
-            backgroundColor={COLORS.primary}
-            barStyle={"light-content"}
+            backgroundColor={'#FFF'}
+            barStyle="dark-content"
+            translucent={false}
           />
           <SafeAreaProvider
             style={{ paddingTop: Platform.OS === "ios" ? 0 : insets.top }}

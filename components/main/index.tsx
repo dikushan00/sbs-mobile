@@ -21,12 +21,13 @@ import { CustomLoader } from "../common/CustomLoader";
 import { OuraFab } from "./OuraFab";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Icon } from "../Icon";
+import { MainModeTabContent } from "./MainModeTabContent";
 
 export const MainPage = () => {
   const dispatch = useDispatch();
   const route = useRoute();
   const navigation = useNavigation();
-  const routeParams = route.params as { project_id?: number; tab?: keyof typeof tabNames } | undefined;
+  const routeParams = route.params as { project_id?: number; tab?: keyof typeof tabNames, mainMode?: boolean } | undefined;
   const [isFetching, setIsFetching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null);
@@ -83,7 +84,6 @@ export const MainPage = () => {
       setInitialTab(tabNames[routeParams.tab]);
     }
 
-    console.log(routeParams, targetProject);
     // Auto-select the project
     handleProjectSelect(targetProject);
   }, [projectList, routeParams])
@@ -131,68 +131,51 @@ export const MainPage = () => {
     handleContinue()
   };
 
-  const getProjectTypeColor = (projectTypeName: string): string => {
-    const typeName = projectTypeName.toLowerCase();
-    if (typeName.includes('черновая') || typeName.includes('чернов')) {
-      return '#6C757D'; // Серый для черновой
-    } else if (typeName.includes('чистовая') || typeName.includes('чистов')) {
-      return '#4ECDC4'; // Бирюзовый для чистовой
-    } else if (typeName.includes('стяжка') || typeName.includes('стяж')) {
-      return '#95E1D3'; // Светло-бирюзовый для косметической
-    } else if (typeName.includes('капитальная') || typeName.includes('капитальн')) {
-      return '#F38181'; // Розовый для капитальной
-    } else if (typeName.includes('элитная') || typeName.includes('элит')) {
-      return '#AA96DA'; // Фиолетовый для элитной
-    } else if (typeName.includes('дизайнерская') || typeName.includes('дизайн')) {
-      return '#FCBAD3'; // Светло-розовый для дизайнерской
-    } else {
-      return COLORS.primaryLight; // По умолчанию
-    }
-  };
-
   const renderProjectCard = (project: ProjectType) => (
     <TouchableOpacity
       key={project.project_id}
       style={styles.projectCard}
       onPress={() => handleProjectSelect(project)}
     >
-      <View style={styles.projectHeader}>
-        <Text style={styles.projectName}>{project.resident_name}</Text>
-        {project.can_sign && !project.is_signed && <View style={styles.statusButton}>
-          <Text style={styles.statusText}>На подписании</Text>
-        </View>}
-      </View>
-      
-      <View style={styles.projectDetails}>
-        <View style={styles.projectTypeContainer}>
-          <Icon name = "noteStar" width={14} height={14} fill={COLORS.primarySecondary} />
-          <Text style={styles.projectTypeText}>{project.project_type_name}</Text>
+      <View>
+        <View style={styles.projectHeader}>
+          <Text style={styles.projectName}>{project.resident_name}</Text>
+          {project.can_sign && !project.is_signed && <View style={styles.statusButton}>
+            <Text style={styles.statusText}>На подписании</Text>
+          </View>}
         </View>
-        <View style={styles.blocksRow}>
-          <Icon name="residentCloud" width={14} height={14} fill={COLORS.primarySecondary} />
-          {project?.blocks && (
-            <View style={styles.blocksList}>
-              {project.blocks.split(' / ').map((block, index) => {
-                const entranceNumber = block.trim().split(' ')[0];
-                const blockName = block.trim().split(' ')[1];
-                return (<View key={index} style={styles.blockBadge}>
-                  <Text style={styles.blockIndex}>{entranceNumber}</Text>
-                  <Text style={styles.blockText}>{blockName}</Text>
-                </View>)
-              })}
+        
+        <View style={styles.projectDetails}>
+          <View style={styles.projectTypeContainer}>
+            <Text style={styles.projectTypeText}>{project.project_type_name}</Text>
+          </View>
+          <View style={styles.blocksRow}>
+            <Text>Подъезды:</Text>
+            {project?.blocks && (
+              <View style={styles.blocksList}>
+                {project.blocks.split(' / ').map((block, index) => {
+                  const entranceNumber = block.trim().split(' ')[0];
+                  const blockName = block.trim().split(' ')[1];
+                  return (<View key={index} style={styles.blockBadge}>
+                    <Text style={styles.blockIndex}>{entranceNumber}</Text>
+                    <Text style={styles.blockText}>{blockName}</Text>
+                  </View>)
+                })}
+              </View>
+            )}
+          </View>
+          <View style={styles.dateRow}>
+            <Text>Период:</Text>
+            <View style={styles.dateBadge}>
+              <Text style={styles.detailTextValue}>{project.start_date}</Text>
+              <Text style={styles.detailTextValue}>-</Text>
+              <Text style={styles.detailTextValue}>{project.finish_date}</Text>
             </View>
-          )}
-        </View>
-        <View style={styles.dateRow}>
-          <View style={styles.dateBadge}>
-            <Icon name="calendar2" width={14} height={14} fill={COLORS.primarySecondary} />
-            <Text style={styles.detailTextValue}>{project.start_date}</Text>
-          </View>
-          <View style={styles.dateBadge}>
-            <Icon name="calendar2" width={14} height={14} fill={COLORS.primarySecondary} />
-            <Text style={styles.detailTextValue}>{project.finish_date}</Text>
           </View>
         </View>
+      </View>
+      <View style={styles.arrowIconContainer}>
+        <Icon name="arrowRightBlack" width={14} height={14} fill={'#757575'} />
       </View>
     </TouchableOpacity>
   );
@@ -204,6 +187,31 @@ export const MainPage = () => {
     // @ts-ignore
     navigation.setParams({ project_id: undefined, tab: undefined });
   };
+
+  const handleMainModeReset = () => {
+    setShowProjectPage(false);
+    setInitialTab(undefined);
+    lastHandledParamsRef.current = null;
+    setProjectId(null);
+    setSelectedData(null);
+    setFilters({
+      resident_id: null,
+      project_type_id: null,
+      project_entrance_id: null,
+    });
+  };
+
+  if (routeParams?.mainMode && routeParams?.tab && showProjectPage) {
+    return (
+      <MainModeTabContent
+        currentTab={tabNames[routeParams.tab]}
+        projectId={projectId}
+        selectedData={selectedData}
+        filters={filters}
+        onReset={handleMainModeReset}
+      />
+    );
+  }
 
   if (showProjectPage && selectedData) {
     return (
@@ -262,6 +270,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
+    position: 'relative',
+  },
+  arrowIconContainer: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    height: 14,
+    width: 14,
+    transform: [{ translateY: 7 }],
   },
   projectHeader: {
     flexDirection: 'row',
@@ -270,7 +287,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   projectName: {
-    fontSize: SIZES.large,
+    fontSize: SIZES.medium,
     fontFamily: FONT.medium,
     color: COLORS.black,
     flex: 1,
@@ -280,7 +297,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff3cd',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 6,
   },
   statusText: {
     fontSize: SIZES.small,
@@ -305,6 +322,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     flexWrap: 'wrap',
+    backgroundColor: COLORS.primaryBackground,
+    padding: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   projectTypeBadge: {
     paddingHorizontal: 10,
@@ -312,8 +334,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   projectTypeText: {
-    fontSize: 16,
-    color: '#242424',
+    fontSize: 12,
+    color: '#0075CA',
   },
   blocksContainer: {
     flexDirection: 'row',

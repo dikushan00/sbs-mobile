@@ -61,7 +61,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 3,
     height: 40,
-    maxHeight: 40
+    maxHeight: 40,
+    flex: 0
   },
   tab: {
     height: 48,

@@ -9,15 +9,20 @@ import { CustomSelect } from '@/components/common/CustomSelect';
 import { numberWithCommas } from '@/utils';
 import { NotFound } from '@/components/common/NotFound';
 import { EntranceSelector } from '@/components/common/EntranceSelector';
+import { PlacementBadges } from '@/components/pages/project/components/PlacementBadges';
+import { setPageSettings } from '@/services/redux/reducers/app';
+import { useDispatch } from 'react-redux';
+import { setPageHeaderData } from '@/services/redux/reducers/userApp';
 
 interface PaymentsTabProps {
   filters: ProjectFiltersType;
-  onBack: () => void;
+  onBack?: () => void;
   project_id: number | null;
   selectedData: SelectedDataType
 }
 
 export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, project_id, selectedData }) => {
+  const dispatch = useDispatch();
   const [allPaymentsData, setAllPaymentsData] = useState<ProjectPaymentType[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [placementTypes, setPlacementTypes] = useState<PlacementType[]>([]);
@@ -30,6 +35,19 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
     placement_type_id: null as number | null,
     floor: null as number | null,
   });
+
+  useEffect(() => {
+    if(onBack) {
+      dispatch(setPageSettings({
+        backBtn: true,
+        goBack: onBack
+      }));
+      dispatch(setPageHeaderData({
+        title: 'Платежи',
+        desc: '',
+      }));
+    }
+  }, [onBack]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -90,6 +108,8 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
 
   const totalColSum = paymentsData?.reduce((sum, item) => sum + item.col_sum, 0) || 0;
   const totalPaymentAmount = paymentsData?.reduce((sum, item) => sum + item.payment_amount, 0) || 0;
+  const paymentPercentage = totalColSum > 0 ? Math.min((totalPaymentAmount / totalColSum) * 100, 100) : 0;
+  const remainingAmount = Math.max(totalColSum - totalPaymentAmount, 0);
 
   if (!paymentsData && !loading) {
     return (
@@ -149,16 +169,46 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
         </View>
       </View>
       
-      {!!paymentsData?.length && <View style={styles.summaryContainer}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel} allowFontScaling={false}>Общая сумма работ</Text>
-          <Text style={styles.summaryValue}>{numberWithCommas(totalColSum)} ₸</Text>
+      {!!paymentsData?.length && <View style={styles.summaryContainerWrapper}>
+        <Text style={styles.summaryTitle}>Итого</Text>
+        <View style={styles.summaryContainer}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel} allowFontScaling={false}>Cумма работ</Text>
+            <Text style={styles.summaryValue}>{numberWithCommas(totalColSum)} ₸</Text>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel} allowFontScaling={false}>Cумма платежей</Text>
+            <Text style={styles.summaryValue}>{numberWithCommas(totalPaymentAmount)} ₸</Text>
+          </View>
         </View>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryLabel} allowFontScaling={false}>Общая сумма платежей</Text>
-          <Text style={styles.summaryValue}>{numberWithCommas(totalPaymentAmount)} ₸</Text>
+         {/* Прогресс-бар оплаты */}
+         <View style={styles.progressContainer}>
+          {/* <View style={styles.progressHeader}> */}
+            {/* <Text style={styles.progressLabel}>Оплачено</Text> */}
+            {/* <Text style={styles.progressPercentage}>{paymentPercentage.toFixed(1)}%</Text> */}
+          {/* </View> */}
+          <View style={styles.progressBarContainer}>
+            {paymentPercentage > 0 && (
+              <View style={[styles.progressBarFill, { flex: paymentPercentage }]} />
+            )}
+            {paymentPercentage < 100 && (
+              <View style={[styles.progressBarRemaining, { flex: 100 - paymentPercentage }]} />
+            )}
+          </View>
+          {/* <View style={styles.progressFooter}> */}
+            {/* <View style={styles.progressLegendItem}>
+              <View style={[styles.progressLegendDot, { backgroundColor: '#4CAF50' }]} /> */}
+              {/* <Text style={styles.progressLegendText}>Оплачено: {numberWithCommas(totalPaymentAmount)} ₸</Text> */}
+            {/* </View> */}
+            {/* <View style={styles.progressLegendItem}> */}
+              {/* <View style={[styles.progressLegendDot, { backgroundColor: '#E53935' }]} /> */}
+              {/* <Text style={styles.progressLegendText}>Остаток: {numberWithCommas(remainingAmount)} ₸</Text> */}
+            {/* </View> */}
+          {/* </View> */}
         </View>
-      </View>}
+      </View>
+      }
       
       {loading && <CustomLoader />}
       <ScrollView 
@@ -178,20 +228,13 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
                 
                 {/* Строка с тегами и статусом */}
                 <View style={styles.tagsRow}>
-                  <View style={styles.tagsContainer}>
-                    <View style={styles.tagItem}>
-                      <Icon name="plan" width={12} height={12} fill={'#242424'} />
-                      <Text style={styles.tagLabel}>{item.floor}</Text>
-                    </View>
-                    <View style={styles.tagItem}>
-                      <Icon name="residentCloud" width={12} height={12} fill={'#242424'} />
-                      <Text style={styles.tagLabel}>{item.block_name}</Text>
-                    </View>
-                    <View style={styles.tagItem}>
-                      <Icon name="apartment" width={12} height={12} />
-                      <Text style={styles.tagLabel}>{item.placement_type_name}</Text>
-                    </View>
-                  </View>
+                  <PlacementBadges
+                    variant="tag"
+                    floor={item.floor}
+                    blockName={item.block_name}
+                    placementTypeName={item.placement_type_name}
+                    iconFill={'#242424'}
+                  />
                   <View style={[styles.statusBadge, { backgroundColor: getStatusColour(item.status_code) }]}>
                     <Text style={styles.statusText}>{item.status_name}</Text>
                   </View>
@@ -215,7 +258,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ filters, onBack, proje
                     <View style={styles.columnValue}>
                       <Icon name="calendar2" width={12} height={12} fill={COLORS.primarySecondary} />
                       <Text style={styles.columnValueText}>{item.date_create}</Text>
-                      <Text style={{color: COLORS.gray, fontSize: SIZES.small, marginLeft: 5}}>Создано</Text>
+                      {!!item.date_create && <Text style={{color: COLORS.gray, fontSize: SIZES.small, marginLeft: 5}}>Создано</Text>}
                     </View>
                   </View>
                   
@@ -289,21 +332,8 @@ const styles = StyleSheet.create({
   selectWrapper: {
     flex: 1,
   },
-  summaryContainer: {
-    flexDirection: 'row',
-    gap: 15,
-    paddingHorizontal: 20,
-    paddingVertical: 5,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.grayLight,
-  },
   summaryItem: {
-    flex: 1,
-    alignItems: 'center',
     paddingVertical: 5,
-    backgroundColor: COLORS.background,
-    borderRadius: 8,
   },
   summaryLabel: {
     fontSize: SIZES.small,
@@ -335,25 +365,6 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
-  tagsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 12,
-  },
-  tagItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  tagLabel: {
-    fontSize: SIZES.small,
-    fontFamily: FONT.medium,
-    color: '#242424',
-  },
   statusBadge: {
     borderRadius: 8,
     paddingHorizontal: 8,
@@ -379,7 +390,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 16,
-    marginBottom: 12,
   },
   column: {
     flex: 1,
@@ -412,10 +422,89 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    marginTop: 12,
   },
   downloadText: {
     fontSize: SIZES.small,
     fontFamily: FONT.regular,
     color: COLORS.primarySecondary,
+  },
+  summaryDivider: {
+    width: 1,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 1,
+    height: 18,
+  },
+  summaryContainerWrapper: {
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+    backgroundColor: COLORS.white,
+    borderEndEndRadius: 16,
+    borderStartEndRadius: 16,
+  },
+  summaryTitle: {
+    fontSize: SIZES.regular,
+    fontFamily: FONT.semiBold,
+    color: '#242424',
+  },
+  summaryContainer: {
+    flexDirection: 'row',
+    gap: 15,
+    paddingVertical: 5,
+    alignItems: 'center',
+  },
+  progressContainer: {
+    paddingBottom: 10,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  progressLabel: {
+    fontSize: SIZES.small,
+    fontFamily: FONT.medium,
+    color: '#242424',
+  },
+  progressPercentage: {
+    fontSize: SIZES.medium,
+    fontFamily: FONT.semiBold,
+    color: '#4CAF50',
+  },
+  progressBarContainer: {
+    flexDirection: 'row',
+    height: 4,
+    gap: 4,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#64CA31',
+    borderRadius: 2,
+  },
+  progressBarRemaining: {
+    height: '100%',
+    backgroundColor: '#F63942',
+    borderRadius: 2,
+  },
+  progressFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  progressLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  progressLegendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  progressLegendText: {
+    fontSize: 11,
+    fontFamily: FONT.regular,
+    color: COLORS.gray,
   },
 });

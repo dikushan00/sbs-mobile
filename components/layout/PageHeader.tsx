@@ -1,8 +1,7 @@
 import { useRoute } from "@react-navigation/native";
 import {
   StyleSheet,
-  Text,
-  TouchableOpacity,
+  Pressable,
   View,
   Platform,
 } from "react-native";
@@ -12,6 +11,7 @@ import { HeaderTitle } from "./HeaderTitle";
 import { Icon } from "../Icon";
 import { useSelector } from "react-redux";
 import { appState } from "@/services/redux/reducers/app";
+import { useMemo } from "react";
 
 export const PageHeader = ({
   navigation,
@@ -21,7 +21,7 @@ export const PageHeader = ({
   params: any;
 }) => {
   const { pageSettings, newVersionBannerShowed } = useSelector(appState);
-  const route: { params?: { withoutLayout?: boolean; backBtn?: boolean } } =
+  const route: { name?: string; params?: { withoutLayout?: boolean; backBtn?: boolean } } =
     useRoute();
   const insets = useSafeAreaInsets();
 
@@ -31,14 +31,20 @@ export const PageHeader = ({
     if (navigation.canGoBack()) navigation.goBack();
   };
 
-  const showBackBtn = (navigation.canGoBack() && route?.params?.backBtn !== false) || pageSettings.backBtn
+  const isHomePage = route?.name === 'home' || route?.name === 'profile';
+
+  const showBackBtn = useMemo(() => {
+    if (isHomePage) return false;
+    return (navigation.canGoBack() && route?.params?.backBtn !== false) || pageSettings.backBtn
+  }, [navigation, route?.params?.backBtn, pageSettings.backBtn, isHomePage]);
+  
   return (
     <View
       style={{
         ...styles.header,
         justifyContent: "space-between",
         position: "relative",
-        paddingLeft: showBackBtn ? 0 : 15,
+        paddingLeft: showBackBtn ? 5 : 15,
         paddingTop:
           Platform.OS === "ios" ? (newVersionBannerShowed ? 0 : insets.top) : 0,
       }}
@@ -48,9 +54,19 @@ export const PageHeader = ({
       ) : (
         <View>
           {showBackBtn ? (
-            <TouchableOpacity onPress={handleBack} style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+            <Pressable 
+              onPress={handleBack} 
+              style={({ pressed }) => [
+                { 
+                  paddingHorizontal: 20, 
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  backgroundColor: pressed ? 'rgba(0, 0, 0, 0.03)' : 'transparent',
+                }
+              ]}
+            >
               <Icon name="back" />
-            </TouchableOpacity>
+            </Pressable>
           ) : (
             <View style={{ width: 30, height: 32 }}></View> 
           )}

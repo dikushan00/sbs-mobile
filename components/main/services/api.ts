@@ -10,11 +10,6 @@ export const residentialSettingsAPI = {
       .get(`/project/agreement/project_id/${project_id}/`)
       .then((res) => res?.data);
   },
-  async signDocument(body: {project_agreement_id: number}): Promise<ReqResponse<{redirect_url: string} | undefined>> {
-    return await instance()
-      .post(`/project/agreement/sign/`, body)
-      .then((res) => res?.data);
-  },
   async downloadDocumentPDF(body = {}) {
     return await instance()
       .post(`/project/agreement/sign/download/`, body, {responseType: 'arraybuffer'})
@@ -184,11 +179,6 @@ export const residentialSettingsAPI = {
   async changeDateEntranceDocument(body: {floor_map_document_id: number, date_begin: string, date_end: string}, params: ProjectFiltersType) {
     return await instance()
       .put(`/project/documents/change_date/`, body, { params })
-      .then((res) => res?.data);
-  },
-  async signEntranceDocument(body: {floor_map_document_id: number}, params: ProjectFiltersType) {
-    return await instance()
-      .post(`/project/documents/sign/`, body, { params })
       .then((res) => res?.data);
   },
   async getFloorMapPoints(floor_map_id: number, params = {}):Promise<ReqResponse<FloorCheckPoint[] | undefined>> {

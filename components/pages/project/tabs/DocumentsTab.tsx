@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, AppState, RefreshControl, Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, FONT, mobileSignUrl, mobileSignBusinessUrl, SIZES } from '@/constants';
-import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, signEntranceDocument, getProjectEntrances } from '@/components/main/services';
+import { getEntranceDocuments, getEntranceDocumentFloors, getEntranceDocumentTypes, getProjectEntrances } from '@/components/main/services';
 import { DocumentTypeType, ProjectEntranceAllInfoType, ProjectFiltersType, ProjectMainDocumentType, SelectedDataType, SimpleFloorType } from '@/components/main/types';
 import { CustomLoader } from '@/components/common/CustomLoader';
 import { Icon } from '@/components/Icon';
-import { closeBottomDrawer, showBottomDrawer } from '@/services/redux/reducers/app';
+import { PlacementBadges } from '@/components/pages/project/components/PlacementBadges';
+import { setPageSettings, showBottomDrawer } from '@/services/redux/reducers/app';
 import { BOTTOM_DRAWER_KEYS } from '@/components/BottomDrawer/constants';
 import { CustomSelect } from '@/components/common/CustomSelect';
 import { NotFound } from '@/components/common/NotFound';
-import { userAppState } from '@/services/redux/reducers/userApp';
+import { setPageHeaderData, userAppState } from '@/services/redux/reducers/userApp';
 import * as ExpoLinking from 'expo-linking';
 import { EntranceSelector } from '@/components/common/EntranceSelector';
 import { downloadAndOpenFile, openLocalFileIfExists } from '@/utils';
@@ -19,7 +20,7 @@ import { instance } from '@/services/api';
 
 interface DocumentsTabProps {
   filters: ProjectFiltersType;
-  onBack: () => void;
+  onBack?: () => void;
   isSBS: boolean;
   selectedData: SelectedDataType
 }
@@ -30,7 +31,6 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
   const egovSignUrl = userType === 'business' ? mobileSignBusinessUrl : mobileSignUrl;
   const [documentsData, setDocumentsData] = useState<ProjectMainDocumentType[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState<Record<number, boolean>>({});
   const [floorsData, setFloorsData] = useState<SimpleFloorType[]>([]);
   const [documentTypesData, setDocumentTypesData] = useState<DocumentTypeType[]>([]);
   const [localFilters, setLocalFilters] = useState({
@@ -39,6 +39,19 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
     floor_map_document_type_id: null as any
   });
   const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    if(onBack) {
+      dispatch(setPageSettings({
+        backBtn: true,
+        goBack: onBack
+      }));
+      dispatch(setPageHeaderData({
+        title: 'Документы',
+        desc: '',
+      }));
+    }
+  }, [onBack]);
 
   const fetchInitialData = useCallback(async () => {
     const [entrancesData, documentTypes] = await Promise.all([
@@ -184,26 +197,6 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
 
     const link = `${egovSignUrl}?link=${apiUrl}`
     await Linking.openURL(link);
-    return
-    if (processing[floor_map_document_id]) return;
-    setProcessing(prev => ({...prev, [floor_map_document_id]: true}));
-
-    const body = {
-      floor_map_document_id,
-    };
-
-    const res = await signEntranceDocument(body, filters);
-    setProcessing(prev => ({...prev, [floor_map_document_id]: false}));
-    dispatch(closeBottomDrawer())
-    if(!res) return;
-    try {
-      if (res?.redirect_url) {
-        const canOpen = await Linking.canOpenURL(res.redirect_url);
-        if (canOpen) {
-          await Linking.openURL(res.redirect_url);
-        }
-      }
-    } catch (error) {}
   };
 
   const handleDownload = async (document: ProjectMainDocumentType) => {
@@ -306,20 +299,13 @@ export const DocumentsTab: React.FC<DocumentsTabProps> = ({ filters, onBack, isS
                   </TouchableOpacity> */}
                 </View>
                 <View style={{flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap'}}>
-                  <View style={styles.dateStatusRow}>
-                    <View style={styles.dateBadge}>
-                      <Icon name="plan" width={14} height={14} fill={'#242424'} />
-                      <Text style={styles.dateText}>{item.floor}</Text>
-                    </View>
-                    <View style={styles.dateBadge}>
-                      <Icon name="residentCloud" width={14} height={14} fill={'#242424'} />
-                      <Text style={styles.dateText}>{item.block_name}</Text>
-                    </View>
-                    <View style={styles.dateBadge}>
-                      <Icon name="apartment" width={14} height={14} />
-                      <Text style={styles.dateText}>{item.placement_type_name}</Text>
-                    </View>
-                  </View>
+                  <PlacementBadges
+                    variant="badge"
+                    floor={item.floor}
+                    blockName={item.block_name}
+                    placementTypeName={item.placement_type_name}
+                    iconFill={COLORS.primarySecondary}
+                  />
                   <TouchableOpacity 
                     style={{...styles.statusContainer, backgroundColor: getStatusColour(item.is_signed, userSigned)}}
                     onPress={() => handleSign(item)}
@@ -554,27 +540,6 @@ const styles = StyleSheet.create({
     fontSize: SIZES.small,
     fontFamily: FONT.medium,
     color: COLORS.red,
-  },
-  dateStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    // flexWrap: 'wrap',
-    gap: 10,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 5,
-    alignSelf: 'flex-start',
-  },
-  dateBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dateText: {
-    fontSize: 12,
-    fontFamily: FONT.medium,
-    color: '#242424',
   },
   documentName: {
     flex: 1,

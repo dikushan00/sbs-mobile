@@ -80,14 +80,14 @@ export const LoginForm = ({ disabled = false }) => {
       [
         {
           text: "НЕТ",
-          onPress: resetAuthData,
+          onPress: disableBiometry,
         },
         {
           text: "ДА",
           onPress: () => saveAuthData(data),
         },
       ],
-      { cancelable: true, onDismiss: resetAuthData }
+      { cancelable: true, onDismiss: disableBiometry }
     );
   };
 
@@ -117,6 +117,16 @@ export const LoginForm = ({ disabled = false }) => {
     } catch (e) {}
   };
 
+  // IMPORTANT: do not call resetAuthData() when user denies biometrics.
+  // resetAuthData() deletes access/refresh tokens too, causing logout after successful login.
+  const disableBiometry = async () => {
+    try {
+      await SecureStore.setItemAsync(STORE_KEYS.allowBiometry, "false", {keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY});
+      await SecureStore.deleteItemAsync(STORE_KEYS.login);
+      await SecureStore.deleteItemAsync(STORE_KEYS.password);
+    } catch (e) {}
+  };
+
   type BodyType = AuthLoginData & {
     mobile_token?: string | null;
     is_mobile?: boolean;
@@ -141,7 +151,8 @@ export const LoginForm = ({ disabled = false }) => {
     try {
       allowBiometry = await SecureStore.getItemAsync(STORE_KEYS.allowBiometry);
     } catch (e) {
-      await resetAuthData();
+      // If SecureStore read fails, don't wipe auth tokens. Just treat as disabled.
+      allowBiometry = "false";
     }
 
     if (!newBiometricUser) {
@@ -150,7 +161,8 @@ export const LoginForm = ({ disabled = false }) => {
           await isUserAllowBiometry(body);
         else if (allowBiometry === "true" && !isBiometric) saveAuthData(body);
       } catch (e) {
-        await resetAuthData();
+        // Do not wipe tokens on biometry flow issues
+        await disableBiometry();
       }
     }
     dispatch(setAuth(true));

@@ -362,7 +362,7 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
         </AnimatedTouchableOpacity>
       </View> */}
 
-      {aiChatVisible && (
+      {/* {aiChatVisible && (
         <Animated.View 
           style={[
             styles.aiChatOverlay,
@@ -379,12 +379,12 @@ export const MaterialsTab: React.FC<MaterialsTabProps> = ({ filters, onBack, sel
             },
           ]}
         >
-          {/* <AIChatOrderScreen
+          <AIChatOrderScreen
             onBack={handleBackToMaterials}
             projectId={selectedData?.project_id}
-          /> */}
+          />
         </Animated.View>
-      )}
+      )} */}
     </View>
   );
 };

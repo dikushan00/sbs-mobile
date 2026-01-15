@@ -39,6 +39,7 @@ export const STORAGE_KEYS = {
 export type UserTypeValue = 'individual' | 'business';
 
 export const PAGE_NAMES = {
+  home: "home",
   main: "main",
   okk: "okk",
   login: "login",
@@ -48,6 +49,7 @@ export const PAGE_NAMES = {
   notifications: "notifications",
   notificationDetails: "notificationDetails",
   profile: "profile",
+  contracts: "contracts",
 };
 
 export type PageNameKeysType = keyof typeof PAGE_NAMES;

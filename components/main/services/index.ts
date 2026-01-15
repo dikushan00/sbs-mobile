@@ -21,13 +21,6 @@ export const getDocuments = async (project_id: number): Promise<ProjectDocumentT
     return res?.data || [];
   } catch (e) {}
 };
-export const signDocument = async (body: {project_agreement_id: number}):Promise<{redirect_url: string} | undefined> => {
-  try {
-    const res = await residentialSettingsAPI.signDocument(body);
-    return res?.data
-  } catch (e) {
-  }
-};
 export const getResidentList = async (): Promise<ResidentType[] | undefined> => {
   try {
     const res = await residentialSettingsAPI.getResidentials();
@@ -323,12 +316,6 @@ export const changeDateEntranceDocument = async (body: {floor_map_document_id: n
       body,
       params
     );
-    return res?.data;
-  } catch (e) {}
-};
-export const signEntranceDocument = async (body: {floor_map_document_id: number}, params: ProjectFiltersType) => {
-  try {
-    const res = await residentialSettingsAPI.signEntranceDocument(body, params);
     return res?.data;
   } catch (e) {}
 };

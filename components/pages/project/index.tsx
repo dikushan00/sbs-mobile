@@ -88,7 +88,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
     if (!initialTab || !tabulations.length) return;
     const targetTab = tabulations.find(tab => tab.grant_code === initialTab);
     if (targetTab) {
-      handleTabPress(targetTab);
+      handleTabPress(targetTab as Tabulation);
       // Clear initialTab after consuming it
       onInitialTabConsumed?.();
     }
@@ -175,9 +175,9 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
       case 'M__ProjectFormMaterialTab':
         return <MaterialsTab filters={filters} onBack={backToProject} selectedData={selectedData} />;
       case 'M__ProjectFormRemontCostTab':
-        return <PaymentsTab filters={filters} onBack={backToProject} project_id={projectId} selectedData={selectedData} />;
+        return <PaymentsTab filters={filters} project_id={projectId} selectedData={selectedData} />;
       case 'M__ProjectFormDocumentTab':
-        return <DocumentsTab filters={filters} onBack={backToProject} isSBS={isSBS} selectedData={selectedData} />;
+        return <DocumentsTab filters={filters} isSBS={isSBS} selectedData={selectedData} />;
       case 'M__ProjectFormStagesTab':
         return <StagesTab filters={filters} onBack={backToProject} project_id={projectId} selectedData={selectedData}/>;
       default:
@@ -310,7 +310,7 @@ export const ProjectPage: React.FC<ProjectPageProps> = ({
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {projectData?.can_sign && !projectData?.is_signed && <View style={{flexDirection: 'row', gap: 10, alignItems: 'center', 
-      backgroundColor: '#F5EECA', padding: 15, borderRadius: 12, marginBottom: 15}}>
+          backgroundColor: '#F5EECA', padding: 15, borderRadius: 12, marginBottom: 15}}>
         <View style={{borderRadius: '50%', backgroundColor: '#BBBE31', padding: 5}}>
           <Icon name='clock' fill='#fff' />
         </View>
