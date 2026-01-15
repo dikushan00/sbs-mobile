@@ -38,6 +38,19 @@ export const FooterNav = () => {
         },
       ]}
     >
+      <TouchableOpacity
+        style={styles.item}
+        onPress={() => goTo(PAGE_NAMES.home)}
+      >
+        <Icon name="home"
+          fill={isActive(PAGE_NAMES.home) ? COLORS.primary : "#D1D5DB"}
+          width={20} height={20} />
+        <Text
+          style={[styles.label, isActive(PAGE_NAMES.home) && styles.activeText]}
+        >
+          Главная
+        </Text>
+      </TouchableOpacity>
       {isOkk && <TouchableOpacity
         style={styles.item}
         onPress={() => goTo(PAGE_NAMES.okk)}
@@ -91,16 +104,22 @@ export const FooterNav = () => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0, 0, 0, .15)",
     backgroundColor: '#F9F9FA',
-    paddingTop: 8,
-    paddingHorizontal: 20,
+    // backgroundColor: 'rgba(249, 249, 250, 0.9)',
+    paddingHorizontal: 10,
     justifyContent: "space-around",
+    // Shadow: 0px -2px 10px 0px #0000000D
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    // Shadow for Android
+    elevation: 8,
   },
   item: {
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 10,
+    paddingBottom: 13,
     flex: 1,
     gap: 4,
   },

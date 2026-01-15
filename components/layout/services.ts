@@ -4,12 +4,19 @@ import NotificationsPage from "@/app/notifications";
 import NotificationDetailsPage from "@/app/notification-details";
 import ProfilePage from "@/app/profile";
 import OkkPage from "@/app/okk";
+import HomePage from "@/app/home";
 import { PAGE_NAMES } from "@/constants";
 import { sortArrayToFirstPlace } from "@/services";
 import MainPage from "@/app/index";
 import RegisterPage from "@/app/register";
+import { ContractsPage } from "../pages/contracts";
 
 export const authRoutes = [
+  {
+    name: PAGE_NAMES.home,
+    component: HomePage,
+    options: { title: "Главная" },
+  },
   {
     name: PAGE_NAMES.notifications,
     component: NotificationsPage,
@@ -40,6 +47,11 @@ export const authRoutes = [
     component: MainPage,
     options: { title: "Проекты", withDesc: true, dynamicTitle: true },
   },
+  {
+    name: PAGE_NAMES.contracts,
+    component: ContractsPage,
+    options: { title: "Договоры", withDesc: true, dynamicTitle: true },
+  },
 ];
 
 export const getAuthRoutes = () => {
@@ -47,7 +59,7 @@ export const getAuthRoutes = () => {
     return sortArrayToFirstPlace(
       [...authRoutes],
       "name",
-      PAGE_NAMES.main
+      PAGE_NAMES.home
     );
   } catch (e) {
   }
